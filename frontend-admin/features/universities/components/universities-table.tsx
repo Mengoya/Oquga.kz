@@ -42,8 +42,7 @@ export function UniversitiesTable({ data, isLoading }: UniversitiesTableProps) {
     const router = useRouter();
     const { user } = useAuthStore();
 
-    const canEdit = user?.role === 'UNIVERSITY_ADMIN';
-    const isMainAdmin = user?.role === 'MAIN_ADMIN';
+    const isUniversityAdmin = user?.role === 'UNIVERSITY_ADMIN';
 
     if (isLoading) {
         return <UniversitiesTableSkeleton />;
@@ -80,12 +79,12 @@ export function UniversitiesTable({ data, isLoading }: UniversitiesTableProps) {
                         <TableHead className="text-center">KK</TableHead>
                         <TableHead className="text-center">EN</TableHead>
                         <TableHead>Прогресс</TableHead>
-                        <TableHead className="w-[50px]"></TableHead>
+                        {isUniversityAdmin && <TableHead className="w-[50px]"></TableHead>}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {data.map((uni) => {
-                        const canEditThis = canEdit && user?.universityId === Number(uni.id);
+                        const canEditThis = isUniversityAdmin && user?.universityId === Number(uni.id);
 
                         return (
                             <TableRow key={uni.id} className="group">
@@ -120,32 +119,32 @@ export function UniversitiesTable({ data, isLoading }: UniversitiesTableProps) {
                                         </span>
                                     </div>
                                 </TableCell>
-                                <TableCell>
-                                    {(canEditThis || isMainAdmin) && (
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="opacity-0 group-hover:opacity-100"
-                                                >
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                    <span className="sr-only">
-                                                        {tActions('more')}
-                                                    </span>
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                {canEditThis && (
+                                {isUniversityAdmin && (
+                                    <TableCell>
+                                        {canEditThis && (
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="opacity-0 group-hover:opacity-100"
+                                                    >
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                        <span className="sr-only">
+                                                            {tActions('more')}
+                                                        </span>
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onClick={() => handleEdit(uni.id)}>
                                                         <Edit className="mr-2 h-4 w-4" />
                                                         Редактировать
                                                     </DropdownMenuItem>
-                                                )}
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    )}
-                                </TableCell>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        )}
+                                    </TableCell>
+                                )}
                             </TableRow>
                         );
                     })}
@@ -176,7 +175,7 @@ function UniversitiesTableSkeleton() {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        {[...Array(7)].map((_, i) => (
+                        {[...Array(6)].map((_, i) => (
                             <TableHead key={i}>
                                 <div className="h-4 w-24 animate-pulse rounded bg-muted" />
                             </TableHead>
@@ -186,7 +185,7 @@ function UniversitiesTableSkeleton() {
                 <TableBody>
                     {[...Array(5)].map((_, i) => (
                         <TableRow key={i}>
-                            {[...Array(7)].map((_, j) => (
+                            {[...Array(6)].map((_, j) => (
                                 <TableCell key={j}>
                                     <div className="h-4 w-full animate-pulse rounded bg-muted/50" />
                                 </TableCell>

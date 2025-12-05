@@ -57,7 +57,9 @@ api.interceptors.response.use(
             _retry?: boolean;
         };
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        const status = error.response?.status;
+
+        if (status === 401 && !originalRequest._retry) {
             if (originalRequest.url?.includes('/auth/refresh')) {
                 useAuthStore.getState().logout();
                 if (typeof window !== 'undefined') {

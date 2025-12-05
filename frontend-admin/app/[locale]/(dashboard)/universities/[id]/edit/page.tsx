@@ -28,6 +28,8 @@ export default function UniversityEditPage() {
         }
     }, [user, id, router]);
 
+    const isUniversityAdmin = user?.role === 'UNIVERSITY_ADMIN';
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -57,9 +59,11 @@ export default function UniversityEditPage() {
         <main className="container mx-auto p-6">
             <div className="flex flex-col gap-6">
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                        <ArrowLeft className="h-4 w-4" />
-                    </Button>
+                    {!isUniversityAdmin && (
+                        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                    )}
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">
                             {translation?.name || 'Редактирование'}
@@ -74,10 +78,7 @@ export default function UniversityEditPage() {
                     <div className="lg:col-span-2">
                         <div className="rounded-lg border bg-card p-6">
                             <h2 className="text-lg font-semibold mb-4">Основная информация</h2>
-                            <UniversityEditForm
-                                university={university}
-                                onSuccess={() => router.push('/')}
-                            />
+                            <UniversityEditForm university={university} />
                         </div>
                     </div>
                     <div>

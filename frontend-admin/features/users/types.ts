@@ -1,35 +1,40 @@
 import { z } from 'zod';
 
-export const UserRoleSchema = z.enum(['admin', 'manager', 'viewer']);
-
-export const UserSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    email: z.email(),
-    role: UserRoleSchema,
-    universityId: z.string().nullable(),
-    universityName: z.string().optional(),
-    status: z.enum(['active', 'blocked']),
-    lastLogin: z.iso.datetime().nullable(),
-    createdAt: z.iso.datetime(),
+export const UniversityAdminSchema = z.object({
+    id: z.number(),
+    email: z.string().email(),
+    firstName: z.string(),
+    lastName: z.string(),
+    isActive: z.boolean(),
+    universityId: z.number().nullable(),
+    universityName: z.string().nullable(),
+    createdAt: z.string(),
 });
 
-export type User = z.infer<typeof UserSchema>;
+export type UniversityAdmin = z.infer<typeof UniversityAdminSchema>;
 
-export type UserFilters = {
+export interface UniversityAdminListResponse {
+    data: UniversityAdmin[];
+    meta: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    };
+}
+
+export const CreateUniversityAdminSchema = z.object({
+    firstName: z.string().min(2, 'Минимум 2 символа'),
+    lastName: z.string().min(2, 'Минимум 2 символа'),
+    email: z.string().email('Некорректный email'),
+    password: z.string().min(6, 'Минимум 6 символов'),
+    universityId: z.number({ required_error: 'Выберите университет' }),
+});
+
+export type CreateUniversityAdminValues = z.infer<typeof CreateUniversityAdminSchema>;
+
+export type UniversityAdminFilters = {
     search?: string;
-    role?: string;
-    universityId?: string;
     page?: number;
     limit?: number;
 };
-
-export const CreateUserSchema = z.object({
-    name: z.string().min(2),
-    email: z.email(),
-    password: z.string().min(6),
-    role: z.enum(['admin', 'manager', 'viewer']),
-    universityId: z.string().nullable(),
-});
-
-export type CreateUserValues = z.infer<typeof CreateUserSchema>;

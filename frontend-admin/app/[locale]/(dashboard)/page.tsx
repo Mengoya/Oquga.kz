@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useEffect } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { fetchUniversities } from '@/features/universities/api';
 import { UniversitiesTable } from '@/features/universities/components/universities-table';
@@ -9,18 +10,41 @@ import { useDataTableParams } from '@/hooks/use-data-table-params';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useAuthStore } from '@/stores/use-auth-store';
+import { useRouter } from '@/i18n/routing';
 
 export default function DashboardPage() {
     const t = useTranslations('Dashboard');
     const tActions = useTranslations('Common.actions');
+    const router = useRouter();
+    const { user } = useAuthStore();
 
     const { page, search, setParams } = useDataTableParams();
+
+    const isUniversityAdmin = user?.role === 'UNIVERSITY_ADMIN';
+
+    useEffect(() => {
+        if (isUniversityAdmin && user?.universityId) {
+            router.replace(`/universities/${user.universityId}/edit` as any);
+        }
+    }, [isUniversityAdmin, user?.universityId, router]);
 
     const { data, isLoading } = useQuery({
         queryKey: ['universities', page, search],
         queryFn: () => fetchUniversities({ page, search, limit: 10 }),
         placeholderData: keepPreviousData,
+        enabled: !isUniversityAdmin,
     });
+
+    if (isUniversityAdmin) {
+        return (
+            <main className="container mx-auto p-6">
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <p className="text-muted-foreground">Перенаправление...</p>
+                </div>
+            </main>
+        );
+    }
 
     const totalPages = data?.meta.totalPages || 0;
     const hasNextPage = page < totalPages;
@@ -47,14 +71,14 @@ export default function DashboardPage() {
                     <div className="text-sm text-muted-foreground">
                         {data?.meta.total
                             ? t.rich('shown', {
-                                  count: data.data.length,
-                                  total: data.meta.total,
-                                  span: (chunks) => (
-                                      <span className="font-medium text-foreground">
+                                count: data.data.length,
+                                total: data.meta.total,
+                                span: (chunks) => (
+                                    <span className="font-medium text-foreground">
                                           {chunks}
                                       </span>
-                                  ),
-                              })
+                                ),
+                            })
                             : t('notFound.title')}
                     </div>
                     <div className="flex items-center gap-2">
