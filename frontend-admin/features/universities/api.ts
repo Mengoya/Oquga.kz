@@ -1,62 +1,155 @@
-import { CreateUniversityValues, University, UniversitySchema } from './types';
-
-const MOCK_UNIVERSITIES: University[] = Array.from({ length: 50 }).map(
-    (_, i) => ({
-        id: `uni-${i + 1}`,
-        name:
-            i % 2 === 0
-                ? `Kazakh National University #${i + 1}`
-                : `Astana IT University #${i + 1}`,
-        city: i % 3 === 0 ? 'Almaty' : 'Astana',
-        programsCount: 20 + i * 2,
-        studentsCount: 5000 + i * 100,
-        rating: Number((3.5 + Math.random() * 1.5).toFixed(1)),
-        status: i % 5 === 0 ? 'archived' : 'active',
-        updatedAt: new Date().toISOString(),
-    }),
-);
+import { apiClient } from '@/lib/api-client';
+import {
+    CreateUniversityValues,
+    University,
+    UniversityApiResponse,
+    UniversityListApiResponse,
+} from './types';
 
 export async function fetchUniversities({
-    search,
-    page = 1,
-    limit = 10,
-}: {
+                                            search,
+                                            page = 1,
+                                            limit = 10,
+                                        }: {
     search?: string;
     page?: number;
     limit?: number;
-}) {
-    await new Promise((resolve) => setTimeout(resolve, 600));
+}): Promise<{ data: University[]; meta: UniversityListApiResponse['meta'] }> {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    params.append('page', String(page));
+    params.append('limit', String(limit));
 
-    let data = [...MOCK_UNIVERSITIES];
+    const response = await apiClient.get<UniversityListApiResponse>(
+        `/universities?${params.toString()}`,
+    );
 
-    if (search) {
-        const lowerSearch = search.toLowerCase();
-        data = data.filter(
-            (u) =>
-                u.name.toLowerCase().includes(lowerSearch) ||
-                u.city.toLowerCase().includes(lowerSearch),
-        );
-    }
-
-    const total = data.length;
-    const start = (page - 1) * limit;
-    const end = start + limit;
-
-    const parsedData = UniversitySchema.array().parse(data.slice(start, end));
+    const data: University[] = response.data.map(mapApiResponseToUniversity);
 
     return {
-        data: parsedData,
-        meta: {
-            total,
-            page,
-            limit,
-            totalPages: Math.ceil(total / limit),
-        },
+        data,
+        meta: response.meta,
     };
 }
 
-export async function createUniversity(data: CreateUniversityValues) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log('Creating university:', data);
-    return { success: true, id: Date.now().toString() };
+export async function createUniversity(
+    data: CreateUniversityValues,
+): Promise<{ success: boolean; id: string }> {
+    const translations: Record<
+        string,
+        { name: string; city?: string; description?: string }
+    > = {};
+
+    if (data.translations.ru?.name) {
+        translations.ru = {
+            name: data.translations.ru.name,
+            city: data.translations.ru.city || undefined,
+            description: data.translations.ru.description || undefined,
+        };
+    }
+    if (data.translations.kk?.name) {
+        translations.kk = {
+            name: data.translations.kk.name,
+            city: data.translations.kk.city || undefined,
+            description: data.translations.kk.description || undefined,
+        };
+    }
+    if (data.translations.en?.name) {
+        translations.en = {
+            name: data.translations.en.name,
+            city: data.translations.en.city || undefined,
+            description: data.translations.en.description || undefined,
+        };
+    }
+
+    const primaryName =
+        data.translations.ru?.name ||
+        data.translations.kk?.name ||
+        data.translations.en?.name ||
+        '';
+
+    const requestBody = {
+        slug: generateSlug(primaryName),
+        translations,
+    };
+
+    const response = await apiClient.post<UniversityApiResponse>(
+        '/universities',
+        requestBody,
+    );
+
+    return { success: true, id: String(response.id) };
+}
+
+function mapApiResponseToUniversity(api: UniversityApiResponse): University {
+    const translation =
+        api.translations.ru || api.translations.kk || api.translations.en;
+
+    return {
+        id: String(api.id),
+        name: translation?.name || '',
+        city: translation?.city || '',
+        programsCount: 0,
+        studentsCount: 0,
+        rating: 0,
+        status: 'active',
+        updatedAt: api.updatedAt,
+    };
+}
+
+function generateSlug(name: string): string {
+    const translitMap: Record<string, string> = {
+        а: 'a',
+        б: 'b',
+        в: 'v',
+        г: 'g',
+        д: 'd',
+        е: 'e',
+        ё: 'yo',
+        ж: 'zh',
+        з: 'z',
+        и: 'i',
+        й: 'y',
+        к: 'k',
+        л: 'l',
+        м: 'm',
+        н: 'n',
+        о: 'o',
+        п: 'p',
+        р: 'r',
+        с: 's',
+        т: 't',
+        у: 'u',
+        ф: 'f',
+        х: 'h',
+        ц: 'ts',
+        ч: 'ch',
+        ш: 'sh',
+        щ: 'sch',
+        ъ: '',
+        ы: 'y',
+        ь: '',
+        э: 'e',
+        ю: 'yu',
+        я: 'ya',
+        ә: 'a',
+        і: 'i',
+        ң: 'n',
+        ғ: 'g',
+        ү: 'u',
+        ұ: 'u',
+        қ: 'k',
+        ө: 'o',
+        һ: 'h',
+    };
+
+    return name
+        .toLowerCase()
+        .split('')
+        .map((char) => translitMap[char] || char)
+        .join('')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .substring(0, 50);
 }

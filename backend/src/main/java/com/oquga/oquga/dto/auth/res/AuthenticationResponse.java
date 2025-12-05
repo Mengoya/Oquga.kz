@@ -1,4 +1,4 @@
-package com.oquga.oquga.dto.auth;
+package com.oquga.oquga.dto.auth.res;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

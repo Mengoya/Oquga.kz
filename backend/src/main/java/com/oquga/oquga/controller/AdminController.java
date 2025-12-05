@@ -1,6 +1,6 @@
 package com.oquga.oquga.controller;
 
-import com.oquga.oquga.dto.admin.UniversityAdminCreateRequest;
+import com.oquga.oquga.dto.admin.req.UniversityAdminCreateRequest;
 import com.oquga.oquga.service.AuthenticationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

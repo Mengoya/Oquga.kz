@@ -1,4 +1,4 @@
-package com.oquga.oquga.dto.admin;
+package com.oquga.oquga.dto.admin.req;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

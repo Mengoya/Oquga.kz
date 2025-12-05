@@ -33,5 +33,5 @@ build/
 .vscode/
 
 *.txt
-.env
+src/main/resources/.env
 .env.prod

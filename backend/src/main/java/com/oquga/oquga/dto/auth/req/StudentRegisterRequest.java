@@ -1,4 +1,4 @@
-package com.oquga.oquga.dto.auth;
+package com.oquga.oquga.dto.auth.req;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -1,8 +1,8 @@
 package com.oquga.oquga.controller;
 
-import com.oquga.oquga.dto.auth.AuthenticationRequest;
-import com.oquga.oquga.dto.auth.AuthenticationResponse;
-import com.oquga.oquga.dto.auth.StudentRegisterRequest;
+import com.oquga.oquga.dto.auth.req.AuthenticationRequest;
+import com.oquga.oquga.dto.auth.req.StudentRegisterRequest;
+import com.oquga.oquga.dto.auth.res.AuthenticationResponse;
 import com.oquga.oquga.service.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
