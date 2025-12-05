@@ -32,6 +32,10 @@ build/
 ### VS Code ###
 .vscode/
 
+*.env
+.env*
+!.env.example
+.env
 *.txt
 src/main/resources/.env
 .env.prod
