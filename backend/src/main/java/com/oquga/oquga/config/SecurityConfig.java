@@ -32,7 +32,11 @@ public class SecurityConfig {
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/refresh",
-                                "/api/v1/auth/logout"
+                                "/api/v1/auth/logout",
+                                "/api/v1/ai/chat",
+                                "/api/v1/universities",
+                                "/api/v1/universities/{id}",
+                                "/api/v1/universities/{id}/view"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
