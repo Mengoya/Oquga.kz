@@ -31,6 +31,12 @@ public class University {
     @Column(name = "founded_year")
     private Integer foundedYear;
 
+    @Column(name = "contact_phone", length = 50)
+    private String contactPhone;
+
+    @Column(name = "contact_email", length = 255)
+    private String contactEmail;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -40,6 +46,9 @@ public class University {
     @OneToMany(mappedBy = "university", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UniversityTranslation> translations = new ArrayList<>();
 
+    @OneToMany(mappedBy = "university", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<HistoryEvent> historyEvents = new ArrayList<>();
+
     public void addTranslation(UniversityTranslation translation) {
         translations.add(translation);
         translation.setUniversity(this);
@@ -48,5 +57,15 @@ public class University {
     public void removeTranslation(UniversityTranslation translation) {
         translations.remove(translation);
         translation.setUniversity(null);
+    }
+
+    public void addHistoryEvent(HistoryEvent historyEvent) {
+        historyEvents.add(historyEvent);
+        historyEvent.setUniversity(this);
+    }
+
+    public void removeHistoryEvent(HistoryEvent historyEvent) {
+        historyEvents.remove(historyEvent);
+        historyEvent.setUniversity(null);
     }
 }

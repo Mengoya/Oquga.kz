@@ -40,6 +40,9 @@ public class UniversityTranslation {
     @Column(length = 100)
     private String city;
 
+    @Column(name = "history_text", columnDefinition = "TEXT")
+    private String historyText;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
