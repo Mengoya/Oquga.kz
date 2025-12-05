@@ -17,4 +17,6 @@ public interface UniversityService {
     UniversityResponse createUniversity(CreateUniversityRequest request);
 
     UniversityDetailResponse updateUniversity(Long id, UpdateUniversityRequest request, String userEmail);
+
+    void incrementViewCount(Long id);
 }

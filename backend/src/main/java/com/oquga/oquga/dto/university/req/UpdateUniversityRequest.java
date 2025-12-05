@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 
 public record UpdateUniversityRequest(
+        String photoUrl,
         String websiteUrl,
         Integer foundedYear,
         String contactPhone,
@@ -17,6 +18,7 @@ public record UpdateUniversityRequest(
     public record TranslationDto(
             String name,
             String city,
+            String shortDescription,
             String description,
             String goal,
             String address,

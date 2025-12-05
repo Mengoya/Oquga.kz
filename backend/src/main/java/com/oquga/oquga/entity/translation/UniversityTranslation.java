@@ -30,6 +30,9 @@ public class UniversityTranslation {
     @Column(nullable = false, length = 255)
     private String name;
 
+    @Column(name = "short_description", length = 500)
+    private String shortDescription;
+
     @Column(columnDefinition = "TEXT")
     private String description;
 

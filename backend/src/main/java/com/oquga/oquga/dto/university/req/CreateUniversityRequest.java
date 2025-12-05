@@ -11,6 +11,9 @@ public record CreateUniversityRequest(
         @NotBlank(message = "Slug is required")
         String slug,
 
+        @NotBlank(message = "Photo URL is required")
+        String photoUrl,
+
         String websiteUrl,
 
         Integer foundedYear,
@@ -30,6 +33,8 @@ public record CreateUniversityRequest(
 
             @NotBlank(message = "City is required")
             String city,
+
+            String shortDescription,
 
             String description
     ) {}

@@ -66,4 +66,10 @@ public class UniversityController {
     ) {
         return ResponseEntity.ok(universityService.updateUniversity(id, request, authentication.getName()));
     }
+
+    @PostMapping("/{id}/view")
+    public ResponseEntity<Void> incrementViewCount(@PathVariable Long id) {
+        universityService.incrementViewCount(id);
+        return ResponseEntity.ok().build();
+    }
 }
