@@ -49,6 +49,12 @@ public class University {
     @OneToMany(mappedBy = "university", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<HistoryEvent> historyEvents = new ArrayList<>();
 
+    @OneToMany(mappedBy = "university", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Achievement> achievements = new ArrayList<>();
+
+    @OneToMany(mappedBy = "university", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Leadership> leadership = new ArrayList<>();
+
     public void addTranslation(UniversityTranslation translation) {
         translations.add(translation);
         translation.setUniversity(this);
@@ -67,5 +73,25 @@ public class University {
     public void removeHistoryEvent(HistoryEvent historyEvent) {
         historyEvents.remove(historyEvent);
         historyEvent.setUniversity(null);
+    }
+
+    public void addAchievement(Achievement achievement) {
+        achievements.add(achievement);
+        achievement.setUniversity(this);
+    }
+
+    public void removeAchievement(Achievement achievement) {
+        achievements.remove(achievement);
+        achievement.setUniversity(null);
+    }
+
+    public void addLeadership(Leadership leader) {
+        leadership.add(leader);
+        leader.setUniversity(this);
+    }
+
+    public void removeLeadership(Leadership leader) {
+        leadership.remove(leader);
+        leader.setUniversity(null);
     }
 }
