@@ -8,10 +8,14 @@ import { useState, useEffect } from 'react';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useTranslations } from 'next-intl';
 import { CreateUniversityDialog } from '@/features/universities/components/create-university-dialog';
+import { useAuthStore } from '@/stores/use-auth-store';
 
 export function UniversitiesToolbar() {
     const tDashboard = useTranslations('Dashboard');
     const tCommon = useTranslations('Common.actions');
+    const { user } = useAuthStore();
+
+    const isMainAdmin = user?.role === 'MAIN_ADMIN';
 
     const { search, setParams } = useDataTableParams();
     const [localSearch, setLocalSearch] = useState(search);
@@ -53,7 +57,7 @@ export function UniversitiesToolbar() {
                 </Button>
             </div>
             <div className="flex items-center gap-2">
-                <CreateUniversityDialog />
+                {isMainAdmin && <CreateUniversityDialog />}
             </div>
         </div>
     );

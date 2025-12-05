@@ -18,7 +18,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogOut, User, Settings } from 'lucide-react';
+import { LogOut, User, Settings, Building2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export function Header() {
@@ -45,10 +45,13 @@ export function Header() {
         }
     };
 
+    const isMainAdmin = user?.role === 'MAIN_ADMIN';
+    const isUniversityAdmin = user?.role === 'UNIVERSITY_ADMIN';
+
     const navItems = [
-        { href: '/', label: tNav('universities') },
-        { href: '/users', label: tNav('users') },
-    ];
+        { href: '/', label: tNav('universities'), show: true },
+        { href: '/users', label: tNav('users'), show: isMainAdmin },
+    ].filter(item => item.show);
 
     const displayName = user ? `${user.firstName} ${user.lastName}` : '';
     const initials = user ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase() : '';
@@ -86,6 +89,15 @@ export function Header() {
                 </div>
 
                 <div className="flex items-center gap-4">
+                    {isUniversityAdmin && user?.universityId && (
+                        <Button variant="outline" size="sm" asChild>
+                            <Link href={`/universities/${user.universityId}/edit` as any}>
+                                <Building2 className="mr-2 h-4 w-4" />
+                                Мой ВУЗ
+                            </Link>
+                        </Button>
+                    )}
+
                     <LanguageSwitcher />
 
                     {!isMounted ? (
@@ -118,6 +130,10 @@ export function Header() {
                                         </p>
                                         <p className="text-xs leading-none text-muted-foreground">
                                             {user.email}
+                                        </p>
+                                        <p className="text-xs text-primary">
+                                            {user.role === 'MAIN_ADMIN' ? 'Главный администратор' :
+                                                user.role === 'UNIVERSITY_ADMIN' ? 'Администратор ВУЗа' : 'Студент'}
                                         </p>
                                     </div>
                                 </DropdownMenuLabel>

@@ -3,7 +3,9 @@ import {
     CreateUniversityValues,
     University,
     UniversityApiResponse,
+    UniversityDetailResponse,
     UniversityListApiResponse,
+    UpdateUniversityValues,
 } from './types';
 
 export async function fetchUniversities({
@@ -30,6 +32,10 @@ export async function fetchUniversities({
         data,
         meta: response.meta,
     };
+}
+
+export async function fetchUniversityDetail(id: string): Promise<UniversityDetailResponse> {
+    return apiClient.get<UniversityDetailResponse>(`/universities/${id}/detail`);
 }
 
 export async function createUniversity(
@@ -81,9 +87,21 @@ export async function createUniversity(
     return { success: true, id: String(response.id) };
 }
 
+export async function updateUniversity(
+    id: string,
+    data: UpdateUniversityValues,
+): Promise<UniversityDetailResponse> {
+    return apiClient.put<UniversityDetailResponse>(`/universities/${id}`, data);
+}
+
 function mapApiResponseToUniversity(api: UniversityApiResponse): University {
     const translation =
         api.translations.ru || api.translations.kk || api.translations.en;
+
+    const translationsStatus: Record<string, { isComplete: boolean }> = {};
+    for (const [lang, t] of Object.entries(api.translations)) {
+        translationsStatus[lang] = { isComplete: t.isComplete };
+    }
 
     return {
         id: String(api.id),
@@ -93,54 +111,20 @@ function mapApiResponseToUniversity(api: UniversityApiResponse): University {
         studentsCount: 0,
         rating: 0,
         status: 'active',
+        progressPercent: api.progressPercent,
+        translations: translationsStatus,
         updatedAt: api.updatedAt,
     };
 }
 
 function generateSlug(name: string): string {
     const translitMap: Record<string, string> = {
-        а: 'a',
-        б: 'b',
-        в: 'v',
-        г: 'g',
-        д: 'd',
-        е: 'e',
-        ё: 'yo',
-        ж: 'zh',
-        з: 'z',
-        и: 'i',
-        й: 'y',
-        к: 'k',
-        л: 'l',
-        м: 'm',
-        н: 'n',
-        о: 'o',
-        п: 'p',
-        р: 'r',
-        с: 's',
-        т: 't',
-        у: 'u',
-        ф: 'f',
-        х: 'h',
-        ц: 'ts',
-        ч: 'ch',
-        ш: 'sh',
-        щ: 'sch',
-        ъ: '',
-        ы: 'y',
-        ь: '',
-        э: 'e',
-        ю: 'yu',
-        я: 'ya',
-        ә: 'a',
-        і: 'i',
-        ң: 'n',
-        ғ: 'g',
-        ү: 'u',
-        ұ: 'u',
-        қ: 'k',
-        ө: 'o',
-        һ: 'h',
+        а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'yo', ж: 'zh',
+        з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o',
+        п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts',
+        ч: 'ch', ш: 'sh', щ: 'sch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu',
+        я: 'ya', ә: 'a', і: 'i', ң: 'n', ғ: 'g', ү: 'u', ұ: 'u', қ: 'k',
+        ө: 'o', һ: 'h',
     };
 
     return name

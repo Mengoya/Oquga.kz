@@ -13,12 +13,22 @@ import { Button } from '@/components/ui/button';
 import {
     MoreHorizontal,
     GraduationCap,
-    Users,
-    Star,
     MapPin,
+    Check,
+    X,
+    Edit,
 } from 'lucide-react';
 import { University } from '../types';
-import { useFormatter, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
+import { Progress } from '@/components/ui/progress';
+import { useRouter } from '@/i18n/routing';
+import { useAuthStore } from '@/stores/use-auth-store';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface UniversitiesTableProps {
     data: University[];
@@ -29,7 +39,11 @@ export function UniversitiesTable({ data, isLoading }: UniversitiesTableProps) {
     const t = useTranslations('Dashboard.table.headers');
     const tNotFound = useTranslations('Dashboard.notFound');
     const tActions = useTranslations('Common.actions');
-    const format = useFormatter();
+    const router = useRouter();
+    const { user } = useAuthStore();
+
+    const canEdit = user?.role === 'UNIVERSITY_ADMIN';
+    const isMainAdmin = user?.role === 'MAIN_ADMIN';
 
     if (isLoading) {
         return <UniversitiesTableSkeleton />;
@@ -51,6 +65,10 @@ export function UniversitiesTable({ data, isLoading }: UniversitiesTableProps) {
         );
     }
 
+    const handleEdit = (id: string) => {
+        router.push(`/universities/${id}/edit` as any);
+    };
+
     return (
         <div className="rounded-md border bg-card shadow-sm">
             <Table>
@@ -58,86 +76,96 @@ export function UniversitiesTable({ data, isLoading }: UniversitiesTableProps) {
                     <TableRow>
                         <TableHead className="w-[300px]">{t('name')}</TableHead>
                         <TableHead>{t('city')}</TableHead>
-                        <TableHead>{t('programs')}</TableHead>
-                        <TableHead>{t('students')}</TableHead>
-                        <TableHead>{t('rating')}</TableHead>
-                        <TableHead>{t('status')}</TableHead>
+                        <TableHead className="text-center">RU</TableHead>
+                        <TableHead className="text-center">KK</TableHead>
+                        <TableHead className="text-center">EN</TableHead>
+                        <TableHead>Прогресс</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {data.map((uni) => (
-                        <TableRow key={uni.id} className="group">
-                            <TableCell className="font-medium">
-                                <div className="flex flex-col">
-                                    <span className="truncate">{uni.name}</span>
-                                    <span className="text-xs text-muted-foreground">
-                                        ID: {uni.id}
-                                    </span>
-                                </div>
-                            </TableCell>
-                            <TableCell>
-                                <div className="flex items-center gap-1.5 text-muted-foreground">
-                                    <MapPin className="h-3.5 w-3.5" />
-                                    {uni.city}
-                                </div>
-                            </TableCell>
-                            <TableCell>
-                                {format.number(uni.programsCount)}
-                            </TableCell>
-                            <TableCell>
-                                <div className="flex items-center gap-1.5">
-                                    <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                                    {format.number(uni.studentsCount)}
-                                </div>
-                            </TableCell>
-                            <TableCell>
-                                <div className="flex items-center gap-1 font-medium">
-                                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                                    {format.number(uni.rating, {
-                                        minimumFractionDigits: 1,
-                                        maximumFractionDigits: 1,
-                                    })}
-                                </div>
-                            </TableCell>
-                            <TableCell>
-                                <StatusBadge status={uni.status} />
-                            </TableCell>
-                            <TableCell>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="opacity-0 group-hover:opacity-100"
-                                >
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">
-                                        {tActions('more')}
-                                    </span>
-                                </Button>
-                            </TableCell>
-                        </TableRow>
-                    ))}
+                    {data.map((uni) => {
+                        const canEditThis = canEdit && user?.universityId === Number(uni.id);
+
+                        return (
+                            <TableRow key={uni.id} className="group">
+                                <TableCell className="font-medium">
+                                    <div className="flex flex-col">
+                                        <span className="truncate">{uni.name}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                            ID: {uni.id}
+                                        </span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                                        <MapPin className="h-3.5 w-3.5" />
+                                        {uni.city}
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                    <LanguageStatus isComplete={uni.translations?.ru?.isComplete} />
+                                </TableCell>
+                                <TableCell className="text-center">
+                                    <LanguageStatus isComplete={uni.translations?.kk?.isComplete} />
+                                </TableCell>
+                                <TableCell className="text-center">
+                                    <LanguageStatus isComplete={uni.translations?.en?.isComplete} />
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2 min-w-[120px]">
+                                        <Progress value={uni.progressPercent} className="h-2" />
+                                        <span className="text-xs text-muted-foreground w-8">
+                                            {uni.progressPercent}%
+                                        </span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    {(canEditThis || isMainAdmin) && (
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="opacity-0 group-hover:opacity-100"
+                                                >
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                    <span className="sr-only">
+                                                        {tActions('more')}
+                                                    </span>
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                {canEditThis && (
+                                                    <DropdownMenuItem onClick={() => handleEdit(uni.id)}>
+                                                        <Edit className="mr-2 h-4 w-4" />
+                                                        Редактировать
+                                                    </DropdownMenuItem>
+                                                )}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    )}
+                                </TableCell>
+                            </TableRow>
+                        );
+                    })}
                 </TableBody>
             </Table>
         </div>
     );
 }
 
-function StatusBadge({ status }: { status: string }) {
-    const t = useTranslations('Dashboard.status');
-
-    const variants: Record<
-        string,
-        'default' | 'secondary' | 'outline' | 'destructive'
-    > = {
-        active: 'default',
-        archived: 'secondary',
-        pending: 'outline',
-    };
-
-    return (
-        <Badge variant={variants[status] || 'outline'}>
-            {t(status as any)}
+function LanguageStatus({ isComplete }: { isComplete?: boolean }) {
+    if (isComplete === undefined) {
+        return <span className="text-muted-foreground">-</span>;
+    }
+    return isComplete ? (
+        <Badge variant="default" className="h-6 w-6 p-0 justify-center">
+            <Check className="h-3 w-3" />
+        </Badge>
+    ) : (
+        <Badge variant="secondary" className="h-6 w-6 p-0 justify-center">
+            <X className="h-3 w-3" />
         </Badge>
     );
 }
@@ -148,7 +176,7 @@ function UniversitiesTableSkeleton() {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        {[...Array(6)].map((_, i) => (
+                        {[...Array(7)].map((_, i) => (
                             <TableHead key={i}>
                                 <div className="h-4 w-24 animate-pulse rounded bg-muted" />
                             </TableHead>
@@ -158,7 +186,7 @@ function UniversitiesTableSkeleton() {
                 <TableBody>
                     {[...Array(5)].map((_, i) => (
                         <TableRow key={i}>
-                            {[...Array(6)].map((_, j) => (
+                            {[...Array(7)].map((_, j) => (
                                 <TableCell key={j}>
                                     <div className="h-4 w-full animate-pulse rounded bg-muted/50" />
                                 </TableCell>
