@@ -12,7 +12,6 @@ import com.oquga.oquga.service.UniversityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +19,10 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,28 +36,38 @@ public class UniversityServiceImpl implements UniversityService {
     @Override
     @Transactional(readOnly = true)
     public UniversityListResponse getUniversities(String search, int page, int limit) {
-        PageRequest pageRequest = PageRequest.of(
-                page - 1,
-                limit,
-                Sort.by(Sort.Direction.DESC, "createdAt")
-        );
+        PageRequest pageRequest = PageRequest.of(page - 1, limit);
 
-        Page<University> universityPage = universityRepository.findAllWithSearch(
-                search == null || search.isBlank() ? null : search,
-                pageRequest
-        );
+        Page<Long> idPage;
+        if (search == null || search.isBlank()) {
+            idPage = universityRepository.findAllIds(pageRequest);
+        } else {
+            idPage = universityRepository.findIdsWithSearch(search.trim(), pageRequest);
+        }
 
-        List<UniversityResponse> data = universityPage.getContent().stream()
-                .map(this::mapToResponse)
-                .toList();
+        List<UniversityResponse> data;
+        if (idPage.getContent().isEmpty()) {
+            data = List.of();
+        } else {
+            List<University> universities = universityRepository.findByIdsWithTranslations(idPage.getContent());
+
+            Map<Long, University> universityMap = universities.stream()
+                    .collect(Collectors.toMap(University::getId, Function.identity()));
+
+            data = idPage.getContent().stream()
+                    .map(universityMap::get)
+                    .filter(Objects::nonNull)
+                    .map(this::mapToResponse)
+                    .toList();
+        }
 
         return new UniversityListResponse(
                 data,
                 new UniversityListResponse.MetaDto(
-                        universityPage.getTotalElements(),
+                        idPage.getTotalElements(),
                         page,
                         limit,
-                        universityPage.getTotalPages()
+                        idPage.getTotalPages()
                 )
         );
     }
