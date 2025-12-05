@@ -20,10 +20,13 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class UniversityServiceImpl implements UniversityService {
+
+    private static final Set<String> REQUIRED_LANGUAGES = Set.of("ru", "kk", "en");
 
     private final UniversityRepository universityRepository;
     private final LanguageRepository languageRepository;
@@ -68,6 +71,8 @@ public class UniversityServiceImpl implements UniversityService {
     @Override
     @Transactional
     public UniversityResponse createUniversity(CreateUniversityRequest request) {
+        validateTranslations(request.translations());
+
         if (universityRepository.existsBySlug(request.slug())) {
             throw new RuntimeException("University with this slug already exists");
         }
@@ -91,8 +96,8 @@ public class UniversityServiceImpl implements UniversityService {
             UniversityTranslation translation = new UniversityTranslation();
             translation.setLanguage(language);
             translation.setName(translationDto.name());
-            translation.setDescription(translationDto.description());
             translation.setCity(translationDto.city());
+            translation.setDescription(translationDto.description());
             translation.setCreatedAt(LocalDateTime.now());
             translation.setUpdatedAt(LocalDateTime.now());
 
@@ -101,6 +106,26 @@ public class UniversityServiceImpl implements UniversityService {
 
         University saved = universityRepository.save(university);
         return mapToResponse(saved);
+    }
+
+    private void validateTranslations(Map<String, CreateUniversityRequest.TranslationDto> translations) {
+        if (translations == null || translations.size() != 3) {
+            throw new RuntimeException("All three translations (ru, kk, en) are required");
+        }
+
+        for (String lang : REQUIRED_LANGUAGES) {
+            if (!translations.containsKey(lang)) {
+                throw new RuntimeException("Translation for language '" + lang + "' is required");
+            }
+
+            CreateUniversityRequest.TranslationDto dto = translations.get(lang);
+            if (dto.name() == null || dto.name().isBlank()) {
+                throw new RuntimeException("Name is required for language: " + lang);
+            }
+            if (dto.city() == null || dto.city().isBlank()) {
+                throw new RuntimeException("City is required for language: " + lang);
+            }
+        }
     }
 
     private UniversityResponse mapToResponse(University university) {
