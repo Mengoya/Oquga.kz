@@ -4,6 +4,7 @@ import './globals.css';
 import React from 'react';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
+import { AiChat } from '@/components/chat/ai-chat';
 import { cn } from '@/lib/utils';
 
 const geistSans = Geist({
@@ -29,23 +30,24 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
-    children,
-}: Readonly<{
+                                       children,
+                                   }: Readonly<{
     children: React.ReactNode;
 }>) {
     return (
         <html lang="ru" suppressHydrationWarning>
-            <body
-                className={cn(
-                    geistSans.variable,
-                    geistMono.variable,
-                    'antialiased min-h-screen flex flex-col font-sans bg-background text-foreground',
-                )}
-            >
-                <Header />
-                <main className="flex-1 flex flex-col w-full">{children}</main>
-                <Footer />
-            </body>
+        <body
+            className={cn(
+                geistSans.variable,
+                geistMono.variable,
+                'antialiased min-h-screen flex flex-col font-sans bg-background text-foreground',
+            )}
+        >
+        <Header />
+        <main className="flex-1 flex flex-col w-full">{children}</main>
+        <Footer />
+        <AiChat />
+        </body>
         </html>
     );
 }

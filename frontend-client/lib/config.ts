@@ -50,3 +50,5 @@ export const NAV_LINKS = [
         description: 'Сравнить вузы и программы',
     },
 ];
+
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
