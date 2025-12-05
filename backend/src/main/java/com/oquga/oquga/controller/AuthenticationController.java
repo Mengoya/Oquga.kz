@@ -2,9 +2,10 @@ package com.oquga.oquga.controller;
 
 import com.oquga.oquga.dto.auth.AuthenticationRequest;
 import com.oquga.oquga.dto.auth.AuthenticationResponse;
-import com.oquga.oquga.dto.auth.RegisterRequest;
+import com.oquga.oquga.dto.auth.StudentRegisterRequest;
 import com.oquga.oquga.service.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,14 +22,14 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthenticationResponse> register(
-            @RequestBody RegisterRequest request
+            @RequestBody @Valid StudentRegisterRequest request
     ) {
-        return service.register(request);
+        return service.registerStudent(request);
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> authenticate(
-            @RequestBody AuthenticationRequest request
+            @RequestBody @Valid AuthenticationRequest request
     ) {
         return service.authenticate(request);
     }
