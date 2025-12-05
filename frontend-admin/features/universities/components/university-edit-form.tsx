@@ -1,88 +1,45 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { UpdateUniversitySchema, UpdateUniversityValues, UniversityDetailResponse } from '../types';
+import { useState } from 'react';
+import { UniversityDetailResponse, UpdateUniversityValues } from '../types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateUniversity } from '../api';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Check, Loader2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Loader2, Building2, FileText, Users, Award, History, GraduationCap, ClipboardList, Wallet, Globe } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { BasicInfoSection } from './sections/basic-info-section';
+import { DescriptionSection } from './sections/description-section';
+import { LeadershipSection } from './sections/leadership-section';
+import { AchievementsSection } from './sections/achievements-section';
+import { HistorySection } from './sections/history-section';
+import { FacultiesSection } from './sections/faculties-section';
+import { AdmissionSection } from './sections/admission-section';
+import { TuitionSection } from './sections/tuition-section';
+import { InternationalSection } from './sections/international-section';
 
 interface Props {
     university: UniversityDetailResponse;
 }
 
+type SectionKey = 'basic' | 'description' | 'leadership' | 'achievements' | 'history' | 'faculties' | 'admission' | 'tuition' | 'international';
+
+const sections: { key: SectionKey; label: string; icon: React.ElementType }[] = [
+    { key: 'basic', label: 'Базовая информация', icon: Building2 },
+    { key: 'description', label: 'Описание', icon: FileText },
+    { key: 'leadership', label: 'Руководство', icon: Users },
+    { key: 'achievements', label: 'Достижения', icon: Award },
+    { key: 'history', label: 'События истории', icon: History },
+    { key: 'faculties', label: 'Факультеты', icon: GraduationCap },
+    { key: 'admission', label: 'Правила приема', icon: ClipboardList },
+    { key: 'tuition', label: 'Стоимость обучения', icon: Wallet },
+    { key: 'international', label: 'Международное сотрудничество', icon: Globe },
+];
+
 export function UniversityEditForm({ university }: Props) {
     const queryClient = useQueryClient();
-
-    const form = useForm<UpdateUniversityValues>({
-        resolver: zodResolver(UpdateUniversitySchema),
-        defaultValues: {
-            photoUrl: university.photoUrl || '',
-            websiteUrl: university.websiteUrl || '',
-            foundedYear: university.foundedYear,
-            contactPhone: university.contactPhone || '',
-            contactEmail: university.contactEmail || '',
-            translations: {
-                ru: {
-                    name: university.translations.ru?.name || '',
-                    city: university.translations.ru?.city || '',
-                    shortDescription: university.translations.ru?.shortDescription || '',
-                    description: university.translations.ru?.description || '',
-                    goal: university.translations.ru?.goal || '',
-                    address: university.translations.ru?.address || '',
-                    historyText: university.translations.ru?.historyText || '',
-                },
-                kk: {
-                    name: university.translations.kk?.name || '',
-                    city: university.translations.kk?.city || '',
-                    shortDescription: university.translations.kk?.shortDescription || '',
-                    description: university.translations.kk?.description || '',
-                    goal: university.translations.kk?.goal || '',
-                    address: university.translations.kk?.address || '',
-                    historyText: university.translations.kk?.historyText || '',
-                },
-                en: {
-                    name: university.translations.en?.name || '',
-                    city: university.translations.en?.city || '',
-                    shortDescription: university.translations.en?.shortDescription || '',
-                    description: university.translations.en?.description || '',
-                    goal: university.translations.en?.goal || '',
-                    address: university.translations.en?.address || '',
-                    historyText: university.translations.en?.historyText || '',
-                },
-            },
-        },
-    });
-
-    const watchedTranslations = form.watch('translations');
-
-    const getLanguageStatus = (lang: 'ru' | 'kk' | 'en') => {
-        const t = watchedTranslations[lang];
-        if (!t) return { filled: 0, total: 7 };
-        let filled = 0;
-        if (t.name && t.name.trim()) filled++;
-        if (t.city && t.city.trim()) filled++;
-        if (t.shortDescription && t.shortDescription.trim()) filled++;
-        if (t.description && t.description.trim()) filled++;
-        if (t.goal && t.goal.trim()) filled++;
-        if (t.address && t.address.trim()) filled++;
-        if (t.historyText && t.historyText.trim()) filled++;
-        return { filled, total: 7 };
-    };
+    const [activeSection, setActiveSection] = useState<SectionKey>('basic');
+    const [formData, setFormData] = useState<UpdateUniversityValues>(() => initFormData(university));
 
     const mutation = useMutation({
         mutationFn: (values: UpdateUniversityValues) =>
@@ -102,221 +59,137 @@ export function UniversityEditForm({ university }: Props) {
         },
     });
 
-    const onSubmit = (values: UpdateUniversityValues) => {
-        mutation.mutate(values);
+    const handleSave = () => {
+        mutation.mutate(formData);
     };
 
-    const languages = ['ru', 'kk', 'en'] as const;
-    const languageLabels = { ru: 'Русский', kk: 'Қазақша', en: 'English' };
+    const updateFormData = (updates: Partial<UpdateUniversityValues>) => {
+        setFormData(prev => ({ ...prev, ...updates }));
+    };
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                    control={form.control}
-                    name="photoUrl"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>URL фото</FormLabel>
-                            <FormControl>
-                                <Input placeholder="https://example.com/photo.jpg" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+        <div className="flex gap-6">
+            <div className="w-64 shrink-0">
+                <nav className="space-y-1 sticky top-20">
+                    {sections.map((section) => {
+                        const Icon = section.icon;
+                        return (
+                            <button
+                                key={section.key}
+                                onClick={() => setActiveSection(section.key)}
+                                className={cn(
+                                    'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors text-left',
+                                    activeSection === section.key
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                                )}
+                            >
+                                <Icon className="h-4 w-4" />
+                                {section.label}
+                            </button>
+                        );
+                    })}
+                </nav>
+            </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="websiteUrl"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Веб-сайт</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="https://..." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="foundedYear"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Год основания</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="number"
-                                        {...field}
-                                        value={field.value || ''}
-                                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="contactPhone"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Телефон</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="+7 (xxx) xxx-xx-xx" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="contactEmail"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Email</FormLabel>
-                                <FormControl>
-                                    <Input type="email" placeholder="info@university.kz" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
+            <div className="flex-1 min-w-0">
+                {activeSection === 'basic' && (
+                    <BasicInfoSection data={formData} onChange={updateFormData} />
+                )}
+                {activeSection === 'description' && (
+                    <DescriptionSection data={formData} onChange={updateFormData} />
+                )}
+                {activeSection === 'leadership' && (
+                    <LeadershipSection data={formData} onChange={updateFormData} />
+                )}
+                {activeSection === 'achievements' && (
+                    <AchievementsSection data={formData} onChange={updateFormData} />
+                )}
+                {activeSection === 'history' && (
+                    <HistorySection data={formData} onChange={updateFormData} />
+                )}
+                {activeSection === 'faculties' && (
+                    <FacultiesSection data={formData} onChange={updateFormData} />
+                )}
+                {activeSection === 'admission' && (
+                    <AdmissionSection data={formData} onChange={updateFormData} />
+                )}
+                {activeSection === 'tuition' && (
+                    <TuitionSection data={formData} onChange={updateFormData} />
+                )}
+                {activeSection === 'international' && (
+                    <InternationalSection data={formData} onChange={updateFormData} />
+                )}
 
-                <Tabs defaultValue="ru" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
-                        {languages.map((lang) => {
-                            const status = getLanguageStatus(lang);
-                            const isComplete = status.filled === status.total;
-                            return (
-                                <TabsTrigger key={lang} value={lang} className="relative">
-                                    <span>{languageLabels[lang]}</span>
-                                    <Badge
-                                        variant={isComplete ? 'default' : 'secondary'}
-                                        className="ml-2 h-5 px-1.5 text-[10px]"
-                                    >
-                                        {isComplete ? (
-                                            <Check className="h-3 w-3" />
-                                        ) : (
-                                            `${status.filled}/${status.total}`
-                                        )}
-                                    </Badge>
-                                </TabsTrigger>
-                            );
-                        })}
-                    </TabsList>
-
-                    {languages.map((lang) => (
-                        <TabsContent key={lang} value={lang} className="space-y-4 mt-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <FormField
-                                    control={form.control}
-                                    name={`translations.${lang}.name`}
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Название</FormLabel>
-                                            <FormControl>
-                                                <Input {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name={`translations.${lang}.city`}
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Город</FormLabel>
-                                            <FormControl>
-                                                <Input {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-                            <FormField
-                                control={form.control}
-                                name={`translations.${lang}.shortDescription`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Краткое описание</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="До 500 символов" maxLength={500} {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name={`translations.${lang}.address`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Адрес</FormLabel>
-                                        <FormControl>
-                                            <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name={`translations.${lang}.description`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Описание</FormLabel>
-                                        <FormControl>
-                                            <Textarea rows={3} {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name={`translations.${lang}.goal`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Миссия / Цель</FormLabel>
-                                        <FormControl>
-                                            <Textarea rows={2} {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name={`translations.${lang}.historyText`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>История</FormLabel>
-                                        <FormControl>
-                                            <Textarea rows={3} {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </TabsContent>
-                    ))}
-                </Tabs>
-
-                <div className="flex justify-end pt-4 border-t">
-                    <Button type="submit" disabled={mutation.isPending}>
+                <div className="flex justify-end pt-6 mt-6 border-t">
+                    <Button onClick={handleSave} disabled={mutation.isPending}>
                         {mutation.isPending && (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         )}
                         Сохранить изменения
                     </Button>
                 </div>
-            </form>
-        </Form>
+            </div>
+        </div>
     );
+}
+
+function initFormData(university: UniversityDetailResponse): UpdateUniversityValues {
+    return {
+        photoUrl: university.photoUrl || '',
+        websiteUrl: university.websiteUrl || '',
+        foundedYear: university.foundedYear,
+        contactPhone: university.contactPhone || '',
+        contactEmail: university.contactEmail || '',
+        translations: {
+            ru: {
+                name: university.translations.ru?.name || '',
+                city: university.translations.ru?.city || '',
+                shortDescription: university.translations.ru?.shortDescription || '',
+                description: university.translations.ru?.description || '',
+                goal: university.translations.ru?.goal || '',
+                address: university.translations.ru?.address || '',
+                historyText: university.translations.ru?.historyText || '',
+            },
+            kk: {
+                name: university.translations.kk?.name || '',
+                city: university.translations.kk?.city || '',
+                shortDescription: university.translations.kk?.shortDescription || '',
+                description: university.translations.kk?.description || '',
+                goal: university.translations.kk?.goal || '',
+                address: university.translations.kk?.address || '',
+                historyText: university.translations.kk?.historyText || '',
+            },
+            en: {
+                name: university.translations.en?.name || '',
+                city: university.translations.en?.city || '',
+                shortDescription: university.translations.en?.shortDescription || '',
+                description: university.translations.en?.description || '',
+                goal: university.translations.en?.goal || '',
+                address: university.translations.en?.address || '',
+                historyText: university.translations.en?.historyText || '',
+            },
+        },
+        leadership: university.leadership.map(l => ({ ...l })),
+        achievements: university.achievements.map(a => ({ ...a })),
+        historyEvents: university.historyEvents.map(h => ({ ...h })),
+        faculties: university.faculties.map(f => ({
+            ...f,
+            translations: { ...f.translations },
+            departments: f.departments.map(d => ({ ...d, translations: { ...d.translations } })),
+            programGroups: f.programGroups.map(pg => ({
+                ...pg,
+                translations: { ...pg.translations },
+                programs: pg.programs.map(p => ({ ...p, translations: { ...p.translations } })),
+                passingScore: pg.passingScore ? { ...pg.passingScore } : null,
+            })),
+        })),
+        admissionRule: university.admissionRule ? { ...university.admissionRule } : null,
+        tuitionDiscounts: university.tuitionDiscounts.map(t => ({ ...t })),
+        internationalSections: university.internationalSections.map(s => ({
+            ...s,
+            translations: { ...s.translations },
+            items: s.items.map(i => ({ ...i, translations: { ...i.translations } })),
+        })),
+    };
 }

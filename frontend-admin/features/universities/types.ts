@@ -50,31 +50,6 @@ export const CreateUniversitySchema = z.object({
 
 export type CreateUniversityValues = z.infer<typeof CreateUniversitySchema>;
 
-const UpdateTranslationSchema = z.object({
-    name: z.string().optional(),
-    city: z.string().optional(),
-    shortDescription: z.string().optional(),
-    description: z.string().optional(),
-    goal: z.string().optional(),
-    address: z.string().optional(),
-    historyText: z.string().optional(),
-});
-
-export const UpdateUniversitySchema = z.object({
-    photoUrl: z.string().optional(),
-    websiteUrl: z.string().optional(),
-    foundedYear: z.number().optional().nullable(),
-    contactPhone: z.string().optional(),
-    contactEmail: z.string().email().optional().or(z.literal('')),
-    translations: z.object({
-        ru: UpdateTranslationSchema.optional(),
-        kk: UpdateTranslationSchema.optional(),
-        en: UpdateTranslationSchema.optional(),
-    }),
-});
-
-export type UpdateUniversityValues = z.infer<typeof UpdateUniversitySchema>;
-
 export interface UniversityApiTranslation {
     name: string;
     shortDescription: string | null;
@@ -92,6 +67,135 @@ export interface UniversityDetailTranslation {
     city: string | null;
     historyText: string | null;
     isComplete: boolean;
+}
+
+export interface LeadershipDto {
+    id: number | null;
+    fullName: string;
+    position: string;
+    bioSummary: string | null;
+    sortOrder: number;
+}
+
+export interface AchievementDto {
+    id: number | null;
+    title: string;
+    year: number | null;
+    rankValue: string | null;
+    details: string | null;
+    sortOrder: number;
+}
+
+export interface HistoryEventDto {
+    id: number | null;
+    eventYear: number;
+    eventDescription: string | null;
+    sortOrder: number;
+}
+
+export interface FacultyTranslationDto {
+    name: string;
+    description: string | null;
+}
+
+export interface DepartmentTranslationDto {
+    name: string;
+    goal: string | null;
+    mission: string | null;
+    tasks: string | null;
+}
+
+export interface ProgramGroupTranslationDto {
+    name: string;
+    description: string | null;
+}
+
+export interface ProgramTranslationDto {
+    name: string;
+    description: string | null;
+}
+
+export interface PassingScoreDto {
+    minScoreGrant: number | null;
+    minScorePaid: number | null;
+    profileSubjects: string | null;
+    isCreativeExam: boolean;
+}
+
+export interface EducationalProgramDto {
+    id: number | null;
+    code: string;
+    sortOrder: number;
+    translations: Record<string, ProgramTranslationDto>;
+}
+
+export interface EducationalProgramGroupDto {
+    id: number | null;
+    departmentId: number | null;
+    degreeLevel: string;
+    code: string;
+    sortOrder: number;
+    translations: Record<string, ProgramGroupTranslationDto>;
+    programs: EducationalProgramDto[];
+    passingScore: PassingScoreDto | null;
+}
+
+export interface DepartmentDto {
+    id: number | null;
+    sortOrder: number;
+    translations: Record<string, DepartmentTranslationDto>;
+}
+
+export interface FacultyDto {
+    id: number | null;
+    sortOrder: number;
+    translations: Record<string, FacultyTranslationDto>;
+    departments: DepartmentDto[];
+    programGroups: EducationalProgramGroupDto[];
+}
+
+export interface AdmissionRuleDto {
+    startDate: string | null;
+    endDate: string | null;
+    documentsText: string | null;
+    stepsText: string | null;
+    militaryDepartmentInfo: string | null;
+    dormitoryInfo: string | null;
+}
+
+export interface TuitionDiscountDto {
+    id: number | null;
+    categoryName: string;
+    pricePerYear: number | null;
+    scholarshipInfo: string | null;
+    sortOrder: number;
+}
+
+export interface InternationalSectionTranslationDto {
+    title: string;
+    description: string | null;
+}
+
+export interface InternationalItemTranslationDto {
+    title: string;
+    description: string | null;
+}
+
+export interface InternationalItemDto {
+    id: number | null;
+    externalUrl: string | null;
+    sortOrder: number;
+    isActive: boolean;
+    translations: Record<string, InternationalItemTranslationDto>;
+}
+
+export interface InternationalSectionDto {
+    id: number | null;
+    externalUrl: string | null;
+    sortOrder: number;
+    isActive: boolean;
+    translations: Record<string, InternationalSectionTranslationDto>;
+    items: InternationalItemDto[];
 }
 
 export interface SectionProgress {
@@ -139,6 +243,13 @@ export interface UniversityDetailResponse {
     contactEmail: string | null;
     viewCount: number;
     translations: Record<string, UniversityDetailTranslation>;
+    leadership: LeadershipDto[];
+    achievements: AchievementDto[];
+    historyEvents: HistoryEventDto[];
+    faculties: FacultyDto[];
+    admissionRule: AdmissionRuleDto | null;
+    tuitionDiscounts: TuitionDiscountDto[];
+    internationalSections: InternationalSectionDto[];
     progress: ProgressDto;
     createdAt: string;
     updatedAt: string;
@@ -152,4 +263,28 @@ export interface UniversityListApiResponse {
         limit: number;
         totalPages: number;
     };
+}
+
+export interface UpdateUniversityValues {
+    photoUrl?: string;
+    websiteUrl?: string;
+    foundedYear?: number | null;
+    contactPhone?: string;
+    contactEmail?: string;
+    translations: Record<string, {
+        name?: string;
+        city?: string;
+        shortDescription?: string;
+        description?: string;
+        goal?: string;
+        address?: string;
+        historyText?: string;
+    }>;
+    leadership?: LeadershipDto[];
+    achievements?: AchievementDto[];
+    historyEvents?: HistoryEventDto[];
+    faculties?: FacultyDto[];
+    admissionRule?: AdmissionRuleDto | null;
+    tuitionDiscounts?: TuitionDiscountDto[];
+    internationalSections?: InternationalSectionDto[];
 }
