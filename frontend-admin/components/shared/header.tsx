@@ -8,13 +8,14 @@ import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 
 export function Header() {
-    const t = useTranslations('Navigation');
+    const tNav = useTranslations('Navigation');
+    const tCommon = useTranslations('Common.actions');
     const pathname = usePathname();
 
     const navItems = [
-        { href: '/', label: t('universities') },
-        { href: '/programs', label: t('programs') },
-        { href: '/about', label: t('about') },
+        { href: '/', label: tNav('universities') },
+        { href: '/programs', label: tNav('programs') },
+        { href: '/about', label: tNav('about') },
     ];
 
     return (
@@ -52,7 +53,7 @@ export function Header() {
                 <div className="flex items-center gap-2">
                     <LanguageSwitcher />
                     <Button variant="default" size="sm">
-                        Войти
+                        {tCommon('login')}
                     </Button>
                 </div>
             </div>

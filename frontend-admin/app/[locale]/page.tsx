@@ -12,6 +12,8 @@ import { useTranslations } from 'next-intl';
 
 export default function DashboardPage() {
     const t = useTranslations('Dashboard');
+    const tActions = useTranslations('Common.actions');
+
     const { page, search, setParams } = useDataTableParams();
 
     const { data, isLoading } = useQuery({
@@ -53,7 +55,7 @@ export default function DashboardPage() {
                                       </span>
                                   ),
                               })
-                            : t('notFound')}
+                            : t('notFound.title')}
                     </div>
                     <div className="flex items-center gap-2">
                         <Button
@@ -63,7 +65,7 @@ export default function DashboardPage() {
                             disabled={!hasPrevPage || isLoading}
                         >
                             <ChevronLeft className="mr-1 h-4 w-4" />
-                            Prev
+                            {tActions('prev')}
                         </Button>
                         <div className="text-sm font-medium">
                             {page} / {totalPages || 1}
@@ -74,7 +76,7 @@ export default function DashboardPage() {
                             onClick={() => setParams({ page: page + 1 })}
                             disabled={!hasNextPage || isLoading}
                         >
-                            Next
+                            {tActions('next')}
                             <ChevronRight className="ml-1 h-4 w-4" />
                         </Button>
                     </div>

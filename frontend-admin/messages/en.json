@@ -5,6 +5,14 @@
       "ru": "Russian",
       "kk": "Kazakh",
       "en": "English"
+    },
+    "actions": {
+      "filter": "Filters",
+      "export": "Export",
+      "login": "Log in",
+      "more": "Actions",
+      "prev": "Prev",
+      "next": "Next"
     }
   },
   "Navigation": {
@@ -15,8 +23,27 @@
   "Dashboard": {
     "title": "Universities",
     "subtitle": "Management of Higher Education Institutions of RK",
+    "addUniversity": "Add University",
     "search": "Search university by name...",
     "shown": "Showing {count} of {total} universities",
-    "notFound": "No universities found"
+    "notFound": {
+      "title": "No universities found",
+      "description": "Try changing search parameters or filters."
+    },
+    "table": {
+      "headers": {
+        "name": "Name",
+        "city": "City",
+        "programs": "Programs",
+        "students": "Students",
+        "rating": "Rating",
+        "status": "Status"
+      }
+    },
+    "status": {
+      "active": "Active",
+      "archived": "Archived",
+      "pending": "Pending"
+    }
   }
 }

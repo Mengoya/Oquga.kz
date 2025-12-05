@@ -18,6 +18,7 @@ import {
     MapPin,
 } from 'lucide-react';
 import { University } from '../types';
+import { useFormatter, useTranslations } from 'next-intl';
 
 interface UniversitiesTableProps {
     data: University[];
@@ -25,6 +26,11 @@ interface UniversitiesTableProps {
 }
 
 export function UniversitiesTable({ data, isLoading }: UniversitiesTableProps) {
+    const t = useTranslations('Dashboard.table.headers');
+    const tNotFound = useTranslations('Dashboard.notFound');
+    const tActions = useTranslations('Common.actions');
+    const format = useFormatter();
+
     if (isLoading) {
         return <UniversitiesTableSkeleton />;
     }
@@ -35,9 +41,11 @@ export function UniversitiesTable({ data, isLoading }: UniversitiesTableProps) {
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                     <GraduationCap className="h-6 w-6 text-muted-foreground" />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold">Вузы не найдены</h3>
+                <h3 className="mt-4 text-lg font-semibold">
+                    {tNotFound('title')}
+                </h3>
                 <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                    Попробуйте изменить параметры поиска или фильтры.
+                    {tNotFound('description')}
                 </p>
             </div>
         );
@@ -48,12 +56,12 @@ export function UniversitiesTable({ data, isLoading }: UniversitiesTableProps) {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead className="w-[300px]">Название</TableHead>
-                        <TableHead>Город</TableHead>
-                        <TableHead>Программы</TableHead>
-                        <TableHead>Студенты</TableHead>
-                        <TableHead>Рейтинг</TableHead>
-                        <TableHead>Статус</TableHead>
+                        <TableHead className="w-[300px]">{t('name')}</TableHead>
+                        <TableHead>{t('city')}</TableHead>
+                        <TableHead>{t('programs')}</TableHead>
+                        <TableHead>{t('students')}</TableHead>
+                        <TableHead>{t('rating')}</TableHead>
+                        <TableHead>{t('status')}</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                 </TableHeader>
@@ -74,17 +82,22 @@ export function UniversitiesTable({ data, isLoading }: UniversitiesTableProps) {
                                     {uni.city}
                                 </div>
                             </TableCell>
-                            <TableCell>{uni.programsCount}</TableCell>
+                            <TableCell>
+                                {format.number(uni.programsCount)}
+                            </TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-1.5">
                                     <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                                    {uni.studentsCount.toLocaleString('ru-RU')}
+                                    {format.number(uni.studentsCount)}
                                 </div>
                             </TableCell>
                             <TableCell>
                                 <div className="flex items-center gap-1 font-medium">
                                     <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                                    {uni.rating}
+                                    {format.number(uni.rating, {
+                                        minimumFractionDigits: 1,
+                                        maximumFractionDigits: 1,
+                                    })}
                                 </div>
                             </TableCell>
                             <TableCell>
@@ -97,7 +110,9 @@ export function UniversitiesTable({ data, isLoading }: UniversitiesTableProps) {
                                     className="opacity-0 group-hover:opacity-100"
                                 >
                                     <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Действия</span>
+                                    <span className="sr-only">
+                                        {tActions('more')}
+                                    </span>
                                 </Button>
                             </TableCell>
                         </TableRow>
@@ -109,6 +124,8 @@ export function UniversitiesTable({ data, isLoading }: UniversitiesTableProps) {
 }
 
 function StatusBadge({ status }: { status: string }) {
+    const t = useTranslations('Dashboard.status');
+
     const variants: Record<
         string,
         'default' | 'secondary' | 'outline' | 'destructive'
@@ -118,15 +135,9 @@ function StatusBadge({ status }: { status: string }) {
         pending: 'outline',
     };
 
-    const labels: Record<string, string> = {
-        active: 'Активен',
-        archived: 'Архив',
-        pending: 'На проверке',
-    };
-
     return (
         <Badge variant={variants[status] || 'outline'}>
-            {labels[status] || status}
+            {t(status as any)}
         </Badge>
     );
 }

@@ -9,7 +9,9 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { useTranslations } from 'next-intl';
 
 export function UniversitiesToolbar() {
-    const t = useTranslations('Dashboard');
+    const tDashboard = useTranslations('Dashboard');
+    const tCommon = useTranslations('Common.actions');
+
     const { search, setParams } = useDataTableParams();
     const [localSearch, setLocalSearch] = useState(search);
     const debouncedSearch = useDebounce(localSearch, 500);
@@ -30,7 +32,7 @@ export function UniversitiesToolbar() {
                 <div className="relative w-full max-w-sm">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder={t('search')}
+                        placeholder={tDashboard('search')}
                         value={localSearch}
                         onChange={(e) => setLocalSearch(e.target.value)}
                         className="pl-9"
@@ -46,15 +48,15 @@ export function UniversitiesToolbar() {
                 </div>
                 <Button variant="outline" className="hidden sm:flex">
                     <Filter className="mr-2 h-4 w-4" />
-                    Фильтры
+                    {tCommon('filter')}
                 </Button>
             </div>
             <div className="flex items-center gap-2">
                 <Button variant="secondary">
                     <Download className="mr-2 h-4 w-4" />
-                    Экспорт
+                    {tCommon('export')}
                 </Button>
-                <Button>Добавить ВУЗ</Button>
+                <Button>{tDashboard('addUniversity')}</Button>
             </div>
         </div>
     );
