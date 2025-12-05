@@ -1,0 +1,135 @@
+{
+  "Common": {
+    "searchPlaceholder": "Поиск...",
+    "languages": {
+      "ru": "Русский",
+      "kk": "Қазақша",
+      "en": "English"
+    },
+    "actions": {
+      "filter": "Фильтры",
+      "export": "Экспорт",
+      "login": "Войти",
+      "more": "Действия",
+      "prev": "Назад",
+      "next": "Вперед",
+      "create": "Создать",
+      "cancel": "Отмена",
+      "save": "Сохранить",
+      "delete": "Удалить"
+    },
+    "feedback": {
+      "success": "Успешно",
+      "error": "Ошибка",
+      "created": "Запись успешно создана",
+      "genericError": "Произошла непредвиденная ошибка. Попробуйте позже."
+    }
+  },
+  "Navigation": {
+    "universities": "Университеты",
+    "users": "Пользователи",
+    "profile": "Профиль",
+    "settings": "Настройки",
+    "logout": "Выйти"
+  },
+  "Dashboard": {
+    "title": "Университеты",
+    "subtitle": "Управление списком высших учебных заведений РК",
+    "addUniversity": "Добавить ВУЗ",
+    "search": "Поиск вуза по названию...",
+    "shown": "Показано {count} из {total} вузов",
+    "notFound": {
+      "title": "Вузы не найдены",
+      "description": "Попробуйте изменить параметры поиска или фильтры."
+    },
+    "table": {
+      "headers": {
+        "name": "Название",
+        "city": "Город",
+        "programs": "Программы",
+        "students": "Студенты",
+        "rating": "Рейтинг",
+        "status": "Статус"
+      }
+    },
+    "status": {
+      "active": "Активен",
+      "archived": "Архив",
+      "pending": "На проверке"
+    }
+  },
+  "Auth": {
+    "title": "Вход в систему",
+    "subtitle": "Введите email и пароль для входа",
+    "emailLabel": "Email",
+    "passwordLabel": "Пароль",
+    "submit": "Войти",
+    "submitting": "Вход...",
+    "errors": {
+      "invalidCredentials": "Неверный email или пароль",
+      "required": "Обязательное поле",
+      "email": "Некорректный email"
+    }
+  },
+  "UsersPage": {
+    "title": "Пользователи",
+    "subtitle": "Управление доступом и пользователями системы",
+    "addUser": "Создать",
+    "search": "Поиск по email или имени...",
+    "filters": {
+      "role": "Все роли",
+      "university": "Все университеты"
+    },
+    "table": {
+      "headers": {
+        "user": "Пользователь",
+        "role": "Роль",
+        "university": "ВУЗ",
+        "status": "Статус",
+        "lastLogin": "Последний вход"
+      }
+    },
+    "roles": {
+      "admin": "Администратор",
+      "manager": "Менеджер",
+      "viewer": "Наблюдатель"
+    },
+    "status": {
+      "active": "Активен",
+      "blocked": "Заблокирован"
+    },
+    "createModal": {
+      "title": "Создать пользователя",
+      "description": "Добавьте нового пользователя в систему.",
+      "nameLabel": "Имя",
+      "emailLabel": "Email",
+      "passwordLabel": "Пароль",
+      "roleLabel": "Роль",
+      "universityLabel": "Университет"
+    }
+  },
+  "UniversitiesPage": {
+    "createModal": {
+      "title": "Создать университет",
+      "description": "Заполните данные о новом учебном заведении.",
+      "nameLabel": "Название",
+      "cityLabel": "Город",
+      "descriptionLabel": "Описание"
+    }
+  },
+  "ProfilePage": {
+    "title": "Профиль",
+    "subtitle": "Управляйте информацией о своем аккаунте",
+    "personalInfo": "Личная информация",
+    "security": "Безопасность",
+    "labels": {
+      "name": "Имя",
+      "email": "Email",
+      "role": "Роль"
+    },
+    "placeholders": {
+      "name": "Введите ваше имя"
+    },
+    "roleDescription": "Ваша роль определяет уровень доступа в системе."
+  }
+}

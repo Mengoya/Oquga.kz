@@ -1,0 +1,109 @@
+{
+  "Common": {
+    "searchPlaceholder": "Іздеу...",
+    "languages": {
+      "ru": "Русский",
+      "kk": "Қазақша",
+      "en": "English"
+    },
+    "actions": {
+      "filter": "Сүзгілер",
+      "export": "Экспорт",
+      "login": "Кіру",
+      "more": "Әрекеттер",
+      "prev": "Артқа",
+      "next": "Алға",
+      "create": "Құру",
+      "cancel": "Болдырмау",
+      "save": "Сақтау",
+      "delete": "Жою"
+    },
+    "feedback": {
+      "success": "Сәтті",
+      "error": "Қате",
+      "created": "Жазба сәтті құрылды",
+      "genericError": "Күтпеген қате орын алды. Кейінірек қайталап көріңіз."
+    }
+  },
+  "Navigation": {
+    "universities": "Университеттер",
+    "users": "Пайдаланушылар",
+    "profile": "Профиль",
+    "settings": "Баптаулар",
+    "logout": "Шығу"
+  },
+  "Dashboard": {
+    "title": "Университеттер",
+    "subtitle": "ҚР жоғары оқу орындарының тізімін басқару",
+    "addUniversity": "ЖОО қосу",
+    "search": "Университетті атауы бойынша іздеу...",
+    "shown": "{total} ЖОО-ның {count} көрсетілген",
+    "notFound": {
+      "title": "Университеттер табылмады",
+      "description": "Іздеу параметрлерін немесе сүзгілерді өзгертіп көріңіз."
+    },
+    "table": {
+      "headers": {
+        "name": "Атауы",
+        "city": "Қала",
+        "programs": "Бағдарламалар",
+        "students": "Студенттер",
+        "rating": "Рейтинг",
+        "status": "Мәртебесі"
+      }
+    },
+    "status": {
+      "active": "Белсенді",
+      "archived": "Мұрағат",
+      "pending": "Тексерілуде"
+    }
+  },
+  "UniversitiesPage": {
+    "createModal": {
+      "title": "Университет құру",
+      "description": "Жаңа оқу орны туралы деректерді толтырыңыз.",
+      "nameLabel": "Атауы",
+      "cityLabel": "Қала",
+      "descriptionLabel": "Сипаттама"
+    }
+  },
+  "UsersPage": {
+    "createModal": {
+      "title": "Пайдаланушыны құру",
+      "description": "Жүйеге жаңа пайдаланушыны қосыңыз.",
+      "nameLabel": "Аты",
+      "emailLabel": "Email",
+      "passwordLabel": "Құпия сөз",
+      "roleLabel": "Рөлі",
+      "universityLabel": "Университет"
+    }
+  },
+  "Auth": {
+    "title": "Жүйеге кіру",
+    "subtitle": "Кіру үшін email және құпия сөзді енгізіңіз",
+    "emailLabel": "Email",
+    "passwordLabel": "Құпия сөз",
+    "submit": "Кіру",
+    "submitting": "Кіру...",
+    "errors": {
+      "invalidCredentials": "Email немесе құпия сөз қате",
+      "required": "Міндетті өріс",
+      "email": "Email қате форматта"
+    }
+  },
+  "ProfilePage": {
+    "title": "Профиль",
+    "subtitle": "Аккаунт ақпаратын басқарыңыз",
+    "personalInfo": "Жеке ақпарат",
+    "security": "Қауіпсіздік",
+    "labels": {
+      "name": "Аты",
+      "email": "Email",
+      "role": "Рөлі"
+    },
+    "placeholders": {
+      "name": "Атыңызды енгізіңіз"
+    },
+    "roleDescription": "Сіздің рөліңіз жүйедегі қолжетімділік деңгейін анықтайды."
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "Common": {
+    "searchPlaceholder": "Search...",
+    "languages": {
+      "ru": "Russian",
+      "kk": "Kazakh",
+      "en": "English"
+    },
+    "actions": {
+      "filter": "Filters",
+      "export": "Export",
+      "login": "Log in",
+      "more": "Actions",
+      "prev": "Prev",
+      "next": "Next",
+      "create": "Create",
+      "cancel": "Cancel",
+      "save": "Save",
+      "delete": "Delete"
+    },
+    "feedback": {
+      "success": "Success",
+      "error": "Error",
+      "created": "Record successfully created",
+      "genericError": "An unexpected error occurred. Please try again later."
+    }
+  },
+  "Navigation": {
+    "universities": "Universities",
+    "users": "Users",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Log out"
+  },
+  "Dashboard": {
+    "title": "Universities",
+    "subtitle": "Management of Higher Education Institutions of RK",
+    "addUniversity": "Add University",
+    "search": "Search university by name...",
+    "shown": "Showing {count} of {total} universities",
+    "notFound": {
+      "title": "No universities found",
+      "description": "Try changing search parameters or filters."
+    },
+    "table": {
+      "headers": {
+        "name": "Name",
+        "city": "City",
+        "programs": "Programs",
+        "students": "Students",
+        "rating": "Rating",
+        "status": "Status"
+      }
+    },
+    "status": {
+      "active": "Active",
+      "archived": "Archived",
+      "pending": "Pending"
+    }
+  },
+  "Auth": {
+    "title": "Sign in",
+    "subtitle": "Enter your email and password to sign in",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in...",
+    "errors": {
+      "invalidCredentials": "Invalid email or password",
+      "required": "Required field",
+      "email": "Invalid email address"
+    }
+  },
+  "UsersPage": {
+    "title": "Users",
+    "subtitle": "System access and user management",
+    "addUser": "Create",
+    "search": "Search by email or name...",
+    "filters": {
+      "role": "All Roles",
+      "university": "All Universities"
+    },
+    "table": {
+      "headers": {
+        "user": "User",
+        "role": "Role",
+        "university": "University",
+        "status": "Status",
+        "lastLogin": "Last Login"
+      }
+    },
+    "roles": {
+      "admin": "Administrator",
+      "manager": "Manager",
+      "viewer": "Viewer"
+    },
+    "status": {
+      "active": "Active",
+      "blocked": "Blocked"
+    },
+    "createModal": {
+      "title": "Create User",
+      "description": "Add a new user to the system.",
+      "nameLabel": "Name",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "roleLabel": "Role",
+      "universityLabel": "University"
+    }
+  },
+  "UniversitiesPage": {
+    "createModal": {
+      "title": "Create University",
+      "description": "Fill in the details about the new institution.",
+      "nameLabel": "Name",
+      "cityLabel": "City",
+      "descriptionLabel": "Description"
+    }
+  },
+  "ProfilePage": {
+    "title": "Profile",
+    "subtitle": "Manage your account information",
+    "personalInfo": "Personal Information",
+    "security": "Security",
+    "labels": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role"
+    },
+    "placeholders": {
+      "name": "Enter your name"
+    },
+    "roleDescription": "Your role determines your access level in the system."
+  }
+}
