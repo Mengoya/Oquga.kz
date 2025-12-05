@@ -10,6 +10,10 @@ export const UniversitySchema = z.object({
     studentsCount: z.number(),
     rating: z.number().min(0).max(5),
     status: UniversityStatusSchema,
+    progressPercent: z.number(),
+    translations: z.record(z.object({
+        isComplete: z.boolean()
+    })).optional(),
     updatedAt: z.string(),
 });
 
@@ -41,10 +45,64 @@ export const CreateUniversitySchema = z.object({
 
 export type CreateUniversityValues = z.infer<typeof CreateUniversitySchema>;
 
+const UpdateTranslationSchema = z.object({
+    name: z.string().optional(),
+    city: z.string().optional(),
+    description: z.string().optional(),
+    goal: z.string().optional(),
+    address: z.string().optional(),
+    historyText: z.string().optional(),
+});
+
+export const UpdateUniversitySchema = z.object({
+    websiteUrl: z.string().optional(),
+    foundedYear: z.number().optional().nullable(),
+    contactPhone: z.string().optional(),
+    contactEmail: z.string().email().optional().or(z.literal('')),
+    translations: z.object({
+        ru: UpdateTranslationSchema.optional(),
+        kk: UpdateTranslationSchema.optional(),
+        en: UpdateTranslationSchema.optional(),
+    }),
+});
+
+export type UpdateUniversityValues = z.infer<typeof UpdateUniversitySchema>;
+
 export interface UniversityApiTranslation {
     name: string;
     description: string | null;
     city: string | null;
+    isComplete: boolean;
+}
+
+export interface UniversityDetailTranslation {
+    name: string;
+    description: string | null;
+    goal: string | null;
+    address: string | null;
+    city: string | null;
+    historyText: string | null;
+    isComplete: boolean;
+}
+
+export interface SectionProgress {
+    name: string;
+    percent: number;
+    maxPercent: number;
+    filledFields: number;
+    totalFields: number;
+}
+
+export interface ProgressDto {
+    totalPercent: number;
+    basicInfo: SectionProgress;
+    description: SectionProgress;
+    leadership: SectionProgress;
+    achievements: SectionProgress;
+    faculties: SectionProgress;
+    admissionRules: SectionProgress;
+    tuition: SectionProgress;
+    international: SectionProgress;
 }
 
 export interface UniversityApiResponse {
@@ -55,6 +113,20 @@ export interface UniversityApiResponse {
     contactPhone: string | null;
     contactEmail: string | null;
     translations: Record<string, UniversityApiTranslation>;
+    progressPercent: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface UniversityDetailResponse {
+    id: number;
+    slug: string;
+    websiteUrl: string | null;
+    foundedYear: number | null;
+    contactPhone: string | null;
+    contactEmail: string | null;
+    translations: Record<string, UniversityDetailTranslation>;
+    progress: ProgressDto;
     createdAt: string;
     updatedAt: string;
 }
