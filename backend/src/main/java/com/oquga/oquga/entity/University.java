@@ -65,6 +65,9 @@ public class University {
     @OneToMany(mappedBy = "university", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TuitionDiscount> tuitionDiscounts = new ArrayList<>();
 
+    @OneToMany(mappedBy = "university", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InternationalSection> internationalSections = new ArrayList<>();
+
     public void addTranslation(UniversityTranslation translation) {
         translations.add(translation);
         translation.setUniversity(this);
@@ -130,5 +133,15 @@ public class University {
     public void removeTuitionDiscount(TuitionDiscount tuitionDiscount) {
         tuitionDiscounts.remove(tuitionDiscount);
         tuitionDiscount.setUniversity(null);
+    }
+
+    public void addInternationalSection(InternationalSection section) {
+        internationalSections.add(section);
+        section.setUniversity(this);
+    }
+
+    public void removeInternationalSection(InternationalSection section) {
+        internationalSections.remove(section);
+        section.setUniversity(null);
     }
 }
