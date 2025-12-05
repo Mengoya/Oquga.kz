@@ -59,6 +59,12 @@ public class University {
     @OneToMany(mappedBy = "university", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Faculty> faculties = new ArrayList<>();
 
+    @OneToOne(mappedBy = "university", cascade = CascadeType.ALL, orphanRemoval = true)
+    private AdmissionRule admissionRule;
+
+    @OneToMany(mappedBy = "university", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TuitionDiscount> tuitionDiscounts = new ArrayList<>();
+
     public void addTranslation(UniversityTranslation translation) {
         translations.add(translation);
         translation.setUniversity(this);
@@ -107,5 +113,22 @@ public class University {
     public void removeFaculty(Faculty faculty) {
         faculties.remove(faculty);
         faculty.setUniversity(null);
+    }
+
+    public void setAdmissionRule(AdmissionRule admissionRule) {
+        this.admissionRule = admissionRule;
+        if (admissionRule != null) {
+            admissionRule.setUniversity(this);
+        }
+    }
+
+    public void addTuitionDiscount(TuitionDiscount tuitionDiscount) {
+        tuitionDiscounts.add(tuitionDiscount);
+        tuitionDiscount.setUniversity(this);
+    }
+
+    public void removeTuitionDiscount(TuitionDiscount tuitionDiscount) {
+        tuitionDiscounts.remove(tuitionDiscount);
+        tuitionDiscount.setUniversity(null);
     }
 }
