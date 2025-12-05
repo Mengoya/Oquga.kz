@@ -1,0 +1,3 @@
+CREATE TABLE universities (
+    id BIGSERIAL PRIMARY KEY
+);
