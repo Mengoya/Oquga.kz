@@ -38,9 +38,6 @@ export function CreateUserForm({ onSuccess }: Props) {
 
     const { user: currentUser } = useAuthStore();
 
-    const isSuperAdmin =
-        !currentUser?.role ||
-        (currentUser.role === 'admin' && !('universityId' in currentUser));
     const isGlobalAdmin = currentUser?.email === 'admin@datanub.kz';
 
     const form = useForm<CreateUserValues>({

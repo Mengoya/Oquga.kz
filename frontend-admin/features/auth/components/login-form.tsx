@@ -45,6 +45,7 @@ export function LoginForm({ className }: { className?: string }) {
 
             setAuth(data.user, data.accessToken);
             router.push('/');
+            router.refresh();
         } catch (err) {
             setError(t('errors.invalidCredentials'));
         }

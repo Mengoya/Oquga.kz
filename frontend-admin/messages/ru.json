@@ -27,7 +27,10 @@
   },
   "Navigation": {
     "universities": "Университеты",
-    "users": "Пользователи"
+    "users": "Пользователи",
+    "profile": "Профиль",
+    "settings": "Настройки",
+    "logout": "Выйти"
   },
   "Dashboard": {
     "title": "Университеты",
@@ -113,5 +116,20 @@
       "cityLabel": "Город",
       "descriptionLabel": "Описание"
     }
+  },
+  "ProfilePage": {
+    "title": "Профиль",
+    "subtitle": "Управляйте информацией о своем аккаунте",
+    "personalInfo": "Личная информация",
+    "security": "Безопасность",
+    "labels": {
+      "name": "Имя",
+      "email": "Email",
+      "role": "Роль"
+    },
+    "placeholders": {
+      "name": "Введите ваше имя"
+    },
+    "roleDescription": "Ваша роль определяет уровень доступа в системе."
   }
 }

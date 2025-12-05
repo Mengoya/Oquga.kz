@@ -27,8 +27,10 @@
   },
   "Navigation": {
     "universities": "Университеттер",
-    "programs": "Бағдарламалар",
-    "about": "Біз туралы"
+    "users": "Пайдаланушылар",
+    "profile": "Профиль",
+    "settings": "Баптаулар",
+    "logout": "Шығу"
   },
   "Dashboard": {
     "title": "Университеттер",
@@ -88,5 +90,20 @@
       "required": "Міндетті өріс",
       "email": "Email қате форматта"
     }
+  },
+  "ProfilePage": {
+    "title": "Профиль",
+    "subtitle": "Аккаунт ақпаратын басқарыңыз",
+    "personalInfo": "Жеке ақпарат",
+    "security": "Қауіпсіздік",
+    "labels": {
+      "name": "Аты",
+      "email": "Email",
+      "role": "Рөлі"
+    },
+    "placeholders": {
+      "name": "Атыңызды енгізіңіз"
+    },
+    "roleDescription": "Сіздің рөліңіз жүйедегі қолжетімділік деңгейін анықтайды."
   }
 }

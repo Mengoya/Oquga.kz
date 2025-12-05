@@ -2,7 +2,7 @@
 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, X, Filter, Download } from 'lucide-react';
+import { Search, X, Filter } from 'lucide-react';
 import { useDataTableParams } from '@/hooks/use-data-table-params';
 import { useState, useEffect } from 'react';
 import { useDebounce } from '@/hooks/use-debounce';

@@ -9,7 +9,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Search, X, Plus, FilterX } from 'lucide-react';
+import { Search, X, FilterX } from 'lucide-react';
 import { useDataTableParams } from '@/hooks/use-data-table-params';
 import { useState, useEffect } from 'react';
 import { useDebounce } from '@/hooks/use-debounce';

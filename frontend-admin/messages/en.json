@@ -27,7 +27,10 @@
   },
   "Navigation": {
     "universities": "Universities",
-    "users": "Users"
+    "users": "Users",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Log out"
   },
   "Dashboard": {
     "title": "Universities",
@@ -113,5 +116,20 @@
       "cityLabel": "City",
       "descriptionLabel": "Description"
     }
+  },
+  "ProfilePage": {
+    "title": "Profile",
+    "subtitle": "Manage your account information",
+    "personalInfo": "Personal Information",
+    "security": "Security",
+    "labels": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role"
+    },
+    "placeholders": {
+      "name": "Enter your name"
+    },
+    "roleDescription": "Your role determines your access level in the system."
   }
 }
