@@ -5,12 +5,25 @@ import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from './language-switcher';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuthStore } from '@/stores/use-auth-store';
+import { apiClient } from '@/lib/api-client';
 
 export function Header() {
     const tNav = useTranslations('Navigation');
     const tCommon = useTranslations('Common.actions');
     const pathname = usePathname();
+    const { isAuthenticated, logout } = useAuthStore();
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        try {
+            await apiClient.post('/auth/logout');
+        } finally {
+            logout();
+            router.push('/login');
+        }
+    };
 
     const navItems = [
         { href: '/', label: tNav('universities') },
@@ -52,9 +65,19 @@ export function Header() {
 
                 <div className="flex items-center gap-2">
                     <LanguageSwitcher />
-                    <Button variant="default" size="sm">
-                        {tCommon('login')}
-                    </Button>
+                    {isAuthenticated ? (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleLogout}
+                        >
+                            Выйти
+                        </Button>
+                    ) : (
+                        <Button variant="default" size="sm" asChild>
+                            <Link href="/login">{tCommon('login')}</Link>
+                        </Button>
+                    )}
                 </div>
             </div>
         </header>

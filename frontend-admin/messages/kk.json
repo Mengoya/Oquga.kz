@@ -45,5 +45,18 @@
       "archived": "Мұрағат",
       "pending": "Тексерілуде"
     }
+  },
+  "Auth": {
+    "title": "Жүйеге кіру",
+    "subtitle": "Кіру үшін email және құпия сөзді енгізіңіз",
+    "emailLabel": "Email",
+    "passwordLabel": "Құпия сөз",
+    "submit": "Кіру",
+    "submitting": "Кіру...",
+    "errors": {
+      "invalidCredentials": "Email немесе құпия сөз қате",
+      "required": "Міндетті өріс",
+      "email": "Email қате форматта"
+    }
   }
 }

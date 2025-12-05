@@ -45,5 +45,18 @@
       "archived": "Архив",
       "pending": "На проверке"
     }
+  },
+  "Auth": {
+    "title": "Вход в систему",
+    "subtitle": "Введите email и пароль для входа",
+    "emailLabel": "Email",
+    "passwordLabel": "Пароль",
+    "submit": "Войти",
+    "submitting": "Вход...",
+    "errors": {
+      "invalidCredentials": "Неверный email или пароль",
+      "required": "Обязательное поле",
+      "email": "Некорректный email"
+    }
   }
 }
