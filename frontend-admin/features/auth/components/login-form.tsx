@@ -15,7 +15,8 @@ import {
     FormMessage,
 } from '@/components/ui/form';
 import { useAuthStore } from '@/stores/use-auth-store';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from '@/i18n/routing';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Loader2, Mail, Lock } from 'lucide-react';
@@ -44,7 +45,11 @@ export function LoginForm({ className }: { className?: string }) {
             setAuth(data.user, data.access_token);
 
             const callbackUrl = searchParams.get('callbackUrl');
-            router.push(callbackUrl || '/');
+            if (callbackUrl) {
+                router.push(callbackUrl as any);
+            } else {
+                router.push('/');
+            }
             router.refresh();
         } catch {
             setError(t('errors.invalidCredentials'));
