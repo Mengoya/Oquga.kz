@@ -144,11 +144,13 @@ public class UniversityServiceImpl implements UniversityService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (user.getRole().getName() == RoleType.UNIVERSITY_ADMIN) {
+        RoleType userRole = user.getRole().getName();
+
+        if (userRole == RoleType.UNIVERSITY_ADMIN) {
             if (user.getUniversity() == null || !user.getUniversity().getId().equals(id)) {
                 throw new AccessDeniedException("You can only edit your own university");
             }
-        } else if (user.getRole().getName() != RoleType.MAIN_ADMIN) {
+        } else if (userRole != RoleType.MAIN_ADMIN) {
             throw new AccessDeniedException("Access denied");
         }
 
