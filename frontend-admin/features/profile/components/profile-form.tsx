@@ -26,10 +26,12 @@ export function ProfileForm() {
     const tCommon = useTranslations('Common');
     const { user, setAuth, accessToken } = useAuthStore();
 
+    const displayName = user ? `${user.firstName} ${user.lastName}` : '';
+
     const form = useForm<UpdateProfileValues>({
         resolver: zodResolver(UpdateProfileSchema),
         defaultValues: {
-            name: user?.name || '',
+            name: displayName,
         },
     });
 
@@ -41,7 +43,15 @@ export function ProfileForm() {
             });
 
             if (user && accessToken) {
-                setAuth({ ...user, name: data.user.name }, accessToken);
+                const [firstName, ...lastNameParts] = data.user.name.split(' ');
+                setAuth(
+                    {
+                        ...user,
+                        firstName: firstName || user.firstName,
+                        lastName: lastNameParts.join(' ') || user.lastName,
+                    },
+                    accessToken
+                );
             }
         },
         onError: () => {
@@ -93,7 +103,7 @@ export function ProfileForm() {
                     <FormLabel>{t('labels.role')}</FormLabel>
                     <FormControl>
                         <Input
-                            value={user?.role?.toUpperCase() || ''}
+                            value={user?.role || ''}
                             disabled
                             className="bg-muted"
                         />

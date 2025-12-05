@@ -6,7 +6,7 @@ import axios, {
 } from 'axios';
 import { useAuthStore } from '@/stores/use-auth-store';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
 const axiosOptions: AxiosRequestConfig = {
     baseURL: BASE_URL,
@@ -20,13 +20,13 @@ export const api: AxiosInstance = axios.create(axiosOptions);
 
 interface FailedRequest {
     resolve: (token: string) => void;
-    reject: (error: any) => void;
+    reject: (error: unknown) => void;
 }
 
 let isRefreshing = false;
 let failedQueue: FailedRequest[] = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: unknown, token: string | null = null) => {
     failedQueue.forEach((prom) => {
         if (error) {
             prom.reject(error);
@@ -47,7 +47,7 @@ api.interceptors.request.use(
 
         return config;
     },
-    (error) => Promise.reject(error),
+    (error) => Promise.reject(error)
 );
 
 api.interceptors.response.use(
@@ -67,7 +67,7 @@ api.interceptors.response.use(
             }
 
             if (isRefreshing) {
-                return new Promise<void>((resolve, reject) => {
+                return new Promise<string>((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
                 })
                     .then((token) => {
@@ -83,13 +83,11 @@ api.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                const { data } = await api.post<{ accessToken: string }>(
-                    '/auth/refresh',
-                );
+                const { data } = await api.post<{ access_token: string }>('/auth/refresh');
 
-                const newAccessToken = data.accessToken;
+                const newAccessToken = data.access_token;
 
-                useAuthStore.setState({ accessToken: newAccessToken });
+                useAuthStore.getState().setAccessToken(newAccessToken);
 
                 processQueue(null, newAccessToken);
 
@@ -110,7 +108,7 @@ api.interceptors.response.use(
         }
 
         return Promise.reject(error);
-    },
+    }
 );
 
 export const apiClient = {

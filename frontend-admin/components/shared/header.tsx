@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/stores/use-auth-store';
-import { apiClient } from '@/lib/api-client';
+import { logout as logoutApi } from '@/features/auth/api';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -36,7 +36,7 @@ export function Header() {
 
     const handleLogout = async () => {
         try {
-            await apiClient.post('/auth/logout');
+            await logoutApi();
         } catch (error) {
             console.error('Logout failed', error);
         } finally {
@@ -49,6 +49,9 @@ export function Header() {
         { href: '/', label: tNav('universities') },
         { href: '/users', label: tNav('users') },
     ];
+
+    const displayName = user ? `${user.firstName} ${user.lastName}` : '';
+    const initials = user ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase() : '';
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -70,10 +73,10 @@ export function Header() {
                                 className={cn(
                                     'transition-colors hover:text-foreground/80',
                                     pathname.endsWith(
-                                        item.href === '/' ? '' : item.href,
+                                        item.href === '/' ? '' : item.href
                                     )
                                         ? 'text-foreground'
-                                        : 'text-foreground/60',
+                                        : 'text-foreground/60'
                                 )}
                             >
                                 {item.label}
@@ -97,11 +100,9 @@ export function Header() {
                                     <Avatar className="h-9 w-9">
                                         <AvatarImage
                                             src={`https://avatar.vercel.sh/${user.email}`}
-                                            alt={user.name}
+                                            alt={displayName}
                                         />
-                                        <AvatarFallback>
-                                            {user.name?.[0]?.toUpperCase()}
-                                        </AvatarFallback>
+                                        <AvatarFallback>{initials}</AvatarFallback>
                                     </Avatar>
                                 </Button>
                             </DropdownMenuTrigger>
@@ -113,7 +114,7 @@ export function Header() {
                                 <DropdownMenuLabel className="font-normal">
                                     <div className="flex flex-col space-y-1">
                                         <p className="text-sm font-medium leading-none">
-                                            {user.name}
+                                            {displayName}
                                         </p>
                                         <p className="text-xs leading-none text-muted-foreground">
                                             {user.email}

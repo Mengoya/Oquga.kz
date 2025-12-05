@@ -1,32 +1,60 @@
-import createMiddleware from 'next-intl/middleware';
-import { routing } from './i18n/routing';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-const intlMiddleware = createMiddleware(routing);
+const publicRoutes = ['/login'];
+const locales = ['ru', 'kk', 'en'];
 
-export default function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    const hasRefreshToken = request.cookies.has('refreshToken');
+    const pathnameHasLocale = locales.some(
+        (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
+    );
 
-    const isAuthRoute =
-        !pathname.includes('/login') &&
-        !pathname.includes('/api') &&
-        !pathname.match(/\.(.*)$/);
+    let pathWithoutLocale = pathname;
+    let currentLocale = 'ru';
 
-    if (isAuthRoute && !hasRefreshToken) {
-        const locale = request.cookies.get('NEXT_LOCALE')?.value || 'ru';
-        return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
+    if (pathnameHasLocale) {
+        const locale = locales.find(
+            (l) => pathname.startsWith(`/${l}/`) || pathname === `/${l}`
+        );
+        if (locale) {
+            currentLocale = locale;
+            pathWithoutLocale = pathname.replace(`/${locale}`, '') || '/';
+        }
     }
 
-    if (pathname.includes('/login') && hasRefreshToken) {
-        const locale = request.cookies.get('NEXT_LOCALE')?.value || 'ru';
-        return NextResponse.redirect(new URL(`/${locale}`, request.url));
+    const isPublicRoute = publicRoutes.some(
+        (route) => pathWithoutLocale === route || pathWithoutLocale.startsWith(`${route}/`)
+    );
+
+    const authCookie = request.cookies.get('auth-storage');
+
+    let isAuthenticated = false;
+    if (authCookie) {
+        try {
+            const authData = JSON.parse(authCookie.value);
+            isAuthenticated = authData?.state?.isAuthenticated === true;
+        } catch {
+            isAuthenticated = false;
+        }
     }
 
-    return intlMiddleware(request);
+    if (!isAuthenticated && !isPublicRoute) {
+        const loginUrl = new URL(`/${currentLocale}/login`, request.url);
+        loginUrl.searchParams.set('callbackUrl', pathname);
+        return NextResponse.redirect(loginUrl);
+    }
+
+    if (isAuthenticated && isPublicRoute) {
+        return NextResponse.redirect(new URL(`/${currentLocale}`, request.url));
+    }
+
+    return NextResponse.next();
 }
 
 export const config = {
-    matcher: ['/', '/(ru|kk|en)/:path*'],
+    matcher: [
+        '/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)',
+    ],
 };
