@@ -6,8 +6,10 @@ import { Search, X, Filter, Download } from 'lucide-react';
 import { useDataTableParams } from '@/hooks/use-data-table-params';
 import { useState, useEffect } from 'react';
 import { useDebounce } from '@/hooks/use-debounce';
+import { useTranslations } from 'next-intl';
 
 export function UniversitiesToolbar() {
+    const t = useTranslations('Dashboard');
     const { search, setParams } = useDataTableParams();
     const [localSearch, setLocalSearch] = useState(search);
     const debouncedSearch = useDebounce(localSearch, 500);
@@ -28,7 +30,7 @@ export function UniversitiesToolbar() {
                 <div className="relative w-full max-w-sm">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Поиск вуза по названию..."
+                        placeholder={t('search')}
                         value={localSearch}
                         onChange={(e) => setLocalSearch(e.target.value)}
                         className="pl-9"

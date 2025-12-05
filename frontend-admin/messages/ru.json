@@ -1,0 +1,22 @@
+{
+  "Common": {
+    "searchPlaceholder": "Поиск...",
+    "languages": {
+      "ru": "Русский",
+      "kk": "Қазақша",
+      "en": "English"
+    }
+  },
+  "Navigation": {
+    "universities": "Университеты",
+    "programs": "Программы",
+    "about": "О нас"
+  },
+  "Dashboard": {
+    "title": "Университеты",
+    "subtitle": "Управление списком высших учебных заведений РК",
+    "search": "Поиск вуза по названию...",
+    "shown": "Показано {count} из {total} вузов",
+    "notFound": "Вузы не найдены"
+  }
+}

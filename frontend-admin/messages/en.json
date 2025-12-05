@@ -1,0 +1,22 @@
+{
+  "Common": {
+    "searchPlaceholder": "Search...",
+    "languages": {
+      "ru": "Russian",
+      "kk": "Kazakh",
+      "en": "English"
+    }
+  },
+  "Navigation": {
+    "universities": "Universities",
+    "programs": "Programs",
+    "about": "About Us"
+  },
+  "Dashboard": {
+    "title": "Universities",
+    "subtitle": "Management of Higher Education Institutions of RK",
+    "search": "Search university by name...",
+    "shown": "Showing {count} of {total} universities",
+    "notFound": "No universities found"
+  }
+}
