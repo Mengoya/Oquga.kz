@@ -1,5 +1,6 @@
 package com.oquga.oquga.entity;
 
+import com.oquga.oquga.entity.translation.UniversityTranslation;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -55,6 +56,9 @@ public class University {
     @OneToMany(mappedBy = "university", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Leadership> leadership = new ArrayList<>();
 
+    @OneToMany(mappedBy = "university", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Faculty> faculties = new ArrayList<>();
+
     public void addTranslation(UniversityTranslation translation) {
         translations.add(translation);
         translation.setUniversity(this);
@@ -93,5 +97,15 @@ public class University {
     public void removeLeadership(Leadership leader) {
         leadership.remove(leader);
         leader.setUniversity(null);
+    }
+
+    public void addFaculty(Faculty faculty) {
+        faculties.add(faculty);
+        faculty.setUniversity(this);
+    }
+
+    public void removeFaculty(Faculty faculty) {
+        faculties.remove(faculty);
+        faculty.setUniversity(null);
     }
 }

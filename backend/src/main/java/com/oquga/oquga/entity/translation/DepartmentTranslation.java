@@ -1,5 +1,7 @@
-package com.oquga.oquga.entity;
+package com.oquga.oquga.entity.translation;
 
+import com.oquga.oquga.entity.Department;
+import com.oquga.oquga.entity.Language;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,19 +9,19 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "university_translations")
+@Table(name = "department_translations")
 @Getter
 @Setter
 @NoArgsConstructor
-public class UniversityTranslation {
+public class DepartmentTranslation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "university_id", nullable = false)
-    private University university;
+    @JoinColumn(name = "department_id", nullable = false)
+    private Department department;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "language_id", nullable = false)
@@ -29,19 +31,13 @@ public class UniversityTranslation {
     private String name;
 
     @Column(columnDefinition = "TEXT")
-    private String description;
-
-    @Column(columnDefinition = "TEXT")
     private String goal;
 
     @Column(columnDefinition = "TEXT")
-    private String address;
+    private String mission;
 
-    @Column(length = 100)
-    private String city;
-
-    @Column(name = "history_text", columnDefinition = "TEXT")
-    private String historyText;
+    @Column(columnDefinition = "TEXT")
+    private String tasks;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
