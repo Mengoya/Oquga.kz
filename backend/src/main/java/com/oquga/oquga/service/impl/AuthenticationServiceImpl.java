@@ -4,6 +4,7 @@ import com.oquga.oquga.dto.admin.req.UniversityAdminCreateRequest;
 import com.oquga.oquga.dto.auth.req.AuthenticationRequest;
 import com.oquga.oquga.dto.auth.req.StudentRegisterRequest;
 import com.oquga.oquga.dto.auth.res.AuthenticationResponse;
+import com.oquga.oquga.dto.auth.res.UserInfoResponse;
 import com.oquga.oquga.entity.Role;
 import com.oquga.oquga.entity.University;
 import com.oquga.oquga.entity.User;
@@ -66,6 +67,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(AuthenticationResponse.builder()
                         .accessToken(accessToken)
+                        .user(mapToUserInfo(user))
                         .build());
     }
 
@@ -113,6 +115,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
                 .body(AuthenticationResponse.builder()
                         .accessToken(accessToken)
+                        .user(mapToUserInfo(user))
                         .build());
     }
 
@@ -132,6 +135,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 return ResponseEntity.ok()
                         .body(AuthenticationResponse.builder()
                                 .accessToken(newAccessToken)
+                                .user(mapToUserInfo(user))
                                 .build());
             }
         }
@@ -144,5 +148,24 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cleanCookie.toString())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserInfoResponse getCurrentUser(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return mapToUserInfo(user);
+    }
+
+    private UserInfoResponse mapToUserInfo(User user) {
+        return new UserInfoResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getRole().getName().name(),
+                user.getUniversity() != null ? user.getUniversity().getId() : null
+        );
     }
 }
