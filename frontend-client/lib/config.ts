@@ -19,3 +19,5 @@ export const NAV_ITEMS = [
     { key: 'international', href: '/international', icon: Globe },
     { key: 'compare', href: '/compare', icon: Scale },
 ];
+
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
