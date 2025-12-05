@@ -12,13 +12,22 @@
       "login": "Войти",
       "more": "Действия",
       "prev": "Назад",
-      "next": "Вперед"
+      "next": "Вперед",
+      "create": "Создать",
+      "cancel": "Отмена",
+      "save": "Сохранить",
+      "delete": "Удалить"
+    },
+    "feedback": {
+      "success": "Успешно",
+      "error": "Ошибка",
+      "created": "Запись успешно создана",
+      "genericError": "Произошла непредвиденная ошибка. Попробуйте позже."
     }
   },
   "Navigation": {
     "universities": "Университеты",
-    "programs": "Программы",
-    "about": "О нас"
+    "users": "Пользователи"
   },
   "Dashboard": {
     "title": "Университеты",
@@ -57,6 +66,52 @@
       "invalidCredentials": "Неверный email или пароль",
       "required": "Обязательное поле",
       "email": "Некорректный email"
+    }
+  },
+  "UsersPage": {
+    "title": "Пользователи",
+    "subtitle": "Управление доступом и пользователями системы",
+    "addUser": "Создать",
+    "search": "Поиск по email или имени...",
+    "filters": {
+      "role": "Все роли",
+      "university": "Все университеты"
+    },
+    "table": {
+      "headers": {
+        "user": "Пользователь",
+        "role": "Роль",
+        "university": "ВУЗ",
+        "status": "Статус",
+        "lastLogin": "Последний вход"
+      }
+    },
+    "roles": {
+      "admin": "Администратор",
+      "manager": "Менеджер",
+      "viewer": "Наблюдатель"
+    },
+    "status": {
+      "active": "Активен",
+      "blocked": "Заблокирован"
+    },
+    "createModal": {
+      "title": "Создать пользователя",
+      "description": "Добавьте нового пользователя в систему.",
+      "nameLabel": "Имя",
+      "emailLabel": "Email",
+      "passwordLabel": "Пароль",
+      "roleLabel": "Роль",
+      "universityLabel": "Университет"
+    }
+  },
+  "UniversitiesPage": {
+    "createModal": {
+      "title": "Создать университет",
+      "description": "Заполните данные о новом учебном заведении.",
+      "nameLabel": "Название",
+      "cityLabel": "Город",
+      "descriptionLabel": "Описание"
     }
   }
 }

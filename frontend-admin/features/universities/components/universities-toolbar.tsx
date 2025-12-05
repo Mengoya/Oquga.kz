@@ -7,6 +7,7 @@ import { useDataTableParams } from '@/hooks/use-data-table-params';
 import { useState, useEffect } from 'react';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useTranslations } from 'next-intl';
+import { CreateUniversityDialog } from '@/features/universities/components/create-university-dialog';
 
 export function UniversitiesToolbar() {
     const tDashboard = useTranslations('Dashboard');
@@ -52,11 +53,7 @@ export function UniversitiesToolbar() {
                 </Button>
             </div>
             <div className="flex items-center gap-2">
-                <Button variant="secondary">
-                    <Download className="mr-2 h-4 w-4" />
-                    {tCommon('export')}
-                </Button>
-                <Button>{tDashboard('addUniversity')}</Button>
+                <CreateUniversityDialog />
             </div>
         </div>
     );

@@ -1,4 +1,4 @@
-import { University, UniversitySchema } from './types';
+import { CreateUniversityValues, University, UniversitySchema } from './types';
 
 const MOCK_UNIVERSITIES: University[] = Array.from({ length: 50 }).map(
     (_, i) => ({
@@ -53,4 +53,10 @@ export async function fetchUniversities({
             totalPages: Math.ceil(total / limit),
         },
     };
+}
+
+export async function createUniversity(data: CreateUniversityValues) {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    console.log('Creating university:', data);
+    return { success: true, id: Date.now().toString() };
 }

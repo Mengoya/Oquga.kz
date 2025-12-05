@@ -7,8 +7,6 @@ const intlMiddleware = createMiddleware(routing);
 export default function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
-    const isPublicPage = pathname.includes('/login');
-
     const hasRefreshToken = request.cookies.has('refreshToken');
 
     const isAuthRoute =

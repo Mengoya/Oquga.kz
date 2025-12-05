@@ -12,7 +12,17 @@
       "login": "Кіру",
       "more": "Әрекеттер",
       "prev": "Артқа",
-      "next": "Алға"
+      "next": "Алға",
+      "create": "Құру",
+      "cancel": "Болдырмау",
+      "save": "Сақтау",
+      "delete": "Жою"
+    },
+    "feedback": {
+      "success": "Сәтті",
+      "error": "Қате",
+      "created": "Жазба сәтті құрылды",
+      "genericError": "Күтпеген қате орын алды. Кейінірек қайталап көріңіз."
     }
   },
   "Navigation": {
@@ -44,6 +54,26 @@
       "active": "Белсенді",
       "archived": "Мұрағат",
       "pending": "Тексерілуде"
+    }
+  },
+  "UniversitiesPage": {
+    "createModal": {
+      "title": "Университет құру",
+      "description": "Жаңа оқу орны туралы деректерді толтырыңыз.",
+      "nameLabel": "Атауы",
+      "cityLabel": "Қала",
+      "descriptionLabel": "Сипаттама"
+    }
+  },
+  "UsersPage": {
+    "createModal": {
+      "title": "Пайдаланушыны құру",
+      "description": "Жүйеге жаңа пайдаланушыны қосыңыз.",
+      "nameLabel": "Аты",
+      "emailLabel": "Email",
+      "passwordLabel": "Құпия сөз",
+      "roleLabel": "Рөлі",
+      "universityLabel": "Университет"
     }
   },
   "Auth": {

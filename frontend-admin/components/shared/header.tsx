@@ -27,8 +27,7 @@ export function Header() {
 
     const navItems = [
         { href: '/', label: tNav('universities') },
-        { href: '/programs', label: tNav('programs') },
-        { href: '/about', label: tNav('about') },
+        { href: '/users', label: tNav('users') },
     ];
 
     return (

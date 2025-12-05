@@ -10,7 +10,7 @@ export const UniversitySchema = z.object({
     studentsCount: z.number(),
     rating: z.number().min(0).max(5),
     status: UniversityStatusSchema,
-    updatedAt: z.string().datetime(),
+    updatedAt: z.iso.datetime(),
 });
 
 export type University = z.infer<typeof UniversitySchema>;
@@ -20,3 +20,10 @@ export type UniversityFilters = {
     page?: number;
     limit?: number;
 };
+
+export const CreateUniversitySchema = z.object({
+    name: z.string().min(2, 'Name must be at least 2 characters'),
+    city: z.string().min(2, 'City is required'),
+});
+
+export type CreateUniversityValues = z.infer<typeof CreateUniversitySchema>;

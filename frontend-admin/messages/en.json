@@ -12,13 +12,22 @@
       "login": "Log in",
       "more": "Actions",
       "prev": "Prev",
-      "next": "Next"
+      "next": "Next",
+      "create": "Create",
+      "cancel": "Cancel",
+      "save": "Save",
+      "delete": "Delete"
+    },
+    "feedback": {
+      "success": "Success",
+      "error": "Error",
+      "created": "Record successfully created",
+      "genericError": "An unexpected error occurred. Please try again later."
     }
   },
   "Navigation": {
     "universities": "Universities",
-    "programs": "Programs",
-    "about": "About Us"
+    "users": "Users"
   },
   "Dashboard": {
     "title": "Universities",
@@ -57,6 +66,52 @@
       "invalidCredentials": "Invalid email or password",
       "required": "Required field",
       "email": "Invalid email address"
+    }
+  },
+  "UsersPage": {
+    "title": "Users",
+    "subtitle": "System access and user management",
+    "addUser": "Create",
+    "search": "Search by email or name...",
+    "filters": {
+      "role": "All Roles",
+      "university": "All Universities"
+    },
+    "table": {
+      "headers": {
+        "user": "User",
+        "role": "Role",
+        "university": "University",
+        "status": "Status",
+        "lastLogin": "Last Login"
+      }
+    },
+    "roles": {
+      "admin": "Administrator",
+      "manager": "Manager",
+      "viewer": "Viewer"
+    },
+    "status": {
+      "active": "Active",
+      "blocked": "Blocked"
+    },
+    "createModal": {
+      "title": "Create User",
+      "description": "Add a new user to the system.",
+      "nameLabel": "Name",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "roleLabel": "Role",
+      "universityLabel": "University"
+    }
+  },
+  "UniversitiesPage": {
+    "createModal": {
+      "title": "Create University",
+      "description": "Fill in the details about the new institution.",
+      "nameLabel": "Name",
+      "cityLabel": "City",
+      "descriptionLabel": "Description"
     }
   }
 }
