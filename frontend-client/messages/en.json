@@ -1,0 +1,71 @@
+{
+    "Metadata": {
+        "title": "Oquga Kz",
+        "description": "Unified platform for university selection"
+    },
+    "Navigation": {
+        "universities": "Universities",
+        "universities_desc": "Mission and history",
+        "programs": "Programs",
+        "programs_desc": "Bachelors and courses",
+        "admissions": "Admissions",
+        "admissions_desc": "Grants and deadlines",
+        "tours": "3D Tour",
+        "tours_desc": "Virtual campus",
+        "international": "Cooperation",
+        "international_desc": "Exchange programs",
+        "compare": "Compare",
+        "compare_desc": "Compare universities",
+        "login": "Log in",
+        "profile": "Profile",
+        "search": "Search"
+    },
+    "Home": {
+        "catalog_title": "University Catalog",
+        "catalog_desc": "Higher education institutions of Kazakhstan are presented here. Explore ratings and opportunities.",
+        "catalog_link": "Go to catalog",
+        "hero_tag": "Trending",
+        "hero_title": "Ministry of Science announces new grant rules for 2025",
+        "hero_desc": "Learn about changes in UNT passing scores and new quotas for rural youth.",
+        "hero_btn": "Read news",
+        "admissions_title": "How to apply?",
+        "admissions_desc": "Step-by-step instructions for applicants:",
+        "dates": "Testing dates",
+        "deadlines": "Submission deadlines",
+        "more_link": "Learn more"
+    },
+    "News": {
+        "title": "Latest News",
+        "subtitle": "Stay up to date with events in the world of higher education.",
+        "all_news": "All news",
+        "read": "Read",
+        "views": "views",
+        "education": "Education",
+        "student_life": "Student Life"
+    },
+    "Universities": {
+        "title": "University Catalog",
+        "subtitle": "Find your ideal institution. Universities found: {count}",
+        "search_placeholder": "Search by university name...",
+        "city_all": "All cities",
+        "founded": "Founded in {year}",
+        "details": "Details",
+        "not_found": "No universities found",
+        "reset": "Reset filters"
+    },
+    "Cities": {
+        "all": "All cities",
+        "almaty": "Almaty",
+        "astana": "Astana",
+        "shymkent": "Shymkent",
+        "karaganda": "Karaganda",
+        "aktobe": "Aktobe",
+        "ust_kamenogorsk": "Ust-Kamenogorsk",
+        "pavlodar": "Pavlodar"
+    },
+    "Footer": {
+        "platform": "Platform",
+        "contacts": "Contacts",
+        "rights": "All rights reserved."
+    }
+}

@@ -1,60 +1,58 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import createMiddleware from 'next-intl/middleware';
+import { routing } from '@/i18n/routing';
 
-const publicRoutes = ['/login'];
-const locales = ['ru', 'kk', 'en'];
+const handleI18nRouting = createMiddleware(routing);
 
-export function middleware(request: NextRequest) {
+const publicPathnames = ['/login'];
+
+export default function middleware(request: NextRequest) {
+    const response = handleI18nRouting(request);
+
     const { pathname } = request.nextUrl;
 
-    const pathnameHasLocale = locales.some(
-        (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
-    );
-
-    let pathWithoutLocale = pathname;
-    let currentLocale = 'ru';
-
-    if (pathnameHasLocale) {
-        const locale = locales.find(
-            (l) => pathname.startsWith(`/${l}/`) || pathname === `/${l}`
-        );
-        if (locale) {
-            currentLocale = locale;
-            pathWithoutLocale = pathname.replace(`/${locale}`, '') || '/';
-        }
+    if (response.status === 307 || response.status === 308) {
+        return response;
     }
 
-    const isPublicRoute = publicRoutes.some(
-        (route) => pathWithoutLocale === route || pathWithoutLocale.startsWith(`${route}/`)
-    );
+    const locale = pathname.split('/')[1];
+
+    if (!routing.locales.includes(locale as any)) {
+        return response;
+    }
+
+    const pathnameWithoutLocale = pathname.replace(`/${locale}`, '') || '/';
+
+    const isPublicPage = publicPathnames.includes(pathnameWithoutLocale);
 
     const authCookie = request.cookies.get('auth-storage');
-
     let isAuthenticated = false;
+
     if (authCookie) {
         try {
             const authData = JSON.parse(authCookie.value);
             isAuthenticated = authData?.state?.isAuthenticated === true;
-        } catch {
+        } catch (e) {
             isAuthenticated = false;
         }
     }
 
-    if (!isAuthenticated && !isPublicRoute) {
-        const loginUrl = new URL(`/${currentLocale}/login`, request.url);
+    if (!isAuthenticated && !isPublicPage) {
+        const loginUrl = new URL(`/${locale}/login`, request.url);
         loginUrl.searchParams.set('callbackUrl', pathname);
         return NextResponse.redirect(loginUrl);
     }
 
-    if (isAuthenticated && isPublicRoute) {
-        return NextResponse.redirect(new URL(`/${currentLocale}`, request.url));
+    if (isAuthenticated && isPublicPage) {
+        return NextResponse.redirect(new URL(`/${locale}`, request.url));
     }
 
-    return NextResponse.next();
+    return response;
 }
 
 export const config = {
     matcher: [
-        '/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)',
+        '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
     ],
 };

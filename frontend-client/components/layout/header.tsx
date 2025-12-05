@@ -1,34 +1,26 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, Link } from '@/i18n/routing';
 import { Menu, X, User, Search } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import { NAV_LINKS, SITE_CONFIG } from '@/lib/config';
+import { NAV_ITEMS, SITE_CONFIG } from '@/lib/config';
 import { cn } from '@/lib/utils';
+import { LanguageSwitcher } from './language-switcher';
 
 export function Header() {
+    const t = useTranslations('Navigation');
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const pathname = usePathname();
 
     useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 10);
-        };
+        const handleScroll = () => setIsScrolled(window.scrollY > 10);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
-
-    useEffect(() => {
-        if (isMobileMenuOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'unset';
-        }
-    }, [isMobileMenuOpen]);
 
     return (
         <header
@@ -42,13 +34,12 @@ export function Header() {
             <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
                 <Link
                     href="/"
-                    className="flex items-center gap-2 font-bold text-xl tracking-tight hover:opacity-80 transition-opacity"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity"
                 >
                     <div className="relative w-8 h-8">
                         <Image
                             src="/logo.png"
-                            alt={`${SITE_CONFIG.name} Лого`}
+                            alt="Logo"
                             fill
                             className="object-contain"
                             priority
@@ -58,28 +49,32 @@ export function Header() {
                 </Link>
 
                 <nav className="hidden lg:flex items-center gap-6">
-                    {NAV_LINKS.map((link) => (
+                    {NAV_ITEMS.map((item) => (
                         <Link
-                            key={link.href}
-                            href={link.href}
+                            key={item.href}
+                            href={item.href}
                             className={cn(
                                 'text-sm font-medium transition-colors hover:text-primary relative py-1',
-                                pathname === link.href
+                                pathname === item.href
                                     ? 'text-primary after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary'
                                     : 'text-muted-foreground',
                             )}
                         >
-                            {link.label}
+                            {t(item.key)}
                         </Link>
                     ))}
                 </nav>
 
                 <div className="flex items-center gap-2 md:gap-4">
+                    <div className="hidden sm:block">
+                        <LanguageSwitcher />
+                    </div>
+
                     <Button
                         variant="ghost"
                         size="icon"
                         className="hidden sm:flex"
-                        aria-label="Поиск"
+                        aria-label={t('search')}
                     >
                         <Search className="h-5 w-5" />
                     </Button>
@@ -90,7 +85,7 @@ export function Header() {
                         className="hidden sm:flex gap-2"
                     >
                         <User className="h-4 w-4" />
-                        <span>Войти</span>
+                        <span>{t('login')}</span>
                     </Button>
 
                     <Button
@@ -98,7 +93,6 @@ export function Header() {
                         size="icon"
                         className="lg:hidden"
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        aria-label="Меню"
                     >
                         {isMobileMenuOpen ? (
                             <X className="h-6 w-6" />
@@ -113,18 +107,18 @@ export function Header() {
                 <div className="lg:hidden fixed inset-0 top-16 z-50 bg-background/95 backdrop-blur-sm animate-in fade-in slide-in-from-top-5">
                     <div className="container px-4 py-8 h-[calc(100vh-4rem)] flex flex-col justify-between overflow-y-auto">
                         <nav className="flex flex-col gap-2">
-                            {NAV_LINKS.map((link) => {
-                                const Icon = link.icon;
+                            {NAV_ITEMS.map((item) => {
+                                const Icon = item.icon;
                                 return (
                                     <Link
-                                        key={link.href}
-                                        href={link.href}
+                                        key={item.href}
+                                        href={item.href}
                                         onClick={() =>
                                             setIsMobileMenuOpen(false)
                                         }
                                         className={cn(
                                             'flex items-center gap-4 p-4 rounded-lg transition-colors',
-                                            pathname === link.href
+                                            pathname === item.href
                                                 ? 'bg-primary/10 text-primary'
                                                 : 'hover:bg-muted',
                                         )}
@@ -132,24 +126,26 @@ export function Header() {
                                         <Icon className="h-5 w-5" />
                                         <div>
                                             <div className="font-medium">
-                                                {link.label}
+                                                {t(item.key)}
                                             </div>
                                             <div className="text-xs text-muted-foreground">
-                                                {link.description}
+                                                {t(`${item.key}_desc`)}
                                             </div>
                                         </div>
                                     </Link>
                                 );
                             })}
                         </nav>
-
                         <div className="flex flex-col gap-4 mt-8 pt-8 border-t">
+                            <div className="flex justify-center mb-4">
+                                <LanguageSwitcher />
+                            </div>
                             <Button
                                 className="w-full justify-center gap-2"
                                 size="lg"
                             >
                                 <User className="h-4 w-4" />
-                                Личный кабинет
+                                {t('profile')}
                             </Button>
                         </div>
                     </div>

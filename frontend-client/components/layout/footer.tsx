@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { NAV_LINKS, SITE_CONFIG } from '@/lib/config';
+import { NAV_ITEMS, SITE_CONFIG } from '@/lib/config';
 import { Mail } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export function Footer() {
+    const t = useTranslations();
     const currentYear = new Date().getFullYear();
 
     return (
@@ -18,7 +20,7 @@ export function Footer() {
                             <div className="relative w-8 h-8">
                                 <Image
                                     src="/logo.png"
-                                    alt={`${SITE_CONFIG.name} Лого`}
+                                    alt={`${SITE_CONFIG.name} Logo`}
                                     fill
                                     className="object-contain"
                                 />
@@ -26,23 +28,21 @@ export function Footer() {
                             <span>{SITE_CONFIG.name}</span>
                         </Link>
                         <p className="text-muted-foreground text-sm leading-relaxed max-w-sm">
-                            {SITE_CONFIG.description}. Мы помогаем абитуриентам
-                            найти свой идеальный путь в образовании через
-                            инновационные технологии и прозрачные данные.
+                            {t('Metadata.description')}
                         </p>
                     </div>
                     <div>
                         <h3 className="font-semibold mb-4 text-foreground">
-                            Платформа
+                            {t('Footer.platform')}
                         </h3>
                         <ul className="space-y-3">
-                            {NAV_LINKS.map((link) => (
-                                <li key={link.href}>
+                            {NAV_ITEMS.map((item) => (
+                                <li key={item.href}>
                                     <Link
-                                        href={link.href}
+                                        href={item.href}
                                         className="text-muted-foreground hover:text-primary transition-colors text-sm"
                                     >
-                                        {link.label}
+                                        {t(`Navigation.${item.key}`)}
                                     </Link>
                                 </li>
                             ))}
@@ -51,7 +51,7 @@ export function Footer() {
 
                     <div>
                         <h3 className="font-semibold mb-4 text-foreground">
-                            Контакты
+                            {t('Footer.contacts')}
                         </h3>
                         <ul className="space-y-4 text-sm text-muted-foreground mb-6">
                             <li className="flex items-center gap-3">
@@ -59,7 +59,7 @@ export function Footer() {
                                 <a
                                     href="mailto:info@oquga.kz"
                                     className="hover:text-foreground transition-colors"
-                                    aria-label="Написать нам письмо"
+                                    aria-label="Email"
                                 >
                                     info@oquga.kz
                                 </a>
@@ -70,8 +70,8 @@ export function Footer() {
 
                 <div className="pt-8 border-t text-center text-sm text-muted-foreground">
                     <p>
-                        &copy; {currentYear} {SITE_CONFIG.name}. Все права
-                        защищены.
+                        &copy; {currentYear} {SITE_CONFIG.name}.{' '}
+                        {t('Footer.rights')}
                     </p>
                 </div>
             </div>

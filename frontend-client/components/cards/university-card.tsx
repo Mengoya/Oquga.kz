@@ -1,15 +1,18 @@
 import React from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/i18n/routing';
 import { MapPin, Calendar, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { University } from '@/types';
+import { useTranslations } from 'next-intl';
 
 interface UniversityCardProps {
     uni: University;
 }
 
 export function UniversityCard({ uni }: UniversityCardProps) {
+    const t = useTranslations('Universities');
+
     return (
         <Link href={`/universities/${uni.id}`} className="group h-full block">
             <article className="h-full flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm transition-all duration-300 hover:shadow-lg hover:border-primary/40 hover:-translate-y-1">
@@ -39,7 +42,9 @@ export function UniversityCard({ uni }: UniversityCardProps) {
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Calendar className="h-4 w-4 shrink-0 text-primary/70" />
-                            <span>Основан в {uni.foundedYear} году</span>
+                            <span>
+                                {t('founded', { year: uni.foundedYear })}
+                            </span>
                         </div>
                     </div>
 
@@ -51,7 +56,7 @@ export function UniversityCard({ uni }: UniversityCardProps) {
                         variant="secondary"
                         className="w-full mt-auto group-hover:bg-primary group-hover:text-white transition-colors"
                     >
-                        Подробнее
+                        {t('details')}
                     </Button>
                 </div>
             </article>

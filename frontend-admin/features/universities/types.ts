@@ -36,16 +36,21 @@ const TranslationSchema = z.object({
 });
 
 export const CreateUniversitySchema = z.object({
-    photoUrl: z.string().min(1, 'Photo URL is required'),
-    translations: z
-        .object({
-            ru: TranslationSchema.optional(),
-            kk: TranslationSchema.optional(),
-            en: TranslationSchema.optional(),
-        })
-        .refine((data) => data.ru?.name || data.kk?.name || data.en?.name, {
-            message: 'At least one translation with name is required',
+    photoUrl: z.url('Введите корректный URL изображения'),
+    translations: z.object({
+        ru: TranslationSchema.extend({
+            name: z.string().min(2, 'Название на русском обязательно'),
+            city: z.string().min(2, 'Город на русском обязателен'),
         }),
+        kk: TranslationSchema.extend({
+            name: z.string().min(2, 'Название на казахском обязательно'),
+            city: z.string().min(2, 'Город на казахском обязателен'),
+        }),
+        en: TranslationSchema.extend({
+            name: z.string().min(2, 'Название на английском обязательно'),
+            city: z.string().min(2, 'Город на английском обязателен'),
+        }),
+    }),
 });
 
 export type CreateUniversityValues = z.infer<typeof CreateUniversitySchema>;

@@ -11,9 +11,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UniversityCard } from '@/components/cards/university-card';
-import { PLACEHOLDER_IMAGE, CITIES } from '@/lib/constants';
+import { PLACEHOLDER_IMAGE, CITIES_KEYS } from '@/lib/constants';
 import { University } from '@/types';
-import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 const ALL_UNIVERSITIES: University[] = Array.from({ length: 100 }).map(
     (_, i) => ({
@@ -29,25 +29,30 @@ const ALL_UNIVERSITIES: University[] = Array.from({ length: 100 }).map(
                 'Международный IT Университет',
                 'Университет имени Сулеймана Демиреля',
             ][i % 8] + ` (${i + 1})`,
-        city: CITIES[Math.floor(Math.random() * (CITIES.length - 1)) + 1],
+        city: CITIES_KEYS[
+            Math.floor(Math.random() * (CITIES_KEYS.length - 1)) + 1
+        ],
         foundedYear: 1930 + Math.floor(Math.random() * 90),
         views: Math.floor(Math.random() * 50000) + 1000,
         image: PLACEHOLDER_IMAGE,
-        description:
-            'Ведущее высшее учебное заведение, предлагающее широкий спектр образовательных программ.',
+        description: 'Ведущее высшее учебное заведение...',
     }),
 );
 
 const ITEMS_PER_PAGE = 9;
 
 export default function UniversitiesPage() {
+    const t = useTranslations('Universities');
+    const tCities = useTranslations('Cities');
+
     const [universities, setUniversities] = useState<University[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCity, setSelectedCity] = useState('Все города');
+
+    const [selectedCityKey, setSelectedCityKey] = useState('all');
     const [debouncedSearch, setDebouncedSearch] = useState('');
 
     useEffect(() => {
@@ -60,19 +65,18 @@ export default function UniversitiesPage() {
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [selectedCity]);
+    }, [selectedCityKey]);
 
     const loadUniversities = useCallback(async () => {
         setIsLoading(true);
-
         await new Promise((resolve) => setTimeout(resolve, 600));
 
         let filtered = ALL_UNIVERSITIES.filter((uni) =>
             uni.name.toLowerCase().includes(debouncedSearch.toLowerCase()),
         );
 
-        if (selectedCity !== 'Все города') {
-            filtered = filtered.filter((uni) => uni.city === selectedCity);
+        if (selectedCityKey !== 'all') {
+            filtered = filtered.filter((uni) => uni.city === selectedCityKey);
         }
 
         const total = filtered.length;
@@ -80,7 +84,10 @@ export default function UniversitiesPage() {
 
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
         const endIndex = startIndex + ITEMS_PER_PAGE;
-        const currentData = filtered.slice(startIndex, endIndex);
+        const currentData = filtered.slice(startIndex, endIndex).map((uni) => ({
+            ...uni,
+            city: tCities(uni.city),
+        }));
 
         setUniversities(currentData);
         setTotalPages(calculatedTotalPages);
@@ -88,7 +95,7 @@ export default function UniversitiesPage() {
         setIsLoading(false);
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [currentPage, debouncedSearch, selectedCity]);
+    }, [currentPage, debouncedSearch, selectedCityKey, tCities]);
 
     useEffect(() => {
         loadUniversities();
@@ -105,11 +112,10 @@ export default function UniversitiesPage() {
             <div className="flex flex-col gap-6 mb-10">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight mb-2">
-                        Каталог университетов
+                        {t('title')}
                     </h1>
                     <p className="text-muted-foreground">
-                        Найдите идеальное учебное заведение. Найдено вузов:{' '}
-                        {totalItems}.
+                        {t('subtitle', { count: totalItems })}
                     </p>
                 </div>
 
@@ -117,7 +123,7 @@ export default function UniversitiesPage() {
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Поиск по названию университета..."
+                            placeholder={t('search_placeholder')}
                             className="pl-9 bg-background border-border"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -127,12 +133,12 @@ export default function UniversitiesPage() {
                     <div className="w-full md:w-[200px]">
                         <select
                             className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                            value={selectedCity}
-                            onChange={(e) => setSelectedCity(e.target.value)}
+                            value={selectedCityKey}
+                            onChange={(e) => setSelectedCityKey(e.target.value)}
                         >
-                            {CITIES.map((city) => (
-                                <option key={city} value={city}>
-                                    {city}
+                            {CITIES_KEYS.map((cityKey) => (
+                                <option key={cityKey} value={cityKey}>
+                                    {tCities(cityKey)}
                                 </option>
                             ))}
                         </select>
@@ -151,71 +157,22 @@ export default function UniversitiesPage() {
                             <UniversityCard key={uni.id} uni={uni} />
                         ))}
                     </div>
-
                     <div className="mt-auto py-4 border-t flex items-center justify-center gap-2">
                         <Button
                             variant="outline"
                             size="icon"
                             onClick={() => handlePageChange(currentPage - 1)}
                             disabled={currentPage === 1}
-                            aria-label="Предыдущая страница"
+                            aria-label="Previous"
                         >
                             <ChevronLeft className="h-4 w-4" />
                         </Button>
-
-                        {Array.from(
-                            { length: totalPages },
-                            (_, i) => i + 1,
-                        ).map((pageNum) => {
-                            if (
-                                pageNum === 1 ||
-                                pageNum === totalPages ||
-                                (pageNum >= currentPage - 1 &&
-                                    pageNum <= currentPage + 1)
-                            ) {
-                                return (
-                                    <Button
-                                        key={pageNum}
-                                        variant={
-                                            pageNum === currentPage
-                                                ? 'default'
-                                                : 'outline'
-                                        }
-                                        size="sm"
-                                        onClick={() =>
-                                            handlePageChange(pageNum)
-                                        }
-                                        className={cn(
-                                            'w-9',
-                                            pageNum === currentPage &&
-                                                'pointer-events-none',
-                                        )}
-                                    >
-                                        {pageNum}
-                                    </Button>
-                                );
-                            } else if (
-                                pageNum === currentPage - 2 ||
-                                pageNum === currentPage + 2
-                            ) {
-                                return (
-                                    <span
-                                        key={pageNum}
-                                        className="text-muted-foreground px-1"
-                                    >
-                                        ...
-                                    </span>
-                                );
-                            }
-                            return null;
-                        })}
-
                         <Button
                             variant="outline"
                             size="icon"
                             onClick={() => handlePageChange(currentPage + 1)}
                             disabled={currentPage === totalPages}
-                            aria-label="Следующая страница"
+                            aria-label="Next"
                         >
                             <ChevronRight className="h-4 w-4" />
                         </Button>
@@ -224,21 +181,16 @@ export default function UniversitiesPage() {
             ) : (
                 <div className="flex-1 flex flex-col justify-center items-center text-muted-foreground min-h-[300px]">
                     <School className="h-16 w-16 mb-4 opacity-20" />
-                    <p className="text-lg font-medium">
-                        Университеты не найдены
-                    </p>
-                    <p className="text-sm">
-                        Попробуйте изменить параметры поиска или фильтры
-                    </p>
+                    <p className="text-lg font-medium">{t('not_found')}</p>
                     <Button
                         variant="link"
                         onClick={() => {
                             setSearchQuery('');
-                            setSelectedCity('Все города');
+                            setSelectedCityKey('all');
                         }}
                         className="mt-2"
                     >
-                        Сбросить фильтры
+                        {t('reset')}
                     </Button>
                 </div>
             )}
