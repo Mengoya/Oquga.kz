@@ -54,6 +54,9 @@ public class EducationalProgramGroup {
     @OneToMany(mappedBy = "programGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EducationalProgram> programs = new ArrayList<>();
 
+    @OneToOne(mappedBy = "programGroup", cascade = CascadeType.ALL, orphanRemoval = true)
+    private PassingScore passingScore;
+
     public void addTranslation(EducationalProgramGroupTranslation translation) {
         translations.add(translation);
         translation.setProgramGroup(this);
@@ -72,5 +75,12 @@ public class EducationalProgramGroup {
     public void removeProgram(EducationalProgram program) {
         programs.remove(program);
         program.setProgramGroup(null);
+    }
+
+    public void setPassingScore(PassingScore passingScore) {
+        this.passingScore = passingScore;
+        if (passingScore != null) {
+            passingScore.setProgramGroup(this);
+        }
     }
 }
