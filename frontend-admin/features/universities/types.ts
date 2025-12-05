@@ -6,11 +6,14 @@ export const UniversitySchema = z.object({
     id: z.string(),
     name: z.string(),
     city: z.string(),
+    photoUrl: z.string().nullable(),
+    shortDescription: z.string().nullable(),
     programsCount: z.number(),
     studentsCount: z.number(),
     rating: z.number().min(0).max(5),
     status: UniversityStatusSchema,
     progressPercent: z.number(),
+    viewCount: z.number(),
     translations: z.record(z.object({
         isComplete: z.boolean()
     })).optional(),
@@ -28,10 +31,12 @@ export type UniversityFilters = {
 const TranslationSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters'),
     city: z.string().optional(),
+    shortDescription: z.string().optional(),
     description: z.string().optional(),
 });
 
 export const CreateUniversitySchema = z.object({
+    photoUrl: z.string().min(1, 'Photo URL is required'),
     translations: z
         .object({
             ru: TranslationSchema.optional(),
@@ -48,6 +53,7 @@ export type CreateUniversityValues = z.infer<typeof CreateUniversitySchema>;
 const UpdateTranslationSchema = z.object({
     name: z.string().optional(),
     city: z.string().optional(),
+    shortDescription: z.string().optional(),
     description: z.string().optional(),
     goal: z.string().optional(),
     address: z.string().optional(),
@@ -55,6 +61,7 @@ const UpdateTranslationSchema = z.object({
 });
 
 export const UpdateUniversitySchema = z.object({
+    photoUrl: z.string().optional(),
     websiteUrl: z.string().optional(),
     foundedYear: z.number().optional().nullable(),
     contactPhone: z.string().optional(),
@@ -70,6 +77,7 @@ export type UpdateUniversityValues = z.infer<typeof UpdateUniversitySchema>;
 
 export interface UniversityApiTranslation {
     name: string;
+    shortDescription: string | null;
     description: string | null;
     city: string | null;
     isComplete: boolean;
@@ -77,6 +85,7 @@ export interface UniversityApiTranslation {
 
 export interface UniversityDetailTranslation {
     name: string;
+    shortDescription: string | null;
     description: string | null;
     goal: string | null;
     address: string | null;
@@ -108,10 +117,12 @@ export interface ProgressDto {
 export interface UniversityApiResponse {
     id: number;
     slug: string;
+    photoUrl: string | null;
     websiteUrl: string | null;
     foundedYear: number | null;
     contactPhone: string | null;
     contactEmail: string | null;
+    viewCount: number;
     translations: Record<string, UniversityApiTranslation>;
     progressPercent: number;
     createdAt: string;
@@ -121,10 +132,12 @@ export interface UniversityApiResponse {
 export interface UniversityDetailResponse {
     id: number;
     slug: string;
+    photoUrl: string | null;
     websiteUrl: string | null;
     foundedYear: number | null;
     contactPhone: string | null;
     contactEmail: string | null;
+    viewCount: number;
     translations: Record<string, UniversityDetailTranslation>;
     progress: ProgressDto;
     createdAt: string;

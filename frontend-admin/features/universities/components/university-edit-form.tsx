@@ -31,6 +31,7 @@ export function UniversityEditForm({ university }: Props) {
     const form = useForm<UpdateUniversityValues>({
         resolver: zodResolver(UpdateUniversitySchema),
         defaultValues: {
+            photoUrl: university.photoUrl || '',
             websiteUrl: university.websiteUrl || '',
             foundedYear: university.foundedYear,
             contactPhone: university.contactPhone || '',
@@ -39,6 +40,7 @@ export function UniversityEditForm({ university }: Props) {
                 ru: {
                     name: university.translations.ru?.name || '',
                     city: university.translations.ru?.city || '',
+                    shortDescription: university.translations.ru?.shortDescription || '',
                     description: university.translations.ru?.description || '',
                     goal: university.translations.ru?.goal || '',
                     address: university.translations.ru?.address || '',
@@ -47,6 +49,7 @@ export function UniversityEditForm({ university }: Props) {
                 kk: {
                     name: university.translations.kk?.name || '',
                     city: university.translations.kk?.city || '',
+                    shortDescription: university.translations.kk?.shortDescription || '',
                     description: university.translations.kk?.description || '',
                     goal: university.translations.kk?.goal || '',
                     address: university.translations.kk?.address || '',
@@ -55,6 +58,7 @@ export function UniversityEditForm({ university }: Props) {
                 en: {
                     name: university.translations.en?.name || '',
                     city: university.translations.en?.city || '',
+                    shortDescription: university.translations.en?.shortDescription || '',
                     description: university.translations.en?.description || '',
                     goal: university.translations.en?.goal || '',
                     address: university.translations.en?.address || '',
@@ -68,15 +72,16 @@ export function UniversityEditForm({ university }: Props) {
 
     const getLanguageStatus = (lang: 'ru' | 'kk' | 'en') => {
         const t = watchedTranslations[lang];
-        if (!t) return { filled: 0, total: 6 };
+        if (!t) return { filled: 0, total: 7 };
         let filled = 0;
         if (t.name && t.name.trim()) filled++;
         if (t.city && t.city.trim()) filled++;
+        if (t.shortDescription && t.shortDescription.trim()) filled++;
         if (t.description && t.description.trim()) filled++;
         if (t.goal && t.goal.trim()) filled++;
         if (t.address && t.address.trim()) filled++;
         if (t.historyText && t.historyText.trim()) filled++;
-        return { filled, total: 6 };
+        return { filled, total: 7 };
     };
 
     const mutation = useMutation({
@@ -107,6 +112,20 @@ export function UniversityEditForm({ university }: Props) {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                    control={form.control}
+                    name="photoUrl"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>URL фото</FormLabel>
+                            <FormControl>
+                                <Input placeholder="https://example.com/photo.jpg" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
                 <div className="grid grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
@@ -220,6 +239,19 @@ export function UniversityEditForm({ university }: Props) {
                                     )}
                                 />
                             </div>
+                            <FormField
+                                control={form.control}
+                                name={`translations.${lang}.shortDescription`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Краткое описание</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="До 500 символов" maxLength={500} {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                             <FormField
                                 control={form.control}
                                 name={`translations.${lang}.address`}

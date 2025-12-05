@@ -43,13 +43,14 @@ export async function createUniversity(
 ): Promise<{ success: boolean; id: string }> {
     const translations: Record<
         string,
-        { name: string; city?: string; description?: string }
+        { name: string; city?: string; shortDescription?: string; description?: string }
     > = {};
 
     if (data.translations.ru?.name) {
         translations.ru = {
             name: data.translations.ru.name,
             city: data.translations.ru.city || undefined,
+            shortDescription: data.translations.ru.shortDescription || undefined,
             description: data.translations.ru.description || undefined,
         };
     }
@@ -57,6 +58,7 @@ export async function createUniversity(
         translations.kk = {
             name: data.translations.kk.name,
             city: data.translations.kk.city || undefined,
+            shortDescription: data.translations.kk.shortDescription || undefined,
             description: data.translations.kk.description || undefined,
         };
     }
@@ -64,6 +66,7 @@ export async function createUniversity(
         translations.en = {
             name: data.translations.en.name,
             city: data.translations.en.city || undefined,
+            shortDescription: data.translations.en.shortDescription || undefined,
             description: data.translations.en.description || undefined,
         };
     }
@@ -76,6 +79,7 @@ export async function createUniversity(
 
     const requestBody = {
         slug: generateSlug(primaryName),
+        photoUrl: data.photoUrl,
         translations,
     };
 
@@ -94,6 +98,10 @@ export async function updateUniversity(
     return apiClient.put<UniversityDetailResponse>(`/universities/${id}`, data);
 }
 
+export async function incrementViewCount(id: string): Promise<void> {
+    await apiClient.post(`/universities/${id}/view`);
+}
+
 function mapApiResponseToUniversity(api: UniversityApiResponse): University {
     const translation =
         api.translations.ru || api.translations.kk || api.translations.en;
@@ -107,11 +115,14 @@ function mapApiResponseToUniversity(api: UniversityApiResponse): University {
         id: String(api.id),
         name: translation?.name || '',
         city: translation?.city || '',
+        photoUrl: api.photoUrl,
+        shortDescription: translation?.shortDescription || null,
         programsCount: 0,
         studentsCount: 0,
         rating: 0,
         status: 'active',
         progressPercent: api.progressPercent,
+        viewCount: api.viewCount,
         translations: translationsStatus,
         updatedAt: api.updatedAt,
     };

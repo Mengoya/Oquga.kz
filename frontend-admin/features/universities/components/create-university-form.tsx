@@ -33,10 +33,11 @@ export function CreateUniversityForm({ onSuccess }: Props) {
     const form = useForm<CreateUniversityValues>({
         resolver: zodResolver(CreateUniversitySchema),
         defaultValues: {
+            photoUrl: '',
             translations: {
-                ru: { name: '', city: '', description: '' },
-                kk: { name: '', city: '', description: '' },
-                en: { name: '', city: '', description: '' },
+                ru: { name: '', city: '', shortDescription: '', description: '' },
+                kk: { name: '', city: '', shortDescription: '', description: '' },
+                en: { name: '', city: '', shortDescription: '', description: '' },
             },
         },
     });
@@ -45,12 +46,13 @@ export function CreateUniversityForm({ onSuccess }: Props) {
 
     const getLanguageStatus = (lang: 'ru' | 'kk' | 'en') => {
         const t = watchedTranslations[lang];
-        if (!t) return { filled: 0, total: 3 };
+        if (!t) return { filled: 0, total: 4 };
         let filled = 0;
         if (t.name && t.name.trim()) filled++;
         if (t.city && t.city.trim()) filled++;
+        if (t.shortDescription && t.shortDescription.trim()) filled++;
         if (t.description && t.description.trim()) filled++;
-        return { filled, total: 3 };
+        return { filled, total: 4 };
     };
 
     const mutation = useMutation({
@@ -79,6 +81,23 @@ export function CreateUniversityForm({ onSuccess }: Props) {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                    control={form.control}
+                    name="photoUrl"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel className="flex items-center gap-2">
+                                URL фото
+                                <span className="text-xs text-destructive">*</span>
+                            </FormLabel>
+                            <FormControl>
+                                <Input placeholder="https://example.com/photo.jpg" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
                 <Tabs defaultValue="ru" className="w-full">
                     <TabsList className="grid w-full grid-cols-3">
                         {languages.map((lang) => {
@@ -115,7 +134,7 @@ export function CreateUniversityForm({ onSuccess }: Props) {
                                     <FormItem>
                                         <FormLabel className="flex items-center gap-2">
                                             {t('nameLabel')}
-                                            <RequiredBadge />
+                                            <span className="text-xs text-destructive">*</span>
                                         </FormLabel>
                                         <FormControl>
                                             <Input {...field} />
@@ -131,10 +150,23 @@ export function CreateUniversityForm({ onSuccess }: Props) {
                                     <FormItem>
                                         <FormLabel className="flex items-center gap-2">
                                             {t('cityLabel')}
-                                            <RequiredBadge />
+                                            <span className="text-xs text-destructive">*</span>
                                         </FormLabel>
                                         <FormControl>
                                             <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name={`translations.${lang}.shortDescription`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Краткое описание</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="До 500 символов" maxLength={500} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -197,11 +229,5 @@ export function CreateUniversityForm({ onSuccess }: Props) {
                 </div>
             </form>
         </Form>
-    );
-}
-
-function RequiredBadge() {
-    return (
-        <span className="text-xs text-destructive">*</span>
     );
 }
