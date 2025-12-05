@@ -100,16 +100,22 @@ public class UniversityServiceImpl implements UniversityService {
     public UniversityResponse createUniversity(CreateUniversityRequest request) {
         validateTranslations(request.translations());
 
+        if (request.photoUrl() == null || request.photoUrl().isBlank()) {
+            throw new RuntimeException("Photo URL is required");
+        }
+
         if (universityRepository.existsBySlug(request.slug())) {
             throw new RuntimeException("University with this slug already exists");
         }
 
         University university = new University();
         university.setSlug(request.slug());
+        university.setPhotoUrl(request.photoUrl());
         university.setWebsiteUrl(request.websiteUrl());
         university.setFoundedYear(request.foundedYear());
         university.setContactPhone(request.contactPhone());
         university.setContactEmail(request.contactEmail());
+        university.setViewCount(0L);
         university.setCreatedAt(LocalDateTime.now());
         university.setUpdatedAt(LocalDateTime.now());
 
@@ -124,6 +130,7 @@ public class UniversityServiceImpl implements UniversityService {
             translation.setLanguage(language);
             translation.setName(translationDto.name());
             translation.setCity(translationDto.city());
+            translation.setShortDescription(translationDto.shortDescription());
             translation.setDescription(translationDto.description());
             translation.setCreatedAt(LocalDateTime.now());
             translation.setUpdatedAt(LocalDateTime.now());
@@ -154,6 +161,9 @@ public class UniversityServiceImpl implements UniversityService {
             throw new AccessDeniedException("Access denied");
         }
 
+        if (request.photoUrl() != null) {
+            university.setPhotoUrl(request.photoUrl());
+        }
         university.setWebsiteUrl(request.websiteUrl());
         university.setFoundedYear(request.foundedYear());
         university.setContactPhone(request.contactPhone());
@@ -179,6 +189,7 @@ public class UniversityServiceImpl implements UniversityService {
 
             if (dto.name() != null) translation.setName(dto.name());
             if (dto.city() != null) translation.setCity(dto.city());
+            if (dto.shortDescription() != null) translation.setShortDescription(dto.shortDescription());
             if (dto.description() != null) translation.setDescription(dto.description());
             if (dto.goal() != null) translation.setGoal(dto.goal());
             if (dto.address() != null) translation.setAddress(dto.address());
@@ -188,6 +199,15 @@ public class UniversityServiceImpl implements UniversityService {
 
         University saved = universityRepository.save(university);
         return mapToDetailResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public void incrementViewCount(Long id) {
+        University university = universityRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("University not found"));
+        university.incrementViewCount();
+        universityRepository.save(university);
     }
 
     private void validateTranslations(Map<String, CreateUniversityRequest.TranslationDto> translations) {
@@ -214,6 +234,7 @@ public class UniversityServiceImpl implements UniversityService {
         int progress = 0;
         int maxProgress = 100;
 
+        if (university.getPhotoUrl() != null && !university.getPhotoUrl().isBlank()) progress += 5;
         if (university.getWebsiteUrl() != null && !university.getWebsiteUrl().isBlank()) progress += 5;
         if (university.getFoundedYear() != null) progress += 5;
         if (university.getContactPhone() != null && !university.getContactPhone().isBlank()) progress += 5;
@@ -228,18 +249,19 @@ public class UniversityServiceImpl implements UniversityService {
 
         if (!university.getLeadership().isEmpty()) progress += 10;
         if (!university.getAchievements().isEmpty()) progress += 10;
-        if (!university.getFaculties().isEmpty()) progress += 20;
+        if (!university.getFaculties().isEmpty()) progress += 15;
         if (university.getAdmissionRule() != null) progress += 10;
         if (!university.getTuitionDiscounts().isEmpty()) progress += 5;
-        if (!university.getInternationalSections().isEmpty()) progress += 10;
+        if (!university.getInternationalSections().isEmpty()) progress += 5;
 
         return Math.min(progress, maxProgress);
     }
 
     private UniversityDetailResponse.ProgressDto calculateDetailedProgress(University university) {
         int basicFilled = 0;
-        int basicTotal = 7;
+        int basicTotal = 8;
         if (university.getSlug() != null) basicFilled++;
+        if (university.getPhotoUrl() != null && !university.getPhotoUrl().isBlank()) basicFilled++;
         if (university.getWebsiteUrl() != null && !university.getWebsiteUrl().isBlank()) basicFilled++;
         if (university.getFoundedYear() != null) basicFilled++;
         if (university.getContactPhone() != null && !university.getContactPhone().isBlank()) basicFilled++;
@@ -252,8 +274,9 @@ public class UniversityServiceImpl implements UniversityService {
         if (citiesCount == 3) basicFilled++;
 
         int descFilled = 0;
-        int descTotal = 9;
+        int descTotal = 12;
         for (UniversityTranslation t : university.getTranslations()) {
+            if (t.getShortDescription() != null && !t.getShortDescription().isBlank()) descFilled++;
             if (t.getDescription() != null && !t.getDescription().isBlank()) descFilled++;
             if (t.getGoal() != null && !t.getGoal().isBlank()) descFilled++;
             if (t.getHistoryText() != null && !t.getHistoryText().isBlank()) descFilled++;
@@ -324,6 +347,7 @@ public class UniversityServiceImpl implements UniversityService {
                     t.getLanguage().getCode(),
                     new UniversityResponse.TranslationDto(
                             t.getName(),
+                            t.getShortDescription(),
                             t.getDescription(),
                             t.getCity(),
                             isTranslationComplete(t)
@@ -334,10 +358,12 @@ public class UniversityServiceImpl implements UniversityService {
         return new UniversityResponse(
                 university.getId(),
                 university.getSlug(),
+                university.getPhotoUrl(),
                 university.getWebsiteUrl(),
                 university.getFoundedYear(),
                 university.getContactPhone(),
                 university.getContactEmail(),
+                university.getViewCount(),
                 translations,
                 calculateProgress(university),
                 university.getCreatedAt(),
@@ -358,6 +384,7 @@ public class UniversityServiceImpl implements UniversityService {
                     t.getLanguage().getCode(),
                     new UniversityDetailResponse.TranslationDto(
                             t.getName(),
+                            t.getShortDescription(),
                             t.getDescription(),
                             t.getGoal(),
                             t.getAddress(),
@@ -371,10 +398,12 @@ public class UniversityServiceImpl implements UniversityService {
         return new UniversityDetailResponse(
                 university.getId(),
                 university.getSlug(),
+                university.getPhotoUrl(),
                 university.getWebsiteUrl(),
                 university.getFoundedYear(),
                 university.getContactPhone(),
                 university.getContactEmail(),
+                university.getViewCount(),
                 translations,
                 calculateDetailedProgress(university),
                 university.getCreatedAt(),

@@ -26,6 +26,9 @@ public class University {
     @Column(name = "logo")
     private byte[] logo;
 
+    @Column(name = "photo_url", length = 500)
+    private String photoUrl;
+
     @Column(name = "website_url", length = 500)
     private String websiteUrl;
 
@@ -37,6 +40,9 @@ public class University {
 
     @Column(name = "contact_email", length = 255)
     private String contactEmail;
+
+    @Column(name = "view_count")
+    private Long viewCount = 0L;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -67,6 +73,20 @@ public class University {
 
     @OneToMany(mappedBy = "university", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InternationalSection> internationalSections = new ArrayList<>();
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        if (viewCount == null) {
+            viewCount = 0L;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
     public void addTranslation(UniversityTranslation translation) {
         translations.add(translation);
@@ -143,5 +163,12 @@ public class University {
     public void removeInternationalSection(InternationalSection section) {
         internationalSections.remove(section);
         section.setUniversity(null);
+    }
+
+    public void incrementViewCount() {
+        if (this.viewCount == null) {
+            this.viewCount = 0L;
+        }
+        this.viewCount++;
     }
 }

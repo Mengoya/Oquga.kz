@@ -6,10 +6,12 @@ import java.util.Map;
 public record UniversityResponse(
         Long id,
         String slug,
+        String photoUrl,
         String websiteUrl,
         Integer foundedYear,
         String contactPhone,
         String contactEmail,
+        Long viewCount,
         Map<String, TranslationDto> translations,
         int progressPercent,
         LocalDateTime createdAt,
@@ -17,6 +19,7 @@ public record UniversityResponse(
 ) {
     public record TranslationDto(
             String name,
+            String shortDescription,
             String description,
             String city,
             boolean isComplete
