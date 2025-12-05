@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { NAV_LINKS, SITE_CONFIG } from '@/lib/config';
 import { Mail } from 'lucide-react';
 
@@ -14,8 +15,13 @@ export function Footer() {
                             href="/"
                             className="flex items-center gap-2 font-bold text-xl hover:opacity-80 transition-opacity w-fit"
                         >
-                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-                                O
+                            <div className="relative w-8 h-8">
+                                <Image
+                                    src="/logo.png"
+                                    alt={`${SITE_CONFIG.name} Лого`}
+                                    fill
+                                    className="object-contain"
+                                />
                             </div>
                             <span>{SITE_CONFIG.name}</span>
                         </Link>
@@ -25,7 +31,6 @@ export function Footer() {
                             инновационные технологии и прозрачные данные.
                         </p>
                     </div>
-
                     <div>
                         <h3 className="font-semibold mb-4 text-foreground">
                             Платформа

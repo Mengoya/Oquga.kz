@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Menu, X, User, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -44,8 +45,14 @@ export function Header() {
                     className="flex items-center gap-2 font-bold text-xl tracking-tight hover:opacity-80 transition-opacity"
                     onClick={() => setIsMobileMenuOpen(false)}
                 >
-                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-                        O
+                    <div className="relative w-8 h-8">
+                        <Image
+                            src="/logo.png"
+                            alt={`${SITE_CONFIG.name} Лого`}
+                            fill
+                            className="object-contain"
+                            priority
+                        />
                     </div>
                     <span>{SITE_CONFIG.name}</span>
                 </Link>
