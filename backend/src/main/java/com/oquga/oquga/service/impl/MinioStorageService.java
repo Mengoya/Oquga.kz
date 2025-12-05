@@ -35,26 +35,27 @@ public class MinioStorageService implements StorageService {
         createBucketIfNotExists();
 
         String extension = FilenameUtils.getExtension(file.getOriginalFilename());
-        String fileName = UUID.randomUUID() + "." + extension;
-        String objectName = folder + "/" + fileName;
+        String safeFileName = UUID.randomUUID() + (extension != null ? "." + extension : "");
 
-        InputStream inputStream = file.getInputStream();
+        String objectName = (folder + "/" + safeFileName).replaceAll("//+", "/");
 
         String contentType = file.getContentType();
         if (contentType == null) {
             contentType = "application/octet-stream";
         }
 
-        minioClient.putObject(
-                PutObjectArgs.builder()
-                        .bucket(bucketName)
-                        .object(objectName)
-                        .stream(inputStream, file.getSize(), -1)
-                        .contentType(contentType)
-                        .build()
-        );
+        try (InputStream inputStream = file.getInputStream()) {
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .stream(inputStream, file.getSize(), -1)
+                            .contentType(contentType)
+                            .build()
+            );
+        }
 
-        log.info("File uploaded successfully: {}", objectName);
+        log.info("File uploaded to MinIO: {}", objectName);
         return objectName;
     }
 
@@ -69,12 +70,14 @@ public class MinioStorageService implements StorageService {
                         .object(objectName)
                         .build()
         );
-        log.info("File removed: {}", objectName);
+        log.info("File removed from MinIO: {}", objectName);
     }
 
     @Override
     @SneakyThrows
     public String getFileUrl(String objectName) {
+        if (objectName == null || objectName.isBlank()) return null;
+
         return minioClient.getPresignedObjectUrl(
                 GetPresignedObjectUrlArgs.builder()
                         .method(Method.GET)
