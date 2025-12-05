@@ -2,31 +2,23 @@
 
 import * as React from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { fetchUsers } from '@/features/users/api';
+import { fetchUniversityAdmins } from '@/features/users/api';
 import { UsersTable } from '@/features/users/components/users-table';
 import { UsersToolbar } from '@/features/users/components/users-toolbar';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useSearchParams } from 'next/navigation';
 import { useDataTableParams } from '@/hooks/use-data-table-params';
 
 export default function UsersPage() {
     const t = useTranslations('UsersPage');
     const tActions = useTranslations('Common.actions');
     const tDashboard = useTranslations('Dashboard');
-    const { setParams } = useDataTableParams();
-
-    const searchParams = useSearchParams();
-    const page = Number(searchParams.get('page')) || 1;
-    const search = searchParams.get('search') || '';
-    const role = searchParams.get('role') || 'all';
-    const universityId = searchParams.get('universityId') || 'all';
+    const { page, search, setParams } = useDataTableParams();
 
     const { data, isLoading } = useQuery({
-        queryKey: ['users', page, search, role, universityId],
-        queryFn: () =>
-            fetchUsers({ page, search, role, universityId, limit: 10 }),
+        queryKey: ['university-admins', page, search],
+        queryFn: () => fetchUniversityAdmins({ page, search, limit: 10 }),
         placeholderData: keepPreviousData,
     });
 
@@ -39,9 +31,11 @@ export default function UsersPage() {
             <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-1">
                     <h1 className="text-2xl font-bold tracking-tight">
-                        {t('title')}
+                        Администраторы ВУЗов
                     </h1>
-                    <p className="text-muted-foreground">{t('subtitle')}</p>
+                    <p className="text-muted-foreground">
+                        Управление учётными записями администраторов университетов
+                    </p>
                 </div>
 
                 <UsersToolbar />
@@ -52,14 +46,14 @@ export default function UsersPage() {
                     <div className="text-sm text-muted-foreground">
                         {data?.meta.total
                             ? tDashboard.rich('shown', {
-                                  count: data.data.length,
-                                  total: data.meta.total,
-                                  span: (chunks) => (
-                                      <span className="font-medium text-foreground">
+                                count: data.data.length,
+                                total: data.meta.total,
+                                span: (chunks) => (
+                                    <span className="font-medium text-foreground">
                                           {chunks}
                                       </span>
-                                  ),
-                              })
+                                ),
+                            })
                             : tDashboard('notFound.title')}
                     </div>
                     <div className="flex items-center gap-2">

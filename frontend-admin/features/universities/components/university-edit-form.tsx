@@ -23,10 +23,9 @@ import { Badge } from '@/components/ui/badge';
 
 interface Props {
     university: UniversityDetailResponse;
-    onSuccess: () => void;
 }
 
-export function UniversityEditForm({ university, onSuccess }: Props) {
+export function UniversityEditForm({ university }: Props) {
     const queryClient = useQueryClient();
 
     const form = useForm<UpdateUniversityValues>({
@@ -83,17 +82,17 @@ export function UniversityEditForm({ university, onSuccess }: Props) {
     const mutation = useMutation({
         mutationFn: (values: UpdateUniversityValues) =>
             updateUniversity(String(university.id), values),
-        onSuccess: () => {
+        onSuccess: (updatedData) => {
             toast.success('Успешно', {
                 description: 'Данные университета обновлены',
             });
             queryClient.invalidateQueries({ queryKey: ['universities'] });
-            queryClient.invalidateQueries({ queryKey: ['university', String(university.id)] });
-            onSuccess();
+            queryClient.setQueryData(['university', String(university.id)], updatedData);
         },
-        onError: () => {
+        onError: (error: any) => {
+            const message = error?.response?.data?.message || 'Не удалось обновить данные';
             toast.error('Ошибка', {
-                description: 'Не удалось обновить данные',
+                description: message,
             });
         },
     });
