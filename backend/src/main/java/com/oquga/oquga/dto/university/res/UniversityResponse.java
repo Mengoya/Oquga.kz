@@ -11,12 +11,14 @@ public record UniversityResponse(
         String contactPhone,
         String contactEmail,
         Map<String, TranslationDto> translations,
+        int progressPercent,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
     public record TranslationDto(
             String name,
             String description,
-            String city
+            String city,
+            boolean isComplete
     ) {}
 }

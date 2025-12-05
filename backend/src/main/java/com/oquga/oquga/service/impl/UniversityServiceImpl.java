@@ -1,17 +1,23 @@
 package com.oquga.oquga.service.impl;
 
 import com.oquga.oquga.dto.university.req.CreateUniversityRequest;
+import com.oquga.oquga.dto.university.req.UpdateUniversityRequest;
+import com.oquga.oquga.dto.university.res.UniversityDetailResponse;
 import com.oquga.oquga.dto.university.res.UniversityListResponse;
 import com.oquga.oquga.dto.university.res.UniversityResponse;
 import com.oquga.oquga.entity.Language;
 import com.oquga.oquga.entity.University;
+import com.oquga.oquga.entity.User;
 import com.oquga.oquga.entity.translation.UniversityTranslation;
+import com.oquga.oquga.enums.RoleType;
 import com.oquga.oquga.repository.LanguageRepository;
 import com.oquga.oquga.repository.UniversityRepository;
+import com.oquga.oquga.repository.UserRepository;
 import com.oquga.oquga.service.UniversityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +38,7 @@ public class UniversityServiceImpl implements UniversityService {
 
     private final UniversityRepository universityRepository;
     private final LanguageRepository languageRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -81,6 +88,14 @@ public class UniversityServiceImpl implements UniversityService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public UniversityDetailResponse getUniversityDetail(Long id) {
+        University university = universityRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("University not found"));
+        return mapToDetailResponse(university);
+    }
+
+    @Override
     @Transactional
     public UniversityResponse createUniversity(CreateUniversityRequest request) {
         validateTranslations(request.translations());
@@ -120,6 +135,59 @@ public class UniversityServiceImpl implements UniversityService {
         return mapToResponse(saved);
     }
 
+    @Override
+    @Transactional
+    public UniversityDetailResponse updateUniversity(Long id, UpdateUniversityRequest request, String userEmail) {
+        University university = universityRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("University not found"));
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getRole().getName() == RoleType.UNIVERSITY_ADMIN) {
+            if (user.getUniversity() == null || !user.getUniversity().getId().equals(id)) {
+                throw new AccessDeniedException("You can only edit your own university");
+            }
+        } else if (user.getRole().getName() != RoleType.MAIN_ADMIN) {
+            throw new AccessDeniedException("Access denied");
+        }
+
+        university.setWebsiteUrl(request.websiteUrl());
+        university.setFoundedYear(request.foundedYear());
+        university.setContactPhone(request.contactPhone());
+        university.setContactEmail(request.contactEmail());
+        university.setUpdatedAt(LocalDateTime.now());
+
+        Map<String, UniversityTranslation> existingTranslations = university.getTranslations().stream()
+                .collect(Collectors.toMap(t -> t.getLanguage().getCode(), Function.identity()));
+
+        for (Map.Entry<String, UpdateUniversityRequest.TranslationDto> entry : request.translations().entrySet()) {
+            String langCode = entry.getKey();
+            UpdateUniversityRequest.TranslationDto dto = entry.getValue();
+
+            UniversityTranslation translation = existingTranslations.get(langCode);
+            if (translation == null) {
+                Language language = languageRepository.findByCode(langCode)
+                        .orElseThrow(() -> new RuntimeException("Language not found: " + langCode));
+                translation = new UniversityTranslation();
+                translation.setLanguage(language);
+                translation.setCreatedAt(LocalDateTime.now());
+                university.addTranslation(translation);
+            }
+
+            if (dto.name() != null) translation.setName(dto.name());
+            if (dto.city() != null) translation.setCity(dto.city());
+            if (dto.description() != null) translation.setDescription(dto.description());
+            if (dto.goal() != null) translation.setGoal(dto.goal());
+            if (dto.address() != null) translation.setAddress(dto.address());
+            if (dto.historyText() != null) translation.setHistoryText(dto.historyText());
+            translation.setUpdatedAt(LocalDateTime.now());
+        }
+
+        University saved = universityRepository.save(university);
+        return mapToDetailResponse(saved);
+    }
+
     private void validateTranslations(Map<String, CreateUniversityRequest.TranslationDto> translations) {
         if (translations == null || translations.size() != 3) {
             throw new RuntimeException("All three translations (ru, kk, en) are required");
@@ -140,6 +208,112 @@ public class UniversityServiceImpl implements UniversityService {
         }
     }
 
+    private int calculateProgress(University university) {
+        int progress = 0;
+        int maxProgress = 100;
+
+        if (university.getWebsiteUrl() != null && !university.getWebsiteUrl().isBlank()) progress += 5;
+        if (university.getFoundedYear() != null) progress += 5;
+        if (university.getContactPhone() != null && !university.getContactPhone().isBlank()) progress += 5;
+        if (university.getContactEmail() != null && !university.getContactEmail().isBlank()) progress += 5;
+
+        long completeTranslations = university.getTranslations().stream()
+                .filter(t -> t.getName() != null && !t.getName().isBlank()
+                        && t.getCity() != null && !t.getCity().isBlank()
+                        && t.getDescription() != null && !t.getDescription().isBlank())
+                .count();
+        progress += (int) (completeTranslations * 5);
+
+        if (!university.getLeadership().isEmpty()) progress += 10;
+        if (!university.getAchievements().isEmpty()) progress += 10;
+        if (!university.getFaculties().isEmpty()) progress += 20;
+        if (university.getAdmissionRule() != null) progress += 10;
+        if (!university.getTuitionDiscounts().isEmpty()) progress += 5;
+        if (!university.getInternationalSections().isEmpty()) progress += 10;
+
+        return Math.min(progress, maxProgress);
+    }
+
+    private UniversityDetailResponse.ProgressDto calculateDetailedProgress(University university) {
+        int basicFilled = 0;
+        int basicTotal = 7;
+        if (university.getSlug() != null) basicFilled++;
+        if (university.getWebsiteUrl() != null && !university.getWebsiteUrl().isBlank()) basicFilled++;
+        if (university.getFoundedYear() != null) basicFilled++;
+        if (university.getContactPhone() != null && !university.getContactPhone().isBlank()) basicFilled++;
+        if (university.getContactEmail() != null && !university.getContactEmail().isBlank()) basicFilled++;
+        long namesCount = university.getTranslations().stream()
+                .filter(t -> t.getName() != null && !t.getName().isBlank()).count();
+        if (namesCount == 3) basicFilled++;
+        long citiesCount = university.getTranslations().stream()
+                .filter(t -> t.getCity() != null && !t.getCity().isBlank()).count();
+        if (citiesCount == 3) basicFilled++;
+
+        int descFilled = 0;
+        int descTotal = 9;
+        for (UniversityTranslation t : university.getTranslations()) {
+            if (t.getDescription() != null && !t.getDescription().isBlank()) descFilled++;
+            if (t.getGoal() != null && !t.getGoal().isBlank()) descFilled++;
+            if (t.getHistoryText() != null && !t.getHistoryText().isBlank()) descFilled++;
+        }
+
+        int leaderFilled = university.getLeadership().size();
+        int leaderTotal = Math.max(1, leaderFilled);
+
+        int achieveFilled = university.getAchievements().size();
+        int achieveTotal = Math.max(1, achieveFilled);
+
+        int facultyFilled = university.getFaculties().size();
+        int facultyTotal = Math.max(1, facultyFilled);
+
+        int admissionFilled = 0;
+        int admissionTotal = 5;
+        if (university.getAdmissionRule() != null) {
+            var ar = university.getAdmissionRule();
+            if (ar.getStartDate() != null) admissionFilled++;
+            if (ar.getEndDate() != null) admissionFilled++;
+            if (ar.getDocumentsText() != null && !ar.getDocumentsText().isBlank()) admissionFilled++;
+            if (ar.getStepsText() != null && !ar.getStepsText().isBlank()) admissionFilled++;
+            if (ar.getDormitoryInfo() != null && !ar.getDormitoryInfo().isBlank()) admissionFilled++;
+        }
+
+        int tuitionFilled = university.getTuitionDiscounts().size();
+        int tuitionTotal = Math.max(1, tuitionFilled);
+
+        int intlFilled = university.getInternationalSections().size();
+        int intlTotal = Math.max(1, intlFilled);
+
+        int basicPercent = (basicFilled * 20) / basicTotal;
+        int descPercent = (descFilled * 15) / descTotal;
+        int leaderPercent = leaderFilled > 0 ? 10 : 0;
+        int achievePercent = achieveFilled > 0 ? 10 : 0;
+        int facultyPercent = facultyFilled > 0 ? 20 : 0;
+        int admissionPercent = (admissionFilled * 10) / admissionTotal;
+        int tuitionPercent = tuitionFilled > 0 ? 5 : 0;
+        int intlPercent = intlFilled > 0 ? 10 : 0;
+
+        int totalPercent = basicPercent + descPercent + leaderPercent + achievePercent +
+                facultyPercent + admissionPercent + tuitionPercent + intlPercent;
+
+        return new UniversityDetailResponse.ProgressDto(
+                totalPercent,
+                new UniversityDetailResponse.SectionProgress("basicInfo", basicPercent, 20, basicFilled, basicTotal),
+                new UniversityDetailResponse.SectionProgress("description", descPercent, 15, descFilled, descTotal),
+                new UniversityDetailResponse.SectionProgress("leadership", leaderPercent, 10, leaderFilled, leaderTotal),
+                new UniversityDetailResponse.SectionProgress("achievements", achievePercent, 10, achieveFilled, achieveTotal),
+                new UniversityDetailResponse.SectionProgress("faculties", facultyPercent, 20, facultyFilled, facultyTotal),
+                new UniversityDetailResponse.SectionProgress("admissionRules", admissionPercent, 10, admissionFilled, admissionTotal),
+                new UniversityDetailResponse.SectionProgress("tuition", tuitionPercent, 5, tuitionFilled, tuitionTotal),
+                new UniversityDetailResponse.SectionProgress("international", intlPercent, 10, intlFilled, intlTotal)
+        );
+    }
+
+    private boolean isTranslationComplete(UniversityTranslation t) {
+        return t.getName() != null && !t.getName().isBlank()
+                && t.getCity() != null && !t.getCity().isBlank()
+                && t.getDescription() != null && !t.getDescription().isBlank();
+    }
+
     private UniversityResponse mapToResponse(University university) {
         Map<String, UniversityResponse.TranslationDto> translations = new HashMap<>();
 
@@ -149,7 +323,8 @@ public class UniversityServiceImpl implements UniversityService {
                     new UniversityResponse.TranslationDto(
                             t.getName(),
                             t.getDescription(),
-                            t.getCity()
+                            t.getCity(),
+                            isTranslationComplete(t)
                     )
             );
         }
@@ -162,6 +337,44 @@ public class UniversityServiceImpl implements UniversityService {
                 university.getContactPhone(),
                 university.getContactEmail(),
                 translations,
+                calculateProgress(university),
+                university.getCreatedAt(),
+                university.getUpdatedAt()
+        );
+    }
+
+    private UniversityDetailResponse mapToDetailResponse(University university) {
+        Map<String, UniversityDetailResponse.TranslationDto> translations = new HashMap<>();
+
+        for (UniversityTranslation t : university.getTranslations()) {
+            boolean complete = t.getName() != null && !t.getName().isBlank()
+                    && t.getCity() != null && !t.getCity().isBlank()
+                    && t.getDescription() != null && !t.getDescription().isBlank()
+                    && t.getGoal() != null && !t.getGoal().isBlank();
+
+            translations.put(
+                    t.getLanguage().getCode(),
+                    new UniversityDetailResponse.TranslationDto(
+                            t.getName(),
+                            t.getDescription(),
+                            t.getGoal(),
+                            t.getAddress(),
+                            t.getCity(),
+                            t.getHistoryText(),
+                            complete
+                    )
+            );
+        }
+
+        return new UniversityDetailResponse(
+                university.getId(),
+                university.getSlug(),
+                university.getWebsiteUrl(),
+                university.getFoundedYear(),
+                university.getContactPhone(),
+                university.getContactEmail(),
+                translations,
+                calculateDetailedProgress(university),
                 university.getCreatedAt(),
                 university.getUpdatedAt()
         );
