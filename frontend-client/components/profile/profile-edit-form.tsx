@@ -2,7 +2,7 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Save, User as UserIcon, Mail } from 'lucide-react';
+import { Loader2, Save, User as UserIcon, Mail, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -33,7 +33,6 @@ export function ProfileEditForm() {
         defaultValues: {
             firstName: user?.firstName || '',
             lastName: user?.lastName || '',
-            email: user?.email || '',
         },
     });
 
@@ -92,26 +91,26 @@ export function ProfileEditForm() {
                     />
                 </div>
 
-                <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                                <div className="relative">
-                                    <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                    <Input className="pl-9" {...field} />
-                                </div>
-                            </FormControl>
-                            <FormDescription>
-                                Этот email используется для входа в систему и
-                                связи.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                        Email
+                        <Lock className="h-3 w-3 text-muted-foreground" />
+                    </FormLabel>
+                    <div className="relative">
+                        <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            className="pl-9 bg-muted/50 cursor-not-allowed"
+                            value={user?.email || ''}
+                            disabled
+                            readOnly
+                            aria-readonly="true"
+                        />
+                    </div>
+                    <FormDescription>
+                        Email нельзя изменить. Он используется для входа в
+                        систему.
+                    </FormDescription>
+                </FormItem>
 
                 <div className="flex justify-end">
                     <Button

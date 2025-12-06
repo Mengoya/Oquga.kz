@@ -26,7 +26,7 @@ import { toast } from 'sonner';
 export function LoginForm({ className }: { className?: string }) {
     const t = useTranslations('Auth');
     const router = useRouter();
-    const locale = useLocale(); // Получаем текущую локаль
+    const locale = useLocale();
     const searchParams = useSearchParams();
     const setAuth = useAuthStore((state) => state.setAuth);
     const [error, setError] = useState<string | null>(null);

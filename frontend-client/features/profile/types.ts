@@ -3,11 +3,12 @@ import { z } from 'zod';
 export const ProfileUpdateSchema = z.object({
     firstName: z
         .string()
+        .trim()
         .min(2, { message: 'Имя должно содержать минимум 2 символа' }),
     lastName: z
         .string()
+        .trim()
         .min(2, { message: 'Фамилия должна содержать минимум 2 символа' }),
-    email: z.email({ message: 'Введите корректный email' }),
 });
 
 export type ProfileUpdateValues = z.infer<typeof ProfileUpdateSchema>;

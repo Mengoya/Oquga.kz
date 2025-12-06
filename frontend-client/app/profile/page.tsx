@@ -10,18 +10,17 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 
 import { ProfileEditForm } from '@/components/profile/profile-edit-form';
 import { SecurityForm } from '@/components/profile/security-form';
 import { Button } from '@/components/ui/button';
+import { ProfileHeader } from '@/components/profile/profile-header';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
     title: 'Мой профиль',
     description: 'Управление личными данными и настройками безопасности.',
 };
-
-import { ProfileHeader } from '@/components/profile/profile-header';
 
 export default function ProfilePage() {
     return (
@@ -29,11 +28,10 @@ export default function ProfilePage() {
             <div className="flex flex-col gap-8">
                 <div className="flex flex-col gap-2">
                     <h1 className="text-3xl font-bold tracking-tight">
-                        Настройки профиля
+                        Профиль
                     </h1>
                     <p className="text-muted-foreground">
-                        Управляйте вашей личной информацией, безопасностью и
-                        предпочтениями.
+                        Управляйте вашей личной информацией и безопасностью.
                     </p>
                 </div>
 
@@ -47,24 +45,12 @@ export default function ProfilePage() {
                                     Ваш статус
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
+                            <CardContent>
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-muted-foreground">
                                         Роль
                                     </span>
                                     <Badge variant="secondary">Студент</Badge>
-                                </div>
-                                <Separator />
-                                <div className="flex flex-col gap-2">
-                                    <span className="text-sm text-muted-foreground">
-                                        Прогресс заполнения
-                                    </span>
-                                    <div className="h-2 w-full rounded-full bg-secondary">
-                                        <div className="h-full w-[70%] rounded-full bg-primary" />
-                                    </div>
-                                    <span className="text-xs text-right text-muted-foreground">
-                                        70%
-                                    </span>
                                 </div>
                             </CardContent>
                         </Card>
@@ -167,9 +153,9 @@ export default function ProfilePage() {
                                                 className="w-fit mx-auto mt-2"
                                                 asChild
                                             >
-                                                <a href="/universities">
+                                                <Link href="/universities">
                                                     Перейти в каталог
-                                                </a>
+                                                </Link>
                                             </Button>
                                         </div>
                                     </CardContent>
