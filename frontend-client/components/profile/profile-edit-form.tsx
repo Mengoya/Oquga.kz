@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Save, User as UserIcon, Mail, Lock } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,9 +23,11 @@ import {
 } from '@/features/profile/types';
 import { updateProfile } from '@/features/profile/api';
 import { useAuthStore } from '@/stores/use-auth-store';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 
 export function ProfileEditForm() {
+    const t = useTranslations('profile');
+    const tAuth = useTranslations('auth');
     const { user, setAuth, accessToken } = useAuthStore();
     const router = useRouter();
 
@@ -44,12 +47,10 @@ export function ProfileEditForm() {
                 setAuth(updatedUser, accessToken);
             }
 
-            toast.success('Профиль успешно обновлен');
+            toast.success(t('profileUpdated'));
             router.refresh();
         } catch (error: any) {
-            toast.error(
-                error.response?.data?.message || 'Не удалось обновить профиль',
-            );
+            toast.error(error.response?.data?.message || t('profileError'));
         }
     };
 
@@ -62,7 +63,7 @@ export function ProfileEditForm() {
                         name="firstName"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Имя</FormLabel>
+                                <FormLabel>{tAuth('firstName')}</FormLabel>
                                 <FormControl>
                                     <div className="relative">
                                         <UserIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -78,7 +79,7 @@ export function ProfileEditForm() {
                         name="lastName"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Фамилия</FormLabel>
+                                <FormLabel>{tAuth('lastName')}</FormLabel>
                                 <FormControl>
                                     <div className="relative">
                                         <UserIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -93,7 +94,7 @@ export function ProfileEditForm() {
 
                 <FormItem>
                     <FormLabel className="flex items-center gap-2">
-                        Email
+                        {tAuth('email')}
                         <Lock className="h-3 w-3 text-muted-foreground" />
                     </FormLabel>
                     <div className="relative">
@@ -106,10 +107,7 @@ export function ProfileEditForm() {
                             aria-readonly="true"
                         />
                     </div>
-                    <FormDescription>
-                        Email нельзя изменить. Он используется для входа в
-                        систему.
-                    </FormDescription>
+                    <FormDescription>{t('emailLocked')}</FormDescription>
                 </FormItem>
 
                 <div className="flex justify-end">
@@ -121,7 +119,7 @@ export function ProfileEditForm() {
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         )}
                         <Save className="mr-2 h-4 w-4" />
-                        Сохранить изменения
+                        {t('saveChanges')}
                     </Button>
                 </div>
             </form>

@@ -10,6 +10,7 @@ import {
     AlertCircle,
     ExternalLink,
 } from 'lucide-react';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import {
     Card,
     CardContent,
@@ -21,216 +22,201 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export const metadata: Metadata = {
-    title: 'Поступление',
-    description:
-        'Правила поступления, сроки ЕНТ/КТ и инструкции для абитуриентов (Бакалавриат, Магистратура, Докторантура).',
-};
-
-interface AdmissionStep {
-    id: string;
-    title: string;
-    description: string;
-    dates?: { label: string; value: string }[];
-    details?: string[];
-    isWarning?: boolean;
+interface AdmissionsPageProps {
+    params: Promise<{ locale: string }>;
 }
 
-interface EducationLevel {
-    id: string;
-    title: string;
-    icon: React.ElementType;
-    description: string;
-    steps: AdmissionStep[];
+export async function generateMetadata({
+    params,
+}: AdmissionsPageProps): Promise<Metadata> {
+    const { locale } = await params;
+    const t = await getTranslations({ locale, namespace: 'admissions' });
+
+    return {
+        title: t('title'),
+        description: t('subtitle'),
+    };
 }
 
-const ADMISSION_DATA: Record<string, EducationLevel> = {
-    bachelor: {
-        id: 'bachelor',
-        title: 'Бакалавриат',
-        icon: GraduationCap,
-        description:
-            'Первая ступень высшего образования. Поступление через Единое Национальное Тестирование (ЕНТ).',
-        steps: [
-            {
-                id: 'step-1',
-                title: 'Определитесь с направлением и вузами',
-                description:
-                    'Выберите образовательные программы, изучите профильные предметы ЕНТ, язык обучения, стоимость и наличие общежития.',
-            },
-            {
-                id: 'step-2',
-                title: 'Зарегистрируйтесь на ЕНТ',
-                description:
-                    'Регистрация проходит через сайт app.testcenter.kz. Следите за обновлениями, даты могут меняться.',
-                dates: [
-                    {
-                        label: 'Январское ЕНТ (Заявления)',
-                        value: '20–30 декабря',
-                    },
-                    {
-                        label: 'Январское ЕНТ (Тест)',
-                        value: '18 января – 10 февраля',
-                    },
-                    { label: 'Основное ЕНТ (Заявления)', value: '6–14 мая' },
-                    { label: 'Основное ЕНТ (Тест)', value: '16 мая – 5 июля' },
-                ],
-                isWarning: true,
-            },
-            {
-                id: 'step-3',
-                title: 'Проверьте минимальные требования',
-                description:
-                    'На сайте выбранного ВУЗа уточните проходной балл и наличие специальных/творческих экзаменов.',
-            },
-            {
-                id: 'step-4',
-                title: 'Соберите пакет документов',
-                description:
-                    'Подготовьте оригиналы и копии для подачи в приемную комиссию.',
-                details: [
-                    'Удостоверение личности',
-                    'Аттестат с приложением',
-                    'Сертификат ЕНТ',
-                    'Медсправка (075-У)',
-                    'Фото 3x4 (6 шт.)',
-                    'Приписное свидетельство (для юношей)',
-                ],
-            },
-            {
-                id: 'step-5',
-                title: 'Подайте заявление',
-                description:
-                    'После получения результатов ЕНТ подайте документы онлайн или офлайн в ВУЗ. Следите за статусом гранта.',
-            },
-        ],
-    },
-    master: {
-        id: 'master',
-        title: 'Магистратура',
-        icon: BookOpen,
-        description:
-            'Углубленная профессиональная подготовка. Поступление через Комплексное Тестирование (КТ).',
-        steps: [
-            {
-                id: 'm-step-1',
-                title: 'Выберите направление',
-                description:
-                    'Определитесь с профилем (научно-педагогическое или профильное) и языком обучения.',
-            },
-            {
-                id: 'm-step-2',
-                title: 'Узнайте требования ВУЗа',
-                description:
-                    'Вам понадобится диплом бакалавра, определенный GPA и участие в КТ.',
-            },
-            {
-                id: 'm-step-3',
-                title: 'Зарегистрируйтесь на КТ',
-                description:
-                    'Регистрация проходит на сайте app.testcenter.kz в два потока.',
-                dates: [
-                    {
-                        label: 'Летний поток (Регистрация)',
-                        value: '1 июня – 8 июля',
-                    },
-                    {
-                        label: 'Летний поток (Тест)',
-                        value: '20 июля – 10 августа',
-                    },
-                    {
-                        label: 'Зимний поток (Регистрация)',
-                        value: '28 октября – 10 ноября',
-                    },
-                    {
-                        label: 'Зимний поток (Тест)',
-                        value: '18 ноября – 11 декабря',
-                    },
-                ],
-                isWarning: true,
-            },
-            {
-                id: 'm-step-4',
-                title: 'Сдайте КТ и экзамены',
-                description:
-                    'КТ включает тест на иностранный язык, готовность к обучению и профильные предметы.',
-            },
-            {
-                id: 'm-step-5',
-                title: 'Подайте документы',
-                description:
-                    'В сроки приема (июль-август или ноябрь-декабрь) подайте заявление и оригиналы документов в ВУЗ.',
-            },
-        ],
-    },
-    phd: {
-        id: 'phd',
-        title: 'Докторантура',
-        icon: School,
-        description:
-            'Подготовка научных кадров высшей квалификации. Требуется наличие степени магистра.',
-        steps: [
-            {
-                id: 'p-step-1',
-                title: 'Направление и руководитель',
-                description:
-                    'Ключевой этап: выберите область исследований и заранее согласуйте научного руководителя.',
-            },
-            {
-                id: 'p-step-2',
-                title: 'Проверка требований',
-                description:
-                    'Необходим сертификат на знание языка (IELTS/TOEFL + KAZTEST), публикации и research proposal.',
-            },
-            {
-                id: 'p-step-3',
-                title: 'Регистрация на экзамен',
-                description: 'Вступительные экзамены проходят через НЦТ.',
-                dates: [
-                    {
-                        label: 'Летний поток (Заявления)',
-                        value: '3 июля – 3 августа',
-                    },
-                    {
-                        label: 'Летний поток (Экзамен)',
-                        value: '4 – 20 августа',
-                    },
-                    {
-                        label: 'Осенний поток',
-                        value: 'По отдельным решениям МНВО',
-                    },
-                ],
-                isWarning: true,
-            },
-            {
-                id: 'p-step-4',
-                title: 'Подготовка научного пакета',
-                description:
-                    'Соберите рекомендации, список публикаций, план исследования и сертификаты языков.',
-            },
-            {
-                id: 'p-step-5',
-                title: 'Экзамены и конкурс',
-                description:
-                    'Сдайте профильный экзамен, пройдите собеседование на кафедре и заключите договор.',
-            },
-        ],
-    },
-};
+export default async function AdmissionsPage({ params }: AdmissionsPageProps) {
+    const { locale } = await params;
+    setRequestLocale(locale);
 
-export default function AdmissionsPage() {
+    const t = await getTranslations('admissions');
+
+    const educationLevels = [
+        {
+            id: 'bachelor',
+            title: t('bachelor'),
+            icon: GraduationCap,
+            description: t('bachelorDesc'),
+            steps: [
+                {
+                    id: 'step-1',
+                    title: t('steps.bachelor.step1Title'),
+                    description: t('steps.bachelor.step1Desc'),
+                },
+                {
+                    id: 'step-2',
+                    title: t('steps.bachelor.step2Title'),
+                    description: t('steps.bachelor.step2Desc'),
+                    dates: [
+                        {
+                            label: t('steps.bachelor.date1Label'),
+                            value: t('steps.bachelor.date1Value'),
+                        },
+                        {
+                            label: t('steps.bachelor.date2Label'),
+                            value: t('steps.bachelor.date2Value'),
+                        },
+                        {
+                            label: t('steps.bachelor.date3Label'),
+                            value: t('steps.bachelor.date3Value'),
+                        },
+                        {
+                            label: t('steps.bachelor.date4Label'),
+                            value: t('steps.bachelor.date4Value'),
+                        },
+                    ],
+                    isWarning: true,
+                },
+                {
+                    id: 'step-3',
+                    title: t('steps.bachelor.step3Title'),
+                    description: t('steps.bachelor.step3Desc'),
+                },
+                {
+                    id: 'step-4',
+                    title: t('steps.bachelor.step4Title'),
+                    description: t('steps.bachelor.step4Desc'),
+                    details: [
+                        t('steps.bachelor.doc1'),
+                        t('steps.bachelor.doc2'),
+                        t('steps.bachelor.doc3'),
+                        t('steps.bachelor.doc4'),
+                        t('steps.bachelor.doc5'),
+                        t('steps.bachelor.doc6'),
+                    ],
+                },
+                {
+                    id: 'step-5',
+                    title: t('steps.bachelor.step5Title'),
+                    description: t('steps.bachelor.step5Desc'),
+                },
+            ],
+        },
+        {
+            id: 'master',
+            title: t('master'),
+            icon: BookOpen,
+            description: t('masterDesc'),
+            steps: [
+                {
+                    id: 'm-step-1',
+                    title: t('steps.master.step1Title'),
+                    description: t('steps.master.step1Desc'),
+                },
+                {
+                    id: 'm-step-2',
+                    title: t('steps.master.step2Title'),
+                    description: t('steps.master.step2Desc'),
+                },
+                {
+                    id: 'm-step-3',
+                    title: t('steps.master.step3Title'),
+                    description: t('steps.master.step3Desc'),
+                    dates: [
+                        {
+                            label: t('steps.master.date1Label'),
+                            value: t('steps.master.date1Value'),
+                        },
+                        {
+                            label: t('steps.master.date2Label'),
+                            value: t('steps.master.date2Value'),
+                        },
+                        {
+                            label: t('steps.master.date3Label'),
+                            value: t('steps.master.date3Value'),
+                        },
+                        {
+                            label: t('steps.master.date4Label'),
+                            value: t('steps.master.date4Value'),
+                        },
+                    ],
+                    isWarning: true,
+                },
+                {
+                    id: 'm-step-4',
+                    title: t('steps.master.step4Title'),
+                    description: t('steps.master.step4Desc'),
+                },
+                {
+                    id: 'm-step-5',
+                    title: t('steps.master.step5Title'),
+                    description: t('steps.master.step5Desc'),
+                },
+            ],
+        },
+        {
+            id: 'phd',
+            title: t('phd'),
+            icon: School,
+            description: t('phdDesc'),
+            steps: [
+                {
+                    id: 'p-step-1',
+                    title: t('steps.phd.step1Title'),
+                    description: t('steps.phd.step1Desc'),
+                },
+                {
+                    id: 'p-step-2',
+                    title: t('steps.phd.step2Title'),
+                    description: t('steps.phd.step2Desc'),
+                },
+                {
+                    id: 'p-step-3',
+                    title: t('steps.phd.step3Title'),
+                    description: t('steps.phd.step3Desc'),
+                    dates: [
+                        {
+                            label: t('steps.phd.date1Label'),
+                            value: t('steps.phd.date1Value'),
+                        },
+                        {
+                            label: t('steps.phd.date2Label'),
+                            value: t('steps.phd.date2Value'),
+                        },
+                        {
+                            label: t('steps.phd.date3Label'),
+                            value: t('steps.phd.date3Value'),
+                        },
+                    ],
+                    isWarning: true,
+                },
+                {
+                    id: 'p-step-4',
+                    title: t('steps.phd.step4Title'),
+                    description: t('steps.phd.step4Desc'),
+                },
+                {
+                    id: 'p-step-5',
+                    title: t('steps.phd.step5Title'),
+                    description: t('steps.phd.step5Desc'),
+                },
+            ],
+        },
+    ];
+
     return (
         <div className="flex flex-col min-h-screen bg-muted/10">
             <div className="bg-background border-b py-12 md:py-16">
                 <div className="container mx-auto px-4 md:px-6">
                     <div className="max-w-3xl">
                         <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
-                            Как поступить в университет?
+                            {t('title')}
                         </h1>
                         <p className="text-xl text-muted-foreground leading-relaxed">
-                            Пошаговое руководство для абитуриентов всех уровней.
-                            Узнайте сроки, требования и необходимые документы
-                            для успешного поступления.
+                            {t('subtitle')}
                         </p>
                     </div>
                 </div>
@@ -244,24 +230,24 @@ export default function AdmissionsPage() {
                                 value="bachelor"
                                 className="text-sm md:text-base"
                             >
-                                Бакалавриат
+                                {t('bachelor')}
                             </TabsTrigger>
                             <TabsTrigger
                                 value="master"
                                 className="text-sm md:text-base"
                             >
-                                Магистратура
+                                {t('master')}
                             </TabsTrigger>
                             <TabsTrigger
                                 value="phd"
                                 className="text-sm md:text-base"
                             >
-                                Докторантура
+                                {t('phd')}
                             </TabsTrigger>
                         </TabsList>
                     </div>
 
-                    {Object.values(ADMISSION_DATA).map((level) => (
+                    {educationLevels.map((level) => (
                         <TabsContent
                             key={level.id}
                             value={level.id}
@@ -290,7 +276,7 @@ export default function AdmissionsPage() {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                         >
-                                            Сайт НЦТ{' '}
+                                            {t('nctSite')}{' '}
                                             <ExternalLink className="h-4 w-4" />
                                         </a>
                                     </Button>
@@ -384,22 +370,15 @@ export default function AdmissionsPage() {
                                             <CardHeader>
                                                 <CardTitle className="flex items-center gap-2">
                                                     <AlertCircle className="h-5 w-5" />
-                                                    Важно знать
+                                                    {t('important')}
                                                 </CardTitle>
                                             </CardHeader>
                                             <CardContent className="space-y-4">
                                                 <p className="text-sm opacity-90 leading-relaxed">
-                                                    Даты тестирований и приема
-                                                    документов могут меняться
-                                                    ежегодно согласно приказам
-                                                    МНВО РК.
+                                                    {t('importantText1')}
                                                 </p>
                                                 <p className="text-sm opacity-90 leading-relaxed">
-                                                    Всегда проверяйте актуальную
-                                                    информацию на официальном
-                                                    сайте Национального центра
-                                                    тестирования перед оплатой и
-                                                    регистрацией.
+                                                    {t('importantText2')}
                                                 </p>
                                                 <Button
                                                     variant="secondary"
@@ -411,7 +390,7 @@ export default function AdmissionsPage() {
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                     >
-                                                        Перейти на TestCenter.kz{' '}
+                                                        {t('goToTestCenter')}{' '}
                                                         <ArrowRight className="ml-2 h-4 w-4" />
                                                     </a>
                                                 </Button>
