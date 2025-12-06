@@ -224,7 +224,7 @@ export function AiChat() {
                 requestBody.sessionContext = sessionContext;
             }
 
-            const response = await fetch(`${API_BASE_URL}/api/v1/ai/chat`, {
+            const response = await fetch(`${API_BASE_URL}/ai/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
