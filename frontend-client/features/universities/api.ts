@@ -1,5 +1,29 @@
-import { UniversityDetail } from './types';
+import { apiClient } from '@/lib/api-client';
+import {
+    UniversityDetail,
+    UniversityListParams,
+    UniversityListResponse,
+} from './types';
 import { API_BASE_URL } from '@/lib/config';
+
+export async function getUniversities(
+    params: UniversityListParams = {},
+): Promise<UniversityListResponse> {
+    const { search = '', page = 1, limit = 9 } = params;
+
+    const searchParams = new URLSearchParams();
+
+    if (search.trim()) {
+        searchParams.append('search', search.trim());
+    }
+    searchParams.append('page', String(page));
+    searchParams.append('limit', String(limit));
+
+    const queryString = searchParams.toString();
+    const url = `/universities${queryString ? `?${queryString}` : ''}`;
+
+    return apiClient.get<UniversityListResponse>(url);
+}
 
 export async function getUniversityById(id: string): Promise<UniversityDetail> {
     const isServer = typeof window === 'undefined';
@@ -28,7 +52,6 @@ export async function getUniversityById(id: string): Promise<UniversityDetail> {
 
         return res.json();
     } else {
-        const { apiClient } = await import('@/lib/api-client');
         return apiClient.get<UniversityDetail>(`/universities/${id}`);
     }
 }

@@ -1,60 +1,138 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     Search,
     Loader2,
     School,
     ChevronLeft,
     ChevronRight,
+    AlertCircle,
+    RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UniversityCard } from '@/components/cards/university-card';
-import { PLACEHOLDER_IMAGE, CITIES } from '@/lib/constants';
-import { University } from '@/types';
+import { CITIES } from '@/lib/constants';
 import { cn } from '@/lib/utils';
-
-const ALL_UNIVERSITIES: University[] = Array.from({ length: 100 }).map(
-    (_, i) => ({
-        id: `uni-${i}`,
-        name:
-            [
-                'Назарбаев Университет',
-                'Казахский Национальный Университет им. Аль-Фараби',
-                'Евразийский Национальный Университет',
-                'Satbayev University',
-                'Университет КИМЭП',
-                'Казахстанско-Британский Технический Университет',
-                'Международный IT Университет',
-                'Университет имени Сулеймана Демиреля',
-            ][i % 8] + ` (${i + 1})`,
-        city: CITIES[Math.floor(Math.random() * (CITIES.length - 1)) + 1],
-        foundedYear: 1930 + Math.floor(Math.random() * 90),
-        views: Math.floor(Math.random() * 50000) + 1000,
-        image: PLACEHOLDER_IMAGE,
-        description:
-            'Ведущее высшее учебное заведение, предлагающее широкий спектр образовательных программ.',
-    }),
-);
+import { useUniversities } from '@/features/universities/hooks';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ITEMS_PER_PAGE = 9;
+const SEARCH_DEBOUNCE_MS = 500;
+
+function UniversityCardSkeleton() {
+    return (
+        <div className="h-full flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
+            <Skeleton className="aspect-[16/9] w-full" />
+            <div className="p-5 flex flex-col flex-1 space-y-3">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-16 w-full mt-2" />
+                <Skeleton className="h-9 w-full mt-auto" />
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Компонент пагинации
+ */
+function Pagination({
+    currentPage,
+    totalPages,
+    onPageChange,
+    isLoading,
+}: {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+    isLoading: boolean;
+}) {
+    const pages = useMemo(() => {
+        const result: (number | 'ellipsis')[] = [];
+
+        for (let i = 1; i <= totalPages; i++) {
+            if (
+                i === 1 ||
+                i === totalPages ||
+                (i >= currentPage - 1 && i <= currentPage + 1)
+            ) {
+                result.push(i);
+            } else if (i === currentPage - 2 || i === currentPage + 2) {
+                result.push('ellipsis');
+            }
+        }
+
+        return result;
+    }, [currentPage, totalPages]);
+
+    if (totalPages <= 1) return null;
+
+    return (
+        <div className="mt-auto py-4 border-t flex items-center justify-center gap-2">
+            <Button
+                variant="outline"
+                size="icon"
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1 || isLoading}
+                aria-label="Предыдущая страница"
+            >
+                <ChevronLeft className="h-4 w-4" />
+            </Button>
+
+            {pages.map((page, index) =>
+                page === 'ellipsis' ? (
+                    <span
+                        key={`ellipsis-${index}`}
+                        className="text-muted-foreground px-1"
+                    >
+                        ...
+                    </span>
+                ) : (
+                    <Button
+                        key={page}
+                        variant={page === currentPage ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => onPageChange(page)}
+                        disabled={isLoading}
+                        className={cn(
+                            'w-9',
+                            page === currentPage && 'pointer-events-none',
+                        )}
+                    >
+                        {page}
+                    </Button>
+                ),
+            )}
+
+            <Button
+                variant="outline"
+                size="icon"
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || isLoading}
+                aria-label="Следующая страница"
+            >
+                <ChevronRight className="h-4 w-4" />
+            </Button>
+        </div>
+    );
+}
 
 export default function UniversitiesPage() {
-    const [universities, setUniversities] = useState<University[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalItems, setTotalItems] = useState(0);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCity, setSelectedCity] = useState('Все города');
     const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [selectedCity, setSelectedCity] = useState('Все города');
+    const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
         const handler = setTimeout(() => {
             setDebouncedSearch(searchQuery);
             setCurrentPage(1);
-        }, 500);
+        }, SEARCH_DEBOUNCE_MS);
+
         return () => clearTimeout(handler);
     }, [searchQuery]);
 
@@ -62,43 +140,45 @@ export default function UniversitiesPage() {
         setCurrentPage(1);
     }, [selectedCity]);
 
-    const loadUniversities = useCallback(async () => {
-        setIsLoading(true);
-
-        await new Promise((resolve) => setTimeout(resolve, 600));
-
-        let filtered = ALL_UNIVERSITIES.filter((uni) =>
-            uni.name.toLowerCase().includes(debouncedSearch.toLowerCase()),
-        );
-
+    const searchParam = useMemo(() => {
+        const parts: string[] = [];
+        if (debouncedSearch.trim()) {
+            parts.push(debouncedSearch.trim());
+        }
         if (selectedCity !== 'Все города') {
-            filtered = filtered.filter((uni) => uni.city === selectedCity);
+            parts.push(selectedCity);
         }
+        return parts.join(' ');
+    }, [debouncedSearch, selectedCity]);
 
-        const total = filtered.length;
-        const calculatedTotalPages = Math.ceil(total / ITEMS_PER_PAGE);
+    const { data, isLoading, isFetching, isError, error, refetch } =
+        useUniversities({
+            search: searchParam,
+            page: currentPage,
+            limit: ITEMS_PER_PAGE,
+        });
 
-        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        const endIndex = startIndex + ITEMS_PER_PAGE;
-        const currentData = filtered.slice(startIndex, endIndex);
+    const universities = data?.data ?? [];
+    const meta = data?.meta;
+    const totalItems = meta?.total ?? 0;
+    const totalPages = meta?.totalPages ?? 1;
 
-        setUniversities(currentData);
-        setTotalPages(calculatedTotalPages);
-        setTotalItems(total);
-        setIsLoading(false);
+    const handlePageChange = useCallback(
+        (page: number) => {
+            if (page >= 1 && page <= totalPages) {
+                setCurrentPage(page);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        },
+        [totalPages],
+    );
 
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [currentPage, debouncedSearch, selectedCity]);
-
-    useEffect(() => {
-        loadUniversities();
-    }, [loadUniversities]);
-
-    const handlePageChange = (page: number) => {
-        if (page >= 1 && page <= totalPages) {
-            setCurrentPage(page);
-        }
-    };
+    const handleResetFilters = useCallback(() => {
+        setSearchQuery('');
+        setDebouncedSearch('');
+        setSelectedCity('Все города');
+        setCurrentPage(1);
+    }, []);
 
     return (
         <div className="container mx-auto px-4 md:px-6 py-8 min-h-screen flex flex-col">
@@ -108,8 +188,15 @@ export default function UniversitiesPage() {
                         Каталог университетов
                     </h1>
                     <p className="text-muted-foreground">
-                        Найдите идеальное учебное заведение. Найдено вузов:{' '}
-                        {totalItems}.
+                        Найдите идеальное учебное заведение.{' '}
+                        {!isLoading && (
+                            <span>
+                                Найдено вузов:{' '}
+                                <strong>
+                                    {totalItems.toLocaleString('ru-RU')}
+                                </strong>
+                            </span>
+                        )}
                     </p>
                 </div>
 
@@ -121,14 +208,19 @@ export default function UniversitiesPage() {
                             className="pl-9 bg-background border-border"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            aria-label="Поиск университетов"
                         />
+                        {isFetching && !isLoading && (
+                            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
                     </div>
 
                     <div className="w-full md:w-[200px]">
                         <select
-                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
                             value={selectedCity}
                             onChange={(e) => setSelectedCity(e.target.value)}
+                            aria-label="Фильтр по городу"
                         >
                             {CITIES.map((city) => (
                                 <option key={city} value={city}>
@@ -140,86 +232,51 @@ export default function UniversitiesPage() {
                 </div>
             </div>
 
+            {isError && (
+                <Alert variant="destructive" className="mb-6">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Ошибка загрузки</AlertTitle>
+                    <AlertDescription className="flex flex-col gap-3">
+                        <span>
+                            {error?.message ||
+                                'Не удалось загрузить список университетов. Проверьте подключение к интернету.'}
+                        </span>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => refetch()}
+                            className="w-fit"
+                        >
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                            Повторить попытку
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            )}
+
             {isLoading ? (
-                <div className="flex-1 flex justify-center items-center min-h-[400px]">
-                    <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                    {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
+                        <UniversityCardSkeleton key={index} />
+                    ))}
                 </div>
             ) : universities.length > 0 ? (
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                        {universities.map((uni) => (
-                            <UniversityCard key={uni.id} uni={uni} />
+                        {universities.map((university) => (
+                            <UniversityCard
+                                key={university.id}
+                                university={university}
+                            />
                         ))}
                     </div>
 
-                    <div className="mt-auto py-4 border-t flex items-center justify-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                            aria-label="Предыдущая страница"
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-
-                        {Array.from(
-                            { length: totalPages },
-                            (_, i) => i + 1,
-                        ).map((pageNum) => {
-                            if (
-                                pageNum === 1 ||
-                                pageNum === totalPages ||
-                                (pageNum >= currentPage - 1 &&
-                                    pageNum <= currentPage + 1)
-                            ) {
-                                return (
-                                    <Button
-                                        key={pageNum}
-                                        variant={
-                                            pageNum === currentPage
-                                                ? 'default'
-                                                : 'outline'
-                                        }
-                                        size="sm"
-                                        onClick={() =>
-                                            handlePageChange(pageNum)
-                                        }
-                                        className={cn(
-                                            'w-9',
-                                            pageNum === currentPage &&
-                                                'pointer-events-none',
-                                        )}
-                                    >
-                                        {pageNum}
-                                    </Button>
-                                );
-                            } else if (
-                                pageNum === currentPage - 2 ||
-                                pageNum === currentPage + 2
-                            ) {
-                                return (
-                                    <span
-                                        key={pageNum}
-                                        className="text-muted-foreground px-1"
-                                    >
-                                        ...
-                                    </span>
-                                );
-                            }
-                            return null;
-                        })}
-
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                            aria-label="Следующая страница"
-                        >
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
-                    </div>
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                        isLoading={isFetching}
+                    />
                 </>
             ) : (
                 <div className="flex-1 flex flex-col justify-center items-center text-muted-foreground min-h-[300px]">
@@ -227,15 +284,13 @@ export default function UniversitiesPage() {
                     <p className="text-lg font-medium">
                         Университеты не найдены
                     </p>
-                    <p className="text-sm">
-                        Попробуйте изменить параметры поиска или фильтры
+                    <p className="text-sm text-center max-w-md mt-1">
+                        По вашему запросу ничего не найдено. Попробуйте изменить
+                        параметры поиска или сбросить фильтры.
                     </p>
                     <Button
                         variant="link"
-                        onClick={() => {
-                            setSearchQuery('');
-                            setSelectedCity('Все города');
-                        }}
+                        onClick={handleResetFilters}
                         className="mt-2"
                     >
                         Сбросить фильтры
