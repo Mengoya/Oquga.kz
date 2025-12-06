@@ -7,6 +7,7 @@ import { Footer } from '@/components/layout/footer';
 import { AiChat } from '@/components/chat/ai-chat';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/sonner';
+import { QueryProvider } from '@/providers/query-provider';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -44,11 +45,15 @@ export default function RootLayout({
                     'antialiased min-h-screen flex flex-col font-sans bg-background text-foreground',
                 )}
             >
-                <Header />
-                <main className="flex-1 flex flex-col w-full">{children}</main>
-                <Footer />
-                <Toaster />
-                <AiChat />
+                <QueryProvider>
+                    <Header />
+                    <main className="flex-1 flex flex-col w-full">
+                        {children}
+                    </main>
+                    <Footer />
+                    <Toaster />
+                    <AiChat />
+                </QueryProvider>
             </body>
         </html>
     );

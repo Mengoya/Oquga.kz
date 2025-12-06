@@ -7,12 +7,29 @@ import axios, {
 import { useAuthStore } from '@/stores/use-auth-store';
 import { API_BASE_URL } from '@/lib/config';
 
+function getValidBaseURL(): string {
+    if (!API_BASE_URL || API_BASE_URL === 'undefined') {
+        const fallback = 'http://localhost:8080';
+        if (typeof window !== 'undefined') {
+            console.error(
+                `[API Client] API_BASE_URL не определён! Используется fallback: ${fallback}`,
+            );
+        }
+        return `${fallback}/api/v1`;
+    }
+
+    const normalizedURL = API_BASE_URL.replace(/\/+$/, '');
+
+    return `${normalizedURL}/api/v1`;
+}
+
 const axiosOptions: AxiosRequestConfig = {
-    baseURL: `${API_BASE_URL}/api/v1`,
+    baseURL: getValidBaseURL(),
     headers: {
         'Content-Type': 'application/json',
     },
     withCredentials: true,
+    timeout: 30000,
 };
 
 export const api: AxiosInstance = axios.create(axiosOptions);
@@ -44,6 +61,12 @@ api.interceptors.request.use(
             config.headers.Authorization = `Bearer ${accessToken}`;
         }
 
+        if (process.env.NODE_ENV === 'development') {
+            console.log(
+                `[API] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`,
+            );
+        }
+
         return config;
     },
     (error) => Promise.reject(error),
@@ -57,6 +80,13 @@ api.interceptors.response.use(
         };
 
         const status = error.response?.status;
+
+        if (process.env.NODE_ENV === 'development') {
+            console.error(`[API Error] ${status}: ${error.message}`, {
+                url: originalRequest?.url,
+                baseURL: originalRequest?.baseURL,
+            });
+        }
 
         if (status === 401 && !originalRequest._retry) {
             if (originalRequest.url?.includes('/auth/refresh')) {
@@ -84,7 +114,6 @@ api.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                // Запрос на обновление токена
                 const { data } = await api.post<{ access_token: string }>(
                     '/auth/refresh',
                 );

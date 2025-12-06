@@ -6,7 +6,7 @@ export interface UniversityTranslation {
     isComplete: boolean;
 }
 
-export interface UniversityDetail {
+export interface UniversityResponse {
     id: number;
     slug: string;
     photoUrl: string | null;
@@ -20,3 +20,24 @@ export interface UniversityDetail {
     createdAt: string;
     updatedAt: string;
 }
+
+export interface UniversityListMeta {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
+export interface UniversityListResponse {
+    data: UniversityResponse[];
+    meta: UniversityListMeta;
+}
+
+export interface UniversityListParams {
+    search?: string;
+    page?: number;
+    limit?: number;
+    city?: string;
+}
+
+export type UniversityDetail = UniversityResponse;

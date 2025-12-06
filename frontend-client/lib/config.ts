@@ -25,4 +25,14 @@ export const NAV_LINKS = [
     },
 ];
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+export const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
+if (
+    process.env.NODE_ENV === 'development' &&
+    !process.env.NEXT_PUBLIC_API_URL
+) {
+    console.warn(
+        '⚠️ [Config] NEXT_PUBLIC_API_URL не установлен. Используется fallback: http://localhost:8080',
+    );
+}
