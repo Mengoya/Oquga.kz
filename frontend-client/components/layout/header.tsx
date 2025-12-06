@@ -103,7 +103,9 @@ export function Header() {
                                 priority
                             />
                         </div>
-                        <span>{SITE_CONFIG.name}</span>
+                        <span className="hidden xs:inline">
+                            {SITE_CONFIG.name}
+                        </span>
                     </Link>
 
                     <nav className="hidden lg:flex items-center gap-6">
@@ -123,38 +125,63 @@ export function Header() {
                         ))}
                     </nav>
 
-                    <div className="flex items-center gap-2 md:gap-4">
+                    <div className="flex items-center gap-2 sm:gap-3">
                         {!isMounted ? (
-                            <div className="h-9 w-20 bg-muted/50 rounded animate-pulse hidden sm:block" />
+                            <AvatarSkeleton />
                         ) : isAuthenticated && user ? (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button
                                         variant="ghost"
-                                        className="relative h-9 w-9 rounded-full"
+                                        className={cn(
+                                            'relative rounded-full p-0',
+                                            'h-9 w-9 sm:h-10 sm:w-10',
+                                            'focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2',
+                                        )}
+                                        aria-label="Открыть меню профиля"
                                     >
-                                        <Avatar className="h-9 w-9 border cursor-pointer hover:ring-2 ring-primary/20 transition-all">
+                                        <Avatar
+                                            className={cn(
+                                                'border-2 border-transparent cursor-pointer transition-all duration-200',
+                                                'hover:border-primary/30 hover:shadow-md',
+                                                'h-8 w-8 sm:h-9 sm:w-9',
+                                            )}
+                                        >
                                             <AvatarImage
                                                 src={avatarUrl}
                                                 alt={displayName}
                                             />
-                                            <AvatarFallback>
+                                            <AvatarFallback
+                                                className={cn(
+                                                    'bg-primary text-primary-foreground font-semibold',
+                                                    'text-xs sm:text-sm',
+                                                )}
+                                            >
                                                 {initials}
                                             </AvatarFallback>
                                         </Avatar>
+                                        <span
+                                            className={cn(
+                                                'absolute bottom-0 right-0 block rounded-full bg-green-500 ring-2 ring-background',
+                                                'h-2.5 w-2.5 sm:h-3 sm:w-3',
+                                            )}
+                                            aria-hidden="true"
+                                        />
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent
                                     className="w-56"
                                     align="end"
+                                    alignOffset={-4}
+                                    sideOffset={8}
                                     forceMount
                                 >
                                     <DropdownMenuLabel className="font-normal">
                                         <div className="flex flex-col space-y-1">
-                                            <p className="text-sm font-medium leading-none">
+                                            <p className="text-sm font-medium leading-none truncate">
                                                 {displayName}
                                             </p>
-                                            <p className="text-xs leading-none text-muted-foreground">
+                                            <p className="text-xs leading-none text-muted-foreground truncate">
                                                 {user.email}
                                             </p>
                                         </div>
@@ -193,29 +220,46 @@ export function Header() {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         ) : (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="hidden sm:flex gap-2"
-                                onClick={() => router.push('/login')}
-                            >
-                                <LogIn className="h-4 w-4" />
-                                <span>Войти</span>
-                            </Button>
+                            <>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="sm:hidden h-9 w-9"
+                                    onClick={() => router.push('/login')}
+                                    aria-label="Войти в аккаунт"
+                                >
+                                    <UserIcon className="h-5 w-5" />
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="hidden sm:flex gap-2"
+                                    onClick={() => router.push('/login')}
+                                >
+                                    <LogIn className="h-4 w-4" />
+                                    <span>Войти</span>
+                                </Button>
+                            </>
                         )}
 
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="lg:hidden"
+                            className="lg:hidden h-9 w-9 sm:h-10 sm:w-10"
                             onClick={() =>
                                 setIsMobileMenuOpen(!isMobileMenuOpen)
                             }
+                            aria-label={
+                                isMobileMenuOpen
+                                    ? 'Закрыть меню'
+                                    : 'Открыть меню'
+                            }
+                            aria-expanded={isMobileMenuOpen}
                         >
                             {isMobileMenuOpen ? (
-                                <X className="h-6 w-6" />
+                                <X className="h-5 w-5 sm:h-6 sm:w-6" />
                             ) : (
-                                <Menu className="h-6 w-6" />
+                                <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
                             )}
                         </Button>
                     </div>
@@ -227,6 +271,9 @@ export function Header() {
                     id="mobile-menu"
                     className="lg:hidden fixed inset-0 z-40 bg-background animate-in fade-in slide-in-from-top-5 duration-200"
                     style={{ top: '64px', height: 'calc(100vh - 64px)' }}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Мобильное меню навигации"
                 >
                     <div className="container px-4 py-6 h-full flex flex-col justify-between overflow-y-auto pb-20">
                         <nav className="flex flex-col gap-2">
@@ -262,41 +309,56 @@ export function Header() {
                         </nav>
 
                         <div className="flex flex-col gap-4 mt-8 pt-8 border-t bg-background">
-                            {isAuthenticated ? (
+                            {isAuthenticated && user ? (
                                 <>
-                                    <div className="flex items-center gap-3 px-2 mb-2">
-                                        <Avatar className="h-10 w-10 border">
+                                    <Link
+                                        href="/profile"
+                                        onClick={() =>
+                                            setIsMobileMenuOpen(false)
+                                        }
+                                        className="flex items-center gap-3 px-2 py-3 rounded-xl hover:bg-muted transition-colors"
+                                    >
+                                        <Avatar className="h-12 w-12 border-2 border-primary/20">
                                             <AvatarImage src={avatarUrl} />
-                                            <AvatarFallback>
+                                            <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                                                 {initials}
                                             </AvatarFallback>
                                         </Avatar>
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">
+                                        <div className="flex flex-col flex-1 min-w-0">
+                                            <span className="font-semibold truncate">
                                                 {displayName}
                                             </span>
-                                            <span className="text-xs text-muted-foreground">
-                                                {user?.email}
+                                            <span className="text-xs text-muted-foreground truncate">
+                                                {user.email}
                                             </span>
                                         </div>
-                                    </div>
+                                        <UserIcon className="h-5 w-5 text-muted-foreground shrink-0" />
+                                    </Link>
+
                                     <Button
-                                        className="w-full justify-center gap-2 h-12 text-base shadow-lg shadow-primary/20 bg-destructive text-white hover:bg-destructive/90"
+                                        className="w-full justify-center gap-2 h-12 text-base"
+                                        variant="destructive"
                                         size="lg"
-                                        onClick={handleLogout}
+                                        onClick={() => {
+                                            setIsMobileMenuOpen(false);
+                                            handleLogout();
+                                        }}
                                     >
-                                        <LogOut className="h-4 w-4" />
-                                        Выйти
+                                        <LogOut className="h-5 w-5" />
+                                        Выйти из аккаунта
                                     </Button>
                                 </>
                             ) : (
                                 <Button
                                     className="w-full justify-center gap-2 h-12 text-base shadow-lg shadow-primary/20"
                                     size="lg"
-                                    onClick={() => router.push('/login')}
+                                    onClick={() => {
+                                        setIsMobileMenuOpen(false);
+                                        router.push('/login');
+                                    }}
                                 >
-                                    <LogIn className="h-4 w-4" />
-                                    Войти
+                                    <LogIn className="h-5 w-5" />
+                                    Войти в аккаунт
                                 </Button>
                             )}
                         </div>
@@ -317,5 +379,17 @@ export function Header() {
                 }
             `}</style>
         </>
+    );
+}
+
+function AvatarSkeleton() {
+    return (
+        <div
+            className={cn(
+                'rounded-full bg-muted animate-pulse',
+                'h-8 w-8 sm:h-9 sm:w-9',
+            )}
+            aria-hidden="true"
+        />
     );
 }
