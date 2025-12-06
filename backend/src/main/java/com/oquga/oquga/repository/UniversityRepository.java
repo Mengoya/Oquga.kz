@@ -32,7 +32,10 @@ public interface UniversityRepository extends JpaRepository<University, Long> {
             nativeQuery = true)
     Page<Long> findAllIds(Pageable pageable);
 
-    @Query("SELECT DISTINCT u FROM University u LEFT JOIN FETCH u.translations WHERE u.id IN :ids")
+    @Query("SELECT DISTINCT u FROM University u " +
+            "LEFT JOIN FETCH u.translations t " +
+            "LEFT JOIN FETCH t.language " +
+            "WHERE u.id IN :ids")
     List<University> findByIdsWithTranslations(@Param("ids") List<Long> ids);
 
     @Query("SELECT DISTINCT u FROM University u " +
@@ -73,4 +76,19 @@ public interface UniversityRepository extends JpaRepository<University, Long> {
     Optional<University> findByIdWithInternationalSections(@Param("id") Long id);
 
     boolean existsBySlug(String slug);
+
+    @Query(value = """
+        SELECT DISTINCT u.id FROM universities u
+        JOIN university_translations ut ON u.id = ut.university_id
+        LEFT JOIN faculties f ON f.university_id = u.id
+        LEFT JOIN faculty_translations ft ON f.id = ft.faculty_id
+        LEFT JOIN educational_program_groups epg ON epg.faculty_id = f.id
+        LEFT JOIN educational_program_group_translations epgt ON epgt.program_group_id = epg.id
+        WHERE
+            (ut.name ILIKE ANY(:keywords) OR
+             ut.description ILIKE ANY(:keywords) OR
+             ft.name ILIKE ANY(:keywords) OR
+             epgt.name ILIKE ANY(:keywords))
+        """, nativeQuery = true)
+    List<Long> findIdsByKeywords(@Param("keywords") String[] keywords);
 }
