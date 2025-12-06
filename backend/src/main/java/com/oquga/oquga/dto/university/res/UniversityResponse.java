@@ -8,6 +8,7 @@ public record UniversityResponse(
         String slug,
         String photoUrl,
         String websiteUrl,
+        String virtualTourUrl,
         Integer foundedYear,
         String contactPhone,
         String contactEmail,

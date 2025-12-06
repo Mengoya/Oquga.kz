@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const UniversityStatusSchema = z.enum(['active', 'archived', 'pending']);
 
 const TranslationStatusSchema = z.object({
-    isComplete: z.boolean()
+    isComplete: z.boolean(),
 });
 
 export const UniversitySchema = z.object({
@@ -228,6 +228,7 @@ export interface UniversityApiResponse {
     slug: string;
     photoUrl: string | null;
     websiteUrl: string | null;
+    virtualTourUrl: string | null;
     foundedYear: number | null;
     contactPhone: string | null;
     contactEmail: string | null;
@@ -243,6 +244,7 @@ export interface UniversityDetailResponse {
     slug: string;
     photoUrl: string | null;
     websiteUrl: string | null;
+    virtualTourUrl: string | null;
     foundedYear: number | null;
     contactPhone: string | null;
     contactEmail: string | null;
@@ -273,18 +275,22 @@ export interface UniversityListApiResponse {
 export interface UpdateUniversityValues {
     photoUrl?: string;
     websiteUrl?: string;
+    virtualTourUrl: string | null;
     foundedYear?: number | null;
     contactPhone?: string;
     contactEmail?: string;
-    translations: Record<string, {
-        name?: string;
-        city?: string;
-        shortDescription?: string;
-        description?: string;
-        goal?: string;
-        address?: string;
-        historyText?: string;
-    }>;
+    translations: Record<
+        string,
+        {
+            name?: string;
+            city?: string;
+            shortDescription?: string;
+            description?: string;
+            goal?: string;
+            address?: string;
+            historyText?: string;
+        }
+    >;
     leadership?: LeadershipDto[];
     achievements?: AchievementDto[];
     historyEvents?: HistoryEventDto[];

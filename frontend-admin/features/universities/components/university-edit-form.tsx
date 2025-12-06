@@ -7,7 +7,18 @@ import { updateUniversity } from '../api';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
-import { Loader2, Building2, FileText, Users, Award, History, GraduationCap, ClipboardList, Wallet, Globe } from 'lucide-react';
+import {
+    Loader2,
+    Building2,
+    FileText,
+    Users,
+    Award,
+    History,
+    GraduationCap,
+    ClipboardList,
+    Wallet,
+    Globe,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BasicInfoSection } from './sections/basic-info-section';
 import { DescriptionSection } from './sections/description-section';
@@ -23,16 +34,31 @@ interface Props {
     university: UniversityDetailResponse;
 }
 
-type SectionKey = 'basic' | 'description' | 'leadership' | 'achievements' | 'history' | 'faculties' | 'admission' | 'tuition' | 'international';
+type SectionKey =
+    | 'basic'
+    | 'description'
+    | 'leadership'
+    | 'achievements'
+    | 'history'
+    | 'faculties'
+    | 'admission'
+    | 'tuition'
+    | 'international';
 
 export function UniversityEditForm({ university }: Props) {
     const t = useTranslations('UniversityEdit.sections');
     const tCommon = useTranslations('Common');
     const queryClient = useQueryClient();
     const [activeSection, setActiveSection] = useState<SectionKey>('basic');
-    const [formData, setFormData] = useState<UpdateUniversityValues>(() => initFormData(university));
+    const [formData, setFormData] = useState<UpdateUniversityValues>(() =>
+        initFormData(university),
+    );
 
-    const sections: { key: SectionKey; label: string; icon: React.ElementType }[] = [
+    const sections: {
+        key: SectionKey;
+        label: string;
+        icon: React.ElementType;
+    }[] = [
         { key: 'basic', label: t('basic'), icon: Building2 },
         { key: 'description', label: t('description'), icon: FileText },
         { key: 'leadership', label: t('leadership'), icon: Users },
@@ -52,10 +78,15 @@ export function UniversityEditForm({ university }: Props) {
                 description: tCommon('feedback.updated'),
             });
             queryClient.invalidateQueries({ queryKey: ['universities'] });
-            queryClient.setQueryData(['university', String(university.id)], updatedData);
+            queryClient.setQueryData(
+                ['university', String(university.id)],
+                updatedData,
+            );
         },
         onError: (error: any) => {
-            const message = error?.response?.data?.message || tCommon('feedback.genericError');
+            const message =
+                error?.response?.data?.message ||
+                tCommon('feedback.genericError');
             toast.error(tCommon('feedback.error'), {
                 description: message,
             });
@@ -67,7 +98,7 @@ export function UniversityEditForm({ university }: Props) {
     };
 
     const updateFormData = (updates: Partial<UpdateUniversityValues>) => {
-        setFormData(prev => ({ ...prev, ...updates }));
+        setFormData((prev) => ({ ...prev, ...updates }));
     };
 
     return (
@@ -84,7 +115,7 @@ export function UniversityEditForm({ university }: Props) {
                                     'w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors text-left',
                                     activeSection === section.key
                                         ? 'bg-primary text-primary-foreground'
-                                        : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                                        : 'hover:bg-muted text-muted-foreground hover:text-foreground',
                                 )}
                             >
                                 <Icon className="h-4 w-4" />
@@ -104,28 +135,46 @@ export function UniversityEditForm({ university }: Props) {
                     />
                 )}
                 {activeSection === 'description' && (
-                    <DescriptionSection data={formData} onChange={updateFormData} />
+                    <DescriptionSection
+                        data={formData}
+                        onChange={updateFormData}
+                    />
                 )}
                 {activeSection === 'leadership' && (
-                    <LeadershipSection data={formData} onChange={updateFormData} />
+                    <LeadershipSection
+                        data={formData}
+                        onChange={updateFormData}
+                    />
                 )}
                 {activeSection === 'achievements' && (
-                    <AchievementsSection data={formData} onChange={updateFormData} />
+                    <AchievementsSection
+                        data={formData}
+                        onChange={updateFormData}
+                    />
                 )}
                 {activeSection === 'history' && (
                     <HistorySection data={formData} onChange={updateFormData} />
                 )}
                 {activeSection === 'faculties' && (
-                    <FacultiesSection data={formData} onChange={updateFormData} />
+                    <FacultiesSection
+                        data={formData}
+                        onChange={updateFormData}
+                    />
                 )}
                 {activeSection === 'admission' && (
-                    <AdmissionSection data={formData} onChange={updateFormData} />
+                    <AdmissionSection
+                        data={formData}
+                        onChange={updateFormData}
+                    />
                 )}
                 {activeSection === 'tuition' && (
                     <TuitionSection data={formData} onChange={updateFormData} />
                 )}
                 {activeSection === 'international' && (
-                    <InternationalSection data={formData} onChange={updateFormData} />
+                    <InternationalSection
+                        data={formData}
+                        onChange={updateFormData}
+                    />
                 )}
 
                 <div className="flex justify-end pt-6 mt-6 border-t">
@@ -141,10 +190,13 @@ export function UniversityEditForm({ university }: Props) {
     );
 }
 
-function initFormData(university: UniversityDetailResponse): UpdateUniversityValues {
+function initFormData(
+    university: UniversityDetailResponse,
+): UpdateUniversityValues {
     return {
         photoUrl: university.photoUrl || '',
         websiteUrl: university.websiteUrl || '',
+        virtualTourUrl: university.virtualTourUrl || '',
         foundedYear: university.foundedYear,
         contactPhone: university.contactPhone || '',
         contactEmail: university.contactEmail || '',
@@ -152,7 +204,8 @@ function initFormData(university: UniversityDetailResponse): UpdateUniversityVal
             ru: {
                 name: university.translations.ru?.name || '',
                 city: university.translations.ru?.city || '',
-                shortDescription: university.translations.ru?.shortDescription || '',
+                shortDescription:
+                    university.translations.ru?.shortDescription || '',
                 description: university.translations.ru?.description || '',
                 goal: university.translations.ru?.goal || '',
                 address: university.translations.ru?.address || '',
@@ -161,7 +214,8 @@ function initFormData(university: UniversityDetailResponse): UpdateUniversityVal
             kk: {
                 name: university.translations.kk?.name || '',
                 city: university.translations.kk?.city || '',
-                shortDescription: university.translations.kk?.shortDescription || '',
+                shortDescription:
+                    university.translations.kk?.shortDescription || '',
                 description: university.translations.kk?.description || '',
                 goal: university.translations.kk?.goal || '',
                 address: university.translations.kk?.address || '',
@@ -170,33 +224,45 @@ function initFormData(university: UniversityDetailResponse): UpdateUniversityVal
             en: {
                 name: university.translations.en?.name || '',
                 city: university.translations.en?.city || '',
-                shortDescription: university.translations.en?.shortDescription || '',
+                shortDescription:
+                    university.translations.en?.shortDescription || '',
                 description: university.translations.en?.description || '',
                 goal: university.translations.en?.goal || '',
                 address: university.translations.en?.address || '',
                 historyText: university.translations.en?.historyText || '',
             },
         },
-        leadership: university.leadership.map(l => ({ ...l })),
-        achievements: university.achievements.map(a => ({ ...a })),
-        historyEvents: university.historyEvents.map(h => ({ ...h })),
-        faculties: university.faculties.map(f => ({
+        leadership: university.leadership.map((l) => ({ ...l })),
+        achievements: university.achievements.map((a) => ({ ...a })),
+        historyEvents: university.historyEvents.map((h) => ({ ...h })),
+        faculties: university.faculties.map((f) => ({
             ...f,
             translations: { ...f.translations },
-            departments: f.departments.map(d => ({ ...d, translations: { ...d.translations } })),
-            programGroups: f.programGroups.map(pg => ({
+            departments: f.departments.map((d) => ({
+                ...d,
+                translations: { ...d.translations },
+            })),
+            programGroups: f.programGroups.map((pg) => ({
                 ...pg,
                 translations: { ...pg.translations },
-                programs: pg.programs.map(p => ({ ...p, translations: { ...p.translations } })),
+                programs: pg.programs.map((p) => ({
+                    ...p,
+                    translations: { ...p.translations },
+                })),
                 passingScore: pg.passingScore ? { ...pg.passingScore } : null,
             })),
         })),
-        admissionRule: university.admissionRule ? { ...university.admissionRule } : null,
-        tuitionDiscounts: university.tuitionDiscounts.map(t => ({ ...t })),
-        internationalSections: university.internationalSections.map(s => ({
+        admissionRule: university.admissionRule
+            ? { ...university.admissionRule }
+            : null,
+        tuitionDiscounts: university.tuitionDiscounts.map((t) => ({ ...t })),
+        internationalSections: university.internationalSections.map((s) => ({
             ...s,
             translations: { ...s.translations },
-            items: s.items.map(i => ({ ...i, translations: { ...i.translations } })),
+            items: s.items.map((i) => ({
+                ...i,
+                translations: { ...i.translations },
+            })),
         })),
     };
 }

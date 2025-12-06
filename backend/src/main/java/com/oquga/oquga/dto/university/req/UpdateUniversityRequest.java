@@ -2,6 +2,7 @@ package com.oquga.oquga.dto.university.req;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -9,7 +10,10 @@ import java.util.Map;
 
 public record UpdateUniversityRequest(
         String photoUrl,
+        @URL(message = "Invalid website URL format")
         String websiteUrl,
+        @URL(message = "Invalid virtual tour URL format")
+        String virtualTourUrl,
         Integer foundedYear,
         String contactPhone,
         String contactEmail,

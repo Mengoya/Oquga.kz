@@ -29,6 +29,9 @@ public class University {
     @Column(name = "photo_url", length = 500)
     private String photoUrl;
 
+    @Column(name = "virtual_tour_url", length = 500)
+    private String virtualTourUrl;
+
     @Column(name = "website_url", length = 500)
     private String websiteUrl;
 

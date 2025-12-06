@@ -123,6 +123,7 @@ public class UniversityServiceImpl implements UniversityService {
         university.setSlug(request.slug());
         university.setPhotoUrl(null);
         university.setWebsiteUrl(request.websiteUrl());
+        university.setVirtualTourUrl(request.virtualTourUrl());
         university.setFoundedYear(request.foundedYear());
         university.setContactPhone(request.contactPhone());
         university.setContactEmail(request.contactEmail());
@@ -252,6 +253,7 @@ public class UniversityServiceImpl implements UniversityService {
 
     private void updateBasicInfo(University university, UpdateUniversityRequest request) {
         university.setWebsiteUrl(request.websiteUrl());
+        university.setVirtualTourUrl(request.virtualTourUrl());
         university.setFoundedYear(request.foundedYear());
         university.setContactPhone(request.contactPhone());
         university.setContactEmail(request.contactEmail());
@@ -296,6 +298,7 @@ public class UniversityServiceImpl implements UniversityService {
                 university.getSlug(),
                 resolvePhotoUrl(university.getPhotoUrl()),
                 university.getWebsiteUrl(),
+                university.getVirtualTourUrl() != null ? university.getVirtualTourUrl() : "",
                 university.getFoundedYear(),
                 university.getContactPhone(),
                 university.getContactEmail(),
@@ -383,6 +386,7 @@ public class UniversityServiceImpl implements UniversityService {
                 university.getSlug(),
                 resolvePhotoUrl(university.getPhotoUrl()),
                 university.getWebsiteUrl(),
+                university.getVirtualTourUrl() != null ? university.getVirtualTourUrl() : "",
                 university.getFoundedYear(),
                 university.getContactPhone(),
                 university.getContactEmail(),

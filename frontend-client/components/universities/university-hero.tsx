@@ -37,22 +37,25 @@ interface UniversityHeroProps {
         backToList: string;
         share: string;
         addToFavorites: string;
+        removedFromFavorites: string;
+        addedToFavorites: string;
+        linkCopied: string;
         breadcrumbHome: string;
         breadcrumbUniversities: string;
     };
 }
 
 export function UniversityHero({
-    name,
-    city,
-    photoUrl,
-    websiteUrl,
-    foundedYear,
-    viewCount,
-    progressPercent,
-    locale,
-    translations: t,
-}: UniversityHeroProps) {
+                                   name,
+                                   city,
+                                   photoUrl,
+                                   websiteUrl,
+                                   foundedYear,
+                                   viewCount,
+                                   progressPercent,
+                                   locale,
+                                   translations: t,
+                               }: UniversityHeroProps) {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
@@ -77,12 +80,12 @@ export function UniversityHero({
                 await navigator.share(shareData);
             } else {
                 await navigator.clipboard.writeText(window.location.href);
-                toast.success('Ссылка скопирована в буфер обмена');
+                toast.success(t.linkCopied);
             }
         } catch (error) {
             if ((error as Error).name !== 'AbortError') {
                 await navigator.clipboard.writeText(window.location.href);
-                toast.success('Ссылка скопирована в буфер обмена');
+                toast.success(t.linkCopied);
             }
         }
     };
@@ -90,7 +93,7 @@ export function UniversityHero({
     const handleFavorite = () => {
         setIsFavorite(!isFavorite);
         toast.success(
-            isFavorite ? 'Удалено из избранного' : 'Добавлено в избранное',
+            isFavorite ? t.removedFromFavorites : t.addedToFavorites,
         );
     };
 
@@ -266,9 +269,7 @@ export function UniversityHero({
                                             <Eye className="h-3 w-3" />
                                             {t.views.replace(
                                                 '{count}',
-                                                viewCount.toLocaleString(
-                                                    locale,
-                                                ),
+                                                viewCount.toLocaleString(locale),
                                             )}
                                         </Badge>
                                     </div>

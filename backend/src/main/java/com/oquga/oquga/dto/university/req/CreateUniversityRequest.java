@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.hibernate.validator.constraints.URL;
 
 import java.util.Map;
 
@@ -11,7 +12,11 @@ public record CreateUniversityRequest(
         @NotBlank(message = "Slug is required")
         String slug,
 
+        @URL(message = "Invalid website URL format")
         String websiteUrl,
+
+        @URL(message = "Invalid virtual tour URL format")
+        String virtualTourUrl,
 
         Integer foundedYear,
 

@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { Info, Cuboid, BookOpen, Users, Award } from 'lucide-react';
+import { Info, Cuboid, BookOpen, Award } from 'lucide-react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -40,8 +40,8 @@ interface PageProps {
 }
 
 export async function generateMetadata({
-    params,
-}: PageProps): Promise<Metadata> {
+                                           params,
+                                       }: PageProps): Promise<Metadata> {
     const { id, locale } = await params;
 
     try {
@@ -83,6 +83,7 @@ export default async function UniversityDetailPage({ params }: PageProps) {
     const t = await getTranslations('universities');
     const tCommon = await getTranslations('common');
     const tNav = await getTranslations('nav');
+    const tStats = await getTranslations('stats');
 
     let uni: UniversityDetail;
     let translation: UniversityTranslation;
@@ -99,8 +100,7 @@ export default async function UniversityDetailPage({ params }: PageProps) {
         return { __html: htmlContent };
     };
 
-    const tourUrl =
-        uni.virtualTourUrl || 'https://iitu.edu.kz/_static/3d-tour-iitu/';
+    const tourUrl = uni.virtualTourUrl || null;
 
     const heroTranslations = {
         university: t('university'),
@@ -109,38 +109,41 @@ export default async function UniversityDetailPage({ params }: PageProps) {
         founded: tCommon('founded'),
         officialSite: t('officialSite'),
         backToList: t('backToList'),
-        share: 'Поделиться',
-        addToFavorites: 'Добавить в избранное',
+        share: t('share'),
+        addToFavorites: t('addToFavorites'),
+        removedFromFavorites: t('removedFromFavorites'),
+        addedToFavorites: t('addedToFavorites'),
+        linkCopied: t('linkCopied'),
         breadcrumbHome: tNav('home'),
         breadcrumbUniversities: tNav('universities'),
     };
 
     const statsTranslations = {
-        founded: 'Год основания',
-        programs: 'Программ обучения',
-        students: 'Студентов',
-        faculties: 'Факультетов',
-        partners: 'Партнёров',
-        graduates: 'Выпускников',
+        founded: tStats('founded'),
+        programs: tStats('programs'),
+        students: tStats('students'),
+        faculties: tStats('faculties'),
+        partners: tStats('partners'),
+        graduates: tStats('graduates'),
     };
 
     const contactTranslations = {
         contacts: t('contacts'),
         phone: t('phone'),
-        email: t('email') || 'Email',
+        email: t('email'),
         website: t('website'),
-        location: 'Местоположение',
+        location: t('location'),
         applyDocuments: t('applyDocuments'),
         applyNote: t('applyNote'),
-        scheduleVisit: 'Записаться на экскурсию',
-        askQuestion: 'Задать вопрос',
-        copied: 'Скопировано!',
+        scheduleVisit: t('scheduleVisit'),
+        askQuestion: t('askQuestion'),
+        copied: t('copied'),
     };
 
     const mobileTranslations = {
-        call: 'Позвонить',
-        website: 'Сайт',
-        apply: 'Подать заявку',
+        call: t('call'),
+        website: t('website'),
+        apply: t('apply'),
     };
 
     return (
@@ -169,7 +172,7 @@ export default async function UniversityDetailPage({ params }: PageProps) {
                                 <span className="hidden sm:inline">
                                     {t('overview')}
                                 </span>
-                                <span className="sm:hidden">Обзор</span>
+                                <span className="sm:hidden">{t('overview')}</span>
                             </TabsTrigger>
                             {tourUrl && (
                                 <TabsTrigger
@@ -180,7 +183,7 @@ export default async function UniversityDetailPage({ params }: PageProps) {
                                     <span className="hidden sm:inline">
                                         {t('virtualTour')}
                                     </span>
-                                    <span className="sm:hidden">3D Тур</span>
+                                    <span className="sm:hidden">{t('virtualTour')}</span>
                                 </TabsTrigger>
                             )}
                             <TabsTrigger
@@ -188,10 +191,7 @@ export default async function UniversityDetailPage({ params }: PageProps) {
                                 className="gap-2 px-4 md:px-6 py-2.5 text-sm md:text-base data-[state=active]:bg-background data-[state=active]:shadow-sm"
                             >
                                 <BookOpen className="h-4 w-4" />
-                                <span className="hidden sm:inline">
-                                    Программы
-                                </span>
-                                <span className="sm:hidden">Программы</span>
+                                <span>{t('programs')}</span>
                             </TabsTrigger>
                         </TabsList>
                     </div>
@@ -229,38 +229,17 @@ export default async function UniversityDetailPage({ params }: PageProps) {
                                 </ContentSection>
 
                                 <ContentSection
-                                    title="Аккредитация и лицензии"
+                                    title={t('accreditationAndLicenses')}
                                     icon={<Award className="h-5 w-5" />}
                                     id="accreditation"
                                 >
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {[
-                                            {
-                                                title: 'Государственная лицензия',
-                                                description: 'МОН РК №12345',
-                                                status: 'Действующая',
-                                            },
-                                            {
-                                                title: 'Международная аккредитация',
-                                                description: 'ABET, FIBAA',
-                                                status: 'До 2027',
-                                            },
-                                        ].map((item) => (
-                                            <div
-                                                key={item.title}
-                                                className="p-4 rounded-xl border bg-muted/20 hover:bg-muted/40 transition-colors"
-                                            >
-                                                <h4 className="font-medium mb-1">
-                                                    {item.title}
-                                                </h4>
-                                                <p className="text-sm text-muted-foreground mb-2">
-                                                    {item.description}
-                                                </p>
-                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                                                    {item.status}
-                                                </span>
-                                            </div>
-                                        ))}
+                                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                                        <div className="p-4 rounded-full bg-muted/50 mb-4">
+                                            <Award className="h-8 w-8 text-muted-foreground" />
+                                        </div>
+                                        <p className="text-muted-foreground italic max-w-md">
+                                            {t('noAccreditation')}
+                                        </p>
                                     </div>
                                 </ContentSection>
                             </div>
@@ -292,57 +271,16 @@ export default async function UniversityDetailPage({ params }: PageProps) {
                         className="animate-in fade-in slide-in-from-bottom-4 duration-500"
                     >
                         <ContentSection
-                            title="Образовательные программы"
+                            title={t('educationalPrograms')}
                             icon={<BookOpen className="h-5 w-5" />}
                         >
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {[
-                                    {
-                                        name: 'Информационные системы',
-                                        level: 'Бакалавриат',
-                                        duration: '4 года',
-                                    },
-                                    {
-                                        name: 'Компьютерные науки',
-                                        level: 'Бакалавриат',
-                                        duration: '4 года',
-                                    },
-                                    {
-                                        name: 'Кибербезопасность',
-                                        level: 'Магистратура',
-                                        duration: '2 года',
-                                    },
-                                    {
-                                        name: 'Data Science',
-                                        level: 'Магистратура',
-                                        duration: '2 года',
-                                    },
-                                    {
-                                        name: 'Искусственный интеллект',
-                                        level: 'PhD',
-                                        duration: '3 года',
-                                    },
-                                    {
-                                        name: 'Финансы',
-                                        level: 'Бакалавриат',
-                                        duration: '4 года',
-                                    },
-                                ].map((program, index) => (
-                                    <div
-                                        key={index}
-                                        className="p-4 rounded-xl border bg-card hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group"
-                                    >
-                                        <h4 className="font-medium mb-2 group-hover:text-primary transition-colors">
-                                            {program.name}
-                                        </h4>
-                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                            <span className="px-2 py-0.5 rounded bg-muted text-xs">
-                                                {program.level}
-                                            </span>
-                                            <span>{program.duration}</span>
-                                        </div>
-                                    </div>
-                                ))}
+                            <div className="flex flex-col items-center justify-center py-12 text-center">
+                                <div className="p-4 rounded-full bg-muted/50 mb-4">
+                                    <BookOpen className="h-8 w-8 text-muted-foreground" />
+                                </div>
+                                <p className="text-muted-foreground italic max-w-md">
+                                    {t('noPrograms')}
+                                </p>
                             </div>
                         </ContentSection>
                     </TabsContent>

@@ -14,10 +14,10 @@ interface VirtualTourViewerProps {
 }
 
 export function VirtualTourViewer({
-    url,
-    title,
-    className,
-}: VirtualTourViewerProps) {
+                                      url,
+                                      title,
+                                      className,
+                                  }: VirtualTourViewerProps) {
     const t = useTranslations('universities');
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);

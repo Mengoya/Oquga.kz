@@ -183,6 +183,7 @@
       "subtitle": "Basic university data: contacts, links, founding year",
       "photoUrl": "Photo URL",
       "website": "Website",
+      "virtualTour": "Virtual Tour (3D)",
       "foundedYear": "Founded Year",
       "phone": "Phone",
       "email": "Email",

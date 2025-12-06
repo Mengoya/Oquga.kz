@@ -10,6 +10,7 @@ public record UniversityDetailResponse(
         String slug,
         String photoUrl,
         String websiteUrl,
+        String virtualTourUrl,
         Integer foundedYear,
         String contactPhone,
         String contactEmail,

@@ -19,14 +19,17 @@ const LANGUAGE_LABELS = { ru: 'Русский', kk: 'Қазақша', en: 'Engli
 export function BasicInfoSection({ universityId, data, onChange }: Props) {
     const t = useTranslations('UniversityEdit.basicInfo');
 
-    const handleChange = (field: keyof UpdateUniversityValues, value: unknown) => {
+    const handleChange = (
+        field: keyof UpdateUniversityValues,
+        value: unknown,
+    ) => {
         onChange({ [field]: value });
     };
 
     const handleTranslationChange = (
         lang: string,
         field: string,
-        value: string
+        value: string,
     ) => {
         onChange({
             translations: {
@@ -68,26 +71,49 @@ export function BasicInfoSection({ universityId, data, onChange }: Props) {
                         <Input
                             id="websiteUrl"
                             value={data.websiteUrl || ''}
-                            onChange={(e) => handleChange('websiteUrl', e.target.value)}
+                            onChange={(e) =>
+                                handleChange('websiteUrl', e.target.value)
+                            }
                             placeholder="https://university.kz"
                             type="url"
                         />
                     </div>
                     <div>
-                        <Label htmlFor="foundedYear">{t('foundedYear')}</Label>
+                        <Label htmlFor="virtualTourUrl">
+                            {t('virtualTour')}
+                        </Label>
                         <Input
-                            id="foundedYear"
-                            type="number"
-                            min={1800}
-                            max={new Date().getFullYear()}
-                            value={data.foundedYear || ''}
+                            id="virtualTourUrl"
+                            value={data.virtualTourUrl || ''}
                             onChange={(e) =>
-                                handleChange(
-                                    'foundedYear',
-                                    e.target.value ? Number(e.target.value) : null
-                                )
+                                handleChange('virtualTourUrl', e.target.value)
                             }
+                            placeholder="https://tour.university.kz"
+                            type="url"
                         />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <Label htmlFor="foundedYear">
+                                {t('foundedYear')}
+                            </Label>
+                            <Input
+                                id="foundedYear"
+                                type="number"
+                                min={1800}
+                                max={new Date().getFullYear()}
+                                value={data.foundedYear || ''}
+                                onChange={(e) =>
+                                    handleChange(
+                                        'foundedYear',
+                                        e.target.value
+                                            ? Number(e.target.value)
+                                            : null,
+                                    )
+                                }
+                            />
+                        </div>
+                        <div />
                     </div>
                 </div>
 
@@ -97,7 +123,9 @@ export function BasicInfoSection({ universityId, data, onChange }: Props) {
                         <Input
                             id="contactPhone"
                             value={data.contactPhone || ''}
-                            onChange={(e) => handleChange('contactPhone', e.target.value)}
+                            onChange={(e) =>
+                                handleChange('contactPhone', e.target.value)
+                            }
                             placeholder="+7 (xxx) xxx-xx-xx"
                             type="tel"
                         />
@@ -108,7 +136,9 @@ export function BasicInfoSection({ universityId, data, onChange }: Props) {
                             id="contactEmail"
                             type="email"
                             value={data.contactEmail || ''}
-                            onChange={(e) => handleChange('contactEmail', e.target.value)}
+                            onChange={(e) =>
+                                handleChange('contactEmail', e.target.value)
+                            }
                             placeholder="info@university.kz"
                         />
                     </div>
@@ -126,13 +156,21 @@ export function BasicInfoSection({ universityId, data, onChange }: Props) {
                         ))}
                     </TabsList>
                     {LANGUAGES.map((lang) => (
-                        <TabsContent key={lang} value={lang} className="space-y-4 mt-4">
+                        <TabsContent
+                            key={lang}
+                            value={lang}
+                            className="space-y-4 mt-4"
+                        >
                             <div>
                                 <Label>{t('name')}</Label>
                                 <Input
                                     value={data.translations[lang]?.name || ''}
                                     onChange={(e) =>
-                                        handleTranslationChange(lang, 'name', e.target.value)
+                                        handleTranslationChange(
+                                            lang,
+                                            'name',
+                                            e.target.value,
+                                        )
                                     }
                                 />
                             </div>
@@ -141,16 +179,26 @@ export function BasicInfoSection({ universityId, data, onChange }: Props) {
                                 <Input
                                     value={data.translations[lang]?.city || ''}
                                     onChange={(e) =>
-                                        handleTranslationChange(lang, 'city', e.target.value)
+                                        handleTranslationChange(
+                                            lang,
+                                            'city',
+                                            e.target.value,
+                                        )
                                     }
                                 />
                             </div>
                             <div>
                                 <Label>{t('address')}</Label>
                                 <Input
-                                    value={data.translations[lang]?.address || ''}
+                                    value={
+                                        data.translations[lang]?.address || ''
+                                    }
                                     onChange={(e) =>
-                                        handleTranslationChange(lang, 'address', e.target.value)
+                                        handleTranslationChange(
+                                            lang,
+                                            'address',
+                                            e.target.value,
+                                        )
                                     }
                                 />
                             </div>
