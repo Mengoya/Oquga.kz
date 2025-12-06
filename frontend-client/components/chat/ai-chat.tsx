@@ -21,6 +21,8 @@ import {
     Zap,
     Trophy,
     Target,
+    ChevronDown,
+    ChevronUp,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -140,14 +142,16 @@ const WELCOME_MESSAGE: Message = {
         scale: { min: 0, max: 0, minLabel: '', maxLabel: '' },
         scaleItems: [],
         quickActions: [
-            { id: 'start_test', label: '🎮 Начать квест профориентации', emoji: '🎮', action: 'start_test' },
-            { id: 'universities', label: '🏛️ Посмотреть университеты', emoji: '🏛️', action: 'show_universities' },
+            { id: 'start_test', label: '🎮 Начать квест', emoji: '🎮', action: 'start_test' },
+            { id: 'universities', label: '🏛️ Университеты', emoji: '🏛️', action: 'show_universities' },
             { id: 'ask', label: '💬 Задать вопрос', emoji: '💬', action: 'open_chat' },
         ],
     },
 };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
+const MESSAGE_COLLAPSE_THRESHOLD = 300;
 
 export function AiChat() {
     const [isOpen, setIsOpen] = useState(false);
@@ -161,6 +165,7 @@ export function AiChat() {
     const [versusAnswers, setVersusAnswers] = useState<Record<string, string>>({});
     const [swipedCards, setSwipedCards] = useState<Set<string>>(new Set());
     const [likedCards, setLikedCards] = useState<Set<string>>(new Set());
+    const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -178,11 +183,35 @@ export function AiChat() {
         }
     }, [isOpen]);
 
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isOpen]);
+
+    const toggleMessageExpand = (messageId: string) => {
+        setExpandedMessages(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(messageId)) {
+                newSet.delete(messageId);
+            } else {
+                newSet.add(messageId);
+            }
+            return newSet;
+        });
+    };
+
     const resetChat = () => {
         setMessages([WELCOME_MESSAGE]);
         setInput('');
         setSessionContext(null);
         resetInteractiveState();
+        setExpandedMessages(new Set());
     };
 
     const resetInteractiveState = () => {
@@ -547,35 +576,65 @@ export function AiChat() {
         }
     };
 
-    const formatMessage = (content: string) => {
-        return content.split('\n').map((line, i) => {
+    const formatMessage = (content: string, messageId: string) => {
+        const isExpanded = expandedMessages.has(messageId);
+        const shouldCollapse = content.length > MESSAGE_COLLAPSE_THRESHOLD;
+        const displayContent = shouldCollapse && !isExpanded
+            ? content.substring(0, MESSAGE_COLLAPSE_THRESHOLD) + '...'
+            : content;
+
+        const formattedLines = displayContent.split('\n').map((line, i) => {
             let formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             formattedLine = formattedLine.replace(/\*(.*?)\*/g, '<em>$1</em>');
             return (
                 <span key={i}>
                     <span dangerouslySetInnerHTML={{ __html: formattedLine }} />
-                    {i < content.split('\n').length - 1 && <br />}
+                    {i < displayContent.split('\n').length - 1 && <br />}
                 </span>
             );
         });
+
+        return (
+            <>
+                {formattedLines}
+                {shouldCollapse && (
+                    <button
+                        onClick={() => toggleMessageExpand(messageId)}
+                        className="flex items-center gap-1 mt-2 text-xs text-primary hover:underline font-medium"
+                    >
+                        {isExpanded ? (
+                            <>
+                                <ChevronUp className="h-3 w-3" />
+                                Свернуть
+                            </>
+                        ) : (
+                            <>
+                                <ChevronDown className="h-3 w-3" />
+                                Показать полностью
+                            </>
+                        )}
+                    </button>
+                )}
+            </>
+        );
     };
 
     const renderProgressBar = (progress: ProgressInfo) => {
         if (!progress || progress.total === 0) return null;
 
         return (
-            <div className="mb-4 px-1">
-                <div className="flex justify-between items-center text-xs text-muted-foreground mb-2">
+            <div className="mb-3 sm:mb-4 px-1">
+                <div className="flex justify-between items-center text-[10px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2">
                     <span className="flex items-center gap-1">
                         <Target className="h-3 w-3" />
-                        {progress.stage}
+                        <span className="truncate max-w-[100px] sm:max-w-none">{progress.stage}</span>
                     </span>
                     <span className="flex items-center gap-1">
                         <Trophy className="h-3 w-3 text-yellow-500" />
                         {progress.current}/{progress.total}
                     </span>
                 </div>
-                <div className="h-3 bg-muted rounded-full overflow-hidden relative">
+                <div className="h-2.5 sm:h-3 bg-muted rounded-full overflow-hidden relative">
                     <div
                         className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-700 ease-out rounded-full relative"
                         style={{ width: `${progress.percentage}%` }}
@@ -595,25 +654,25 @@ export function AiChat() {
 
     const renderImageChoice = (interactive: InteractiveElement) => {
         return (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
                 {renderProgressBar(interactive.progress)}
-                <p className="font-semibold text-sm">{interactive.question}</p>
+                <p className="font-semibold text-xs sm:text-sm">{interactive.question}</p>
                 {interactive.description && (
-                    <p className="text-xs text-muted-foreground">{interactive.description}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">{interactive.description}</p>
                 )}
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                     {interactive.options?.map((option) => (
                         <button
                             key={option.id}
                             onClick={() => handleSingleChoice(option.id, interactive.questionId)}
-                            className="flex flex-col items-center gap-2 p-3 rounded-xl border-2 bg-background hover:bg-primary/5 hover:border-primary/50 transition-all text-center group"
+                            className="flex flex-col items-center gap-1.5 sm:gap-2 p-2 sm:p-3 rounded-xl border-2 bg-background hover:bg-primary/5 hover:border-primary/50 transition-all text-center group active:scale-95"
                         >
-                            <span className="text-3xl group-hover:scale-110 transition-transform">
+                            <span className="text-2xl sm:text-3xl group-hover:scale-110 transition-transform">
                                 {option.emoji}
                             </span>
                             <div>
-                                <div className="font-medium text-xs">{option.label}</div>
-                                <div className="text-[10px] text-muted-foreground mt-0.5">
+                                <div className="font-medium text-[10px] sm:text-xs leading-tight">{option.label}</div>
+                                <div className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 line-clamp-2">
                                     {option.description}
                                 </div>
                             </div>
@@ -626,27 +685,27 @@ export function AiChat() {
 
     const renderScenarioChoice = (interactive: InteractiveElement) => {
         return (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
                 {renderProgressBar(interactive.progress)}
-                <p className="font-semibold text-sm">{interactive.question}</p>
+                <p className="font-semibold text-xs sm:text-sm">{interactive.question}</p>
                 {interactive.description && (
-                    <p className="text-xs text-muted-foreground">{interactive.description}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">{interactive.description}</p>
                 )}
-                <div className="grid gap-2">
+                <div className="grid gap-1.5 sm:gap-2">
                     {interactive.options?.map((option) => (
                         <button
                             key={option.id}
                             onClick={() => handleSingleChoice(option.id, interactive.questionId)}
-                            className="flex items-center gap-3 p-3 rounded-xl border bg-background hover:bg-muted/50 hover:border-primary/50 transition-all text-left group"
+                            className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-xl border bg-background hover:bg-muted/50 hover:border-primary/50 transition-all text-left group active:scale-[0.98]"
                         >
-                            <span className="text-2xl">{option.emoji}</span>
+                            <span className="text-xl sm:text-2xl shrink-0">{option.emoji}</span>
                             <div className="flex-1 min-w-0">
-                                <div className="font-medium text-sm group-hover:text-primary transition-colors">
+                                <div className="font-medium text-xs sm:text-sm group-hover:text-primary transition-colors">
                                     {option.label}
                                 </div>
-                                <div className="text-xs text-muted-foreground">{option.description}</div>
+                                <div className="text-[10px] sm:text-xs text-muted-foreground line-clamp-2">{option.description}</div>
                             </div>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary shrink-0" />
                         </button>
                     ))}
                 </div>
@@ -656,21 +715,21 @@ export function AiChat() {
 
     const renderDragRank = (interactive: InteractiveElement) => {
         return (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
                 {renderProgressBar(interactive.progress)}
-                <p className="font-semibold text-sm">{interactive.question}</p>
-                <p className="text-xs text-muted-foreground">{interactive.description}</p>
+                <p className="font-semibold text-xs sm:text-sm">{interactive.question}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">{interactive.description}</p>
 
                 {rankedOptions.length > 0 && (
                     <div className="p-2 bg-primary/5 rounded-lg mb-2">
-                        <p className="text-xs font-medium mb-2">Твой рейтинг:</p>
+                        <p className="text-[10px] sm:text-xs font-medium mb-1.5 sm:mb-2">Твой рейтинг:</p>
                         <div className="flex flex-wrap gap-1">
                             {rankedOptions.map((id, idx) => {
                                 const opt = interactive.options?.find((o) => o.id === id);
                                 return (
                                     <span
                                         key={id}
-                                        className="inline-flex items-center gap-1 px-2 py-1 bg-primary text-primary-foreground rounded text-xs"
+                                        className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 bg-primary text-primary-foreground rounded text-[10px] sm:text-xs"
                                     >
                                         {idx + 1}. {opt?.emoji} {opt?.label}
                                     </span>
@@ -680,7 +739,7 @@ export function AiChat() {
                     </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                     {interactive.options?.map((option) => {
                         const isSelected = rankedOptions.includes(option.id);
                         const position = rankedOptions.indexOf(option.id) + 1;
@@ -690,7 +749,7 @@ export function AiChat() {
                                 onClick={() => toggleRankedOption(option.id)}
                                 disabled={!isSelected && rankedOptions.length >= 4}
                                 className={cn(
-                                    'flex items-center gap-2 p-2 rounded-lg border transition-all text-left relative',
+                                    'flex items-center gap-1.5 sm:gap-2 p-2 rounded-lg border transition-all text-left relative active:scale-95',
                                     isSelected
                                         ? 'bg-primary/10 border-primary'
                                         : 'bg-background hover:bg-muted/50',
@@ -698,12 +757,12 @@ export function AiChat() {
                                 )}
                             >
                                 {isSelected && (
-                                    <span className="absolute -top-1 -left-1 w-5 h-5 bg-primary text-white rounded-full text-xs flex items-center justify-center font-bold">
+                                    <span className="absolute -top-1 -left-1 w-4 h-4 sm:w-5 sm:h-5 bg-primary text-white rounded-full text-[10px] sm:text-xs flex items-center justify-center font-bold">
                                         {position}
                                     </span>
                                 )}
-                                <span className="text-lg">{option.emoji}</span>
-                                <span className="text-xs font-medium">{option.label}</span>
+                                <span className="text-base sm:text-lg">{option.emoji}</span>
+                                <span className="text-[10px] sm:text-xs font-medium truncate">{option.label}</span>
                             </button>
                         );
                     })}
@@ -712,7 +771,7 @@ export function AiChat() {
                 <Button
                     onClick={() => handleDragRank(interactive.questionId)}
                     disabled={rankedOptions.length < 4}
-                    className="w-full"
+                    className="w-full h-10 sm:h-9 text-xs sm:text-sm"
                     size="sm"
                 >
                     Подтвердить ({rankedOptions.length}/4)
@@ -728,14 +787,14 @@ export function AiChat() {
         const remaining = maxPoints - totalUsed;
 
         return (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
                 {renderProgressBar(interactive.progress)}
-                <p className="font-semibold text-sm">{interactive.question}</p>
-                <div className="flex justify-between items-center text-xs">
+                <p className="font-semibold text-xs sm:text-sm">{interactive.question}</p>
+                <div className="flex justify-between items-center text-[10px] sm:text-xs">
                     <span className="text-muted-foreground">{interactive.description}</span>
                     <span
                         className={cn(
-                            'font-bold px-2 py-0.5 rounded',
+                            'font-bold px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs',
                             remaining === 0 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
                         )}
                     >
@@ -743,17 +802,17 @@ export function AiChat() {
                     </span>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2.5 sm:space-y-3">
                     {interactive.options?.map((item) => {
                         const value = scaleValues[item.id] || 0;
                         return (
                             <div key={item.id} className="space-y-1">
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <span>{item.emoji}</span>
-                                        <span className="text-sm font-medium">{item.label}</span>
+                                    <div className="flex items-center gap-1.5 sm:gap-2">
+                                        <span className="text-sm sm:text-base">{item.emoji}</span>
+                                        <span className="text-[10px] sm:text-sm font-medium">{item.label}</span>
                                     </div>
-                                    <span className="text-sm font-bold text-primary w-8 text-right">{value}</span>
+                                    <span className="text-xs sm:text-sm font-bold text-primary w-6 sm:w-8 text-right">{value}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <input
@@ -775,10 +834,10 @@ export function AiChat() {
                 <Button
                     onClick={() => handleSkillBars(interactive.questionId, maxPoints)}
                     disabled={remaining !== 0}
-                    className="w-full"
+                    className="w-full h-10 sm:h-9 text-xs sm:text-sm"
                     size="sm"
                 >
-                    {remaining === 0 ? 'Подтвердить распределение' : `Распредели ещё ${remaining} очков`}
+                    {remaining === 0 ? 'Подтвердить' : `Распредели ещё ${remaining}`}
                 </Button>
             </div>
         );
@@ -805,7 +864,7 @@ export function AiChat() {
                     opt1: { id: id1, label: label1, emoji: '🅰️' },
                     opt2: { id: id2, label: label2, emoji: '🅱️' }
                 };
-            }).filter(p => p !== null) as any;
+            }).filter(p => p !== null) as typeof pairs;
         } else {
             for (let i = 0; i < options.length; i += 2) {
                 const opt1 = options[i];
@@ -821,41 +880,41 @@ export function AiChat() {
         }
 
         return (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
                 {renderProgressBar(interactive.progress)}
-                <p className="font-semibold text-sm">{interactive.question}</p>
-                <p className="text-xs text-muted-foreground">{interactive.description}</p>
+                <p className="font-semibold text-xs sm:text-sm">{interactive.question}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">{interactive.description}</p>
 
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                     {pairs.map((pair) => {
                         const selected = versusAnswers[pair.id];
 
                         return (
-                            <div key={pair.id} className="flex items-stretch gap-2">
+                            <div key={pair.id} className="flex items-stretch gap-1.5 sm:gap-2">
                                 <button
                                     onClick={() => handleVersusSelect(pair.id, pair.opt1.id)}
                                     className={cn(
-                                        'flex-1 p-3 rounded-lg border-2 transition-all text-sm font-medium flex items-center justify-center gap-2',
+                                        'flex-1 p-2 sm:p-3 rounded-lg border-2 transition-all text-[10px] sm:text-sm font-medium flex items-center justify-center gap-1 sm:gap-2 active:scale-95',
                                         selected === pair.opt1.id
                                             ? 'bg-primary text-white border-primary'
                                             : 'bg-background hover:bg-muted/50 border-muted'
                                     )}
                                 >
-                                    <span className="text-lg">{pair.opt1.emoji}</span>
-                                    <span>{pair.opt1.label}</span>
+                                    <span className="text-base sm:text-lg">{pair.opt1.emoji}</span>
+                                    <span className="truncate">{pair.opt1.label}</span>
                                 </button>
-                                <div className="flex items-center px-1 text-xs text-muted-foreground font-bold">VS</div>
+                                <div className="flex items-center px-0.5 sm:px-1 text-[9px] sm:text-xs text-muted-foreground font-bold">VS</div>
                                 <button
                                     onClick={() => handleVersusSelect(pair.id, pair.opt2.id)}
                                     className={cn(
-                                        'flex-1 p-3 rounded-lg border-2 transition-all text-sm font-medium flex items-center justify-center gap-2',
+                                        'flex-1 p-2 sm:p-3 rounded-lg border-2 transition-all text-[10px] sm:text-sm font-medium flex items-center justify-center gap-1 sm:gap-2 active:scale-95',
                                         selected === pair.opt2.id
                                             ? 'bg-primary text-white border-primary'
                                             : 'bg-background hover:bg-muted/50 border-muted'
                                     )}
                                 >
-                                    <span className="text-lg">{pair.opt2.emoji}</span>
-                                    <span>{pair.opt2.label}</span>
+                                    <span className="text-base sm:text-lg">{pair.opt2.emoji}</span>
+                                    <span className="truncate">{pair.opt2.label}</span>
                                 </button>
                             </div>
                         );
@@ -865,7 +924,7 @@ export function AiChat() {
                 <Button
                     onClick={() => handleVersusChoice(interactive.questionId, pairs.length)}
                     disabled={Object.keys(versusAnswers).length < pairs.length}
-                    className="w-full"
+                    className="w-full h-10 sm:h-9 text-xs sm:text-sm"
                     size="sm"
                 >
                     Продолжить ({Object.keys(versusAnswers).length}/{pairs.length})
@@ -880,16 +939,16 @@ export function AiChat() {
 
         if (!currentCard) {
             return (
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                     {renderProgressBar(interactive.progress)}
-                    <div className="text-center py-4">
-                        <p className="text-sm font-medium mb-2">Отлично! Ты оценил все сферы</p>
-                        <p className="text-xs text-muted-foreground mb-4">
+                    <div className="text-center py-3 sm:py-4">
+                        <p className="text-xs sm:text-sm font-medium mb-1.5 sm:mb-2">Отлично! Ты оценил все сферы</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground mb-3 sm:mb-4">
                             Понравилось: {likedCards.size} из {interactive.options?.length}
                         </p>
                         <Button
                             onClick={() => handleSwipeCards(interactive.questionId)}
-                            className="w-full"
+                            className="w-full h-10 sm:h-9 text-xs sm:text-sm"
                             size="sm"
                         >
                             Продолжить
@@ -900,32 +959,32 @@ export function AiChat() {
         }
 
         return (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
                 {renderProgressBar(interactive.progress)}
-                <p className="font-semibold text-sm">{interactive.question}</p>
-                <p className="text-xs text-muted-foreground text-center">
+                <p className="font-semibold text-xs sm:text-sm">{interactive.question}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground text-center">
                     {swipedCards.size + 1} / {interactive.options?.length}
                 </p>
 
                 <div className="relative">
-                    <div className="p-6 rounded-xl border-2 bg-gradient-to-br from-background to-muted/30 text-center">
-                        <span className="text-5xl mb-3 block">{currentCard.emoji}</span>
-                        <h4 className="font-bold text-lg mb-1">{currentCard.label}</h4>
-                        <p className="text-sm text-muted-foreground">{currentCard.description}</p>
+                    <div className="p-4 sm:p-6 rounded-xl border-2 bg-gradient-to-br from-background to-muted/30 text-center">
+                        <span className="text-4xl sm:text-5xl mb-2 sm:mb-3 block">{currentCard.emoji}</span>
+                        <h4 className="font-bold text-base sm:text-lg mb-1">{currentCard.label}</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground">{currentCard.description}</p>
                     </div>
 
-                    <div className="flex justify-center gap-4 mt-4">
+                    <div className="flex justify-center gap-4 sm:gap-6 mt-3 sm:mt-4">
                         <button
                             onClick={() => handleSwipe(currentCard.id, false)}
-                            className="w-14 h-14 rounded-full border-2 border-red-300 bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-500 transition-all hover:scale-110"
+                            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-red-300 bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-500 transition-all hover:scale-110 active:scale-95"
                         >
-                            <X className="h-6 w-6" />
+                            <X className="h-6 w-6 sm:h-7 sm:w-7" />
                         </button>
                         <button
                             onClick={() => handleSwipe(currentCard.id, true)}
-                            className="w-14 h-14 rounded-full border-2 border-green-300 bg-green-50 hover:bg-green-100 flex items-center justify-center text-green-500 transition-all hover:scale-110"
+                            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-green-300 bg-green-50 hover:bg-green-100 flex items-center justify-center text-green-500 transition-all hover:scale-110 active:scale-95"
                         >
-                            <Check className="h-6 w-6" />
+                            <Check className="h-6 w-6 sm:h-7 sm:w-7" />
                         </button>
                     </div>
                 </div>
@@ -935,24 +994,24 @@ export function AiChat() {
 
     const renderFinalScenario = (interactive: InteractiveElement) => {
         return (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
                 {renderProgressBar(interactive.progress)}
-                <p className="font-semibold text-sm">{interactive.question}</p>
-                <p className="text-xs text-muted-foreground">{interactive.description}</p>
+                <p className="font-semibold text-xs sm:text-sm">{interactive.question}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">{interactive.description}</p>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                     {interactive.options?.map((option) => (
                         <button
                             key={option.id}
                             onClick={() => handleSingleChoice(option.id, interactive.questionId)}
-                            className="flex flex-col items-center gap-2 p-4 rounded-xl border-2 bg-gradient-to-br from-background to-muted/20 hover:border-primary/50 hover:shadow-md transition-all text-center group"
+                            className="flex flex-col items-center gap-1.5 sm:gap-2 p-3 sm:p-4 rounded-xl border-2 bg-gradient-to-br from-background to-muted/20 hover:border-primary/50 hover:shadow-md transition-all text-center group active:scale-95"
                         >
-                            <span className="text-4xl group-hover:scale-110 transition-transform">
+                            <span className="text-3xl sm:text-4xl group-hover:scale-110 transition-transform">
                                 {option.emoji}
                             </span>
                             <div>
-                                <div className="font-semibold text-sm">{option.label}</div>
-                                <div className="text-[10px] text-muted-foreground mt-1">{option.description}</div>
+                                <div className="font-semibold text-xs sm:text-sm">{option.label}</div>
+                                <div className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 sm:mt-1 line-clamp-2">{option.description}</div>
                             </div>
                         </button>
                     ))}
@@ -963,35 +1022,35 @@ export function AiChat() {
 
     const renderMultipleChoice = (interactive: InteractiveElement) => {
         return (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
                 {renderProgressBar(interactive.progress)}
-                <p className="font-semibold text-sm">{interactive.question}</p>
-                <p className="text-xs text-muted-foreground">{interactive.description}</p>
-                <div className="grid grid-cols-2 gap-2">
+                <p className="font-semibold text-xs sm:text-sm">{interactive.question}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">{interactive.description}</p>
+                <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                     {interactive.options?.map((option) => (
                         <button
                             key={option.id}
                             onClick={() => toggleOption(option.id)}
                             className={cn(
-                                'flex items-center gap-2 p-2.5 rounded-lg border transition-all text-left',
+                                'flex items-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 rounded-lg border transition-all text-left active:scale-95',
                                 selectedOptions.has(option.id)
                                     ? 'bg-primary/10 border-primary text-primary'
                                     : 'bg-background hover:bg-muted/50'
                             )}
                         >
-                            <span className="text-base">{option.emoji}</span>
-                            <span className="text-xs font-medium flex-1">{option.label}</span>
-                            {selectedOptions.has(option.id) && <Check className="h-3.5 w-3.5" />}
+                            <span className="text-sm sm:text-base">{option.emoji}</span>
+                            <span className="text-[10px] sm:text-xs font-medium flex-1 truncate">{option.label}</span>
+                            {selectedOptions.has(option.id) && <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />}
                         </button>
                     ))}
                 </div>
                 <Button
                     onClick={() => handleMultipleChoice(interactive.questionId)}
                     disabled={selectedOptions.size === 0}
-                    className="w-full"
+                    className="w-full h-10 sm:h-9 text-xs sm:text-sm"
                     size="sm"
                 >
-                    Продолжить ({selectedOptions.size} выбрано)
+                    Продолжить ({selectedOptions.size})
                 </Button>
             </div>
         );
@@ -999,32 +1058,32 @@ export function AiChat() {
 
     const renderProfessionResults = (interactive: InteractiveElement) => {
         return (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
                 {interactive.professions?.map((profession, index) => (
                     <button
                         key={profession.id}
                         onClick={() => handleProfessionSelect(profession.id)}
                         className={cn(
-                            'w-full p-4 rounded-xl border text-left transition-all hover:shadow-md',
+                            'w-full p-3 sm:p-4 rounded-xl border text-left transition-all hover:shadow-md active:scale-[0.98]',
                             'bg-background hover:bg-muted/50 hover:border-primary/50',
                             index === 0 && 'ring-2 ring-primary/30 border-primary/50'
                         )}
                     >
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-2 sm:gap-3">
                             <div
                                 className={cn(
-                                    'text-3xl p-2 rounded-xl',
+                                    'text-2xl sm:text-3xl p-1.5 sm:p-2 rounded-xl shrink-0',
                                     index === 0 ? 'bg-primary/10' : 'bg-muted'
                                 )}
                             >
                                 {profession.emoji}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
-                                    <span className="font-bold">{profession.name}</span>
+                                <div className="flex items-center justify-between gap-2 mb-0.5 sm:mb-1">
+                                    <span className="font-bold text-xs sm:text-sm truncate">{profession.name}</span>
                                     <span
                                         className={cn(
-                                            'text-sm font-bold px-2 py-0.5 rounded-full',
+                                            'text-[10px] sm:text-sm font-bold px-1.5 sm:px-2 py-0.5 rounded-full shrink-0',
                                             profession.matchPercent >= 80
                                                 ? 'bg-green-100 text-green-700'
                                                 : profession.matchPercent >= 60
@@ -1035,24 +1094,24 @@ export function AiChat() {
                                         {profession.matchPercent}%
                                     </span>
                                 </div>
-                                <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
+                                <p className="text-[10px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2 line-clamp-2">
                                     {profession.description}
                                 </p>
-                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                    <span className="flex items-center gap-1">
-                                        <Briefcase className="h-3 w-3" />
-                                        {profession.salaryRange}
+                                <div className="flex items-center gap-2 sm:gap-3 text-[9px] sm:text-xs text-muted-foreground">
+                                    <span className="flex items-center gap-0.5 sm:gap-1">
+                                        <Briefcase className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                                        <span className="truncate max-w-[60px] sm:max-w-none">{profession.salaryRange}</span>
                                     </span>
-                                    <span className="flex items-center gap-1">
-                                        <TrendingUp className="h-3 w-3" />
+                                    <span className="flex items-center gap-0.5 sm:gap-1">
+                                        <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                                         {profession.demandLevel}
                                     </span>
                                 </div>
-                                {index === 0 && (
-                                    <div className="mt-2 pt-2 border-t">
-                                        <div className="flex flex-wrap gap-1">
-                                            {profession.skills?.slice(0, 4).map((skill) => (
-                                                <span key={skill} className="px-2 py-0.5 bg-muted rounded text-[10px]">
+                                {index === 0 && profession.skills && profession.skills.length > 0 && (
+                                    <div className="mt-1.5 sm:mt-2 pt-1.5 sm:pt-2 border-t">
+                                        <div className="flex flex-wrap gap-0.5 sm:gap-1">
+                                            {profession.skills.slice(0, 3).map((skill) => (
+                                                <span key={skill} className="px-1 sm:px-2 py-0.5 bg-muted rounded text-[9px] sm:text-[10px] truncate max-w-[80px]">
                                                     {skill}
                                                 </span>
                                             ))}
@@ -1060,7 +1119,7 @@ export function AiChat() {
                                     </div>
                                 )}
                             </div>
-                            <ChevronRight className="h-5 w-5 text-muted-foreground shrink-0 mt-1" />
+                            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0 mt-0.5 sm:mt-1" />
                         </div>
                     </button>
                 ))}
@@ -1070,54 +1129,59 @@ export function AiChat() {
 
     const renderUniversityCards = (interactive: InteractiveElement) => {
         return (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
                 {interactive.universities?.map((uni, index) => (
                     <div
                         key={uni.id}
                         className={cn(
-                            'p-3 rounded-xl border bg-background',
+                            'p-2.5 sm:p-3 rounded-xl border bg-background',
                             index === 0 && 'ring-2 ring-primary/20'
                         )}
                     >
-                        <div className="flex gap-3">
-                            <div className="w-16 h-16 rounded-lg bg-muted overflow-hidden shrink-0">
+                        <div className="flex gap-2 sm:gap-3">
+                            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-muted overflow-hidden shrink-0">
                                 {uni.photoUrl ? (
                                     <img src={uni.photoUrl} alt={uni.name} className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center">
-                                        <GraduationCap className="h-6 w-6 text-muted-foreground" />
+                                        <GraduationCap className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
                                     </div>
                                 )}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between">
-                                    <div>
-                                        <h4 className="font-semibold text-sm line-clamp-1">{uni.name}</h4>
-                                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                                            <span className="flex items-center gap-1">
-                                                <MapPin className="h-3 w-3" />
+                                <div className="flex items-start justify-between gap-1">
+                                    <div className="min-w-0">
+                                        <h4 className="font-semibold text-xs sm:text-sm line-clamp-1">{uni.name}</h4>
+                                        <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-xs text-muted-foreground mt-0.5">
+                                            <span className="flex items-center gap-0.5 sm:gap-1">
+                                                <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                                                 {uni.city}
                                             </span>
                                             {uni.foundedYear && (
-                                                <span className="flex items-center gap-1">
-                                                    <Calendar className="h-3 w-3" />
+                                                <span className="flex items-center gap-0.5 sm:gap-1">
+                                                    <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                                                     {uni.foundedYear}
                                                 </span>
                                             )}
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-1 bg-primary/10 px-2 py-0.5 rounded-full">
-                                        <Star className="h-3 w-3 text-primary fill-primary" />
-                                        <span className="text-xs font-bold text-primary">{uni.matchScore}%</span>
+                                    <div className="flex items-center gap-0.5 sm:gap-1 bg-primary/10 px-1.5 sm:px-2 py-0.5 rounded-full shrink-0">
+                                        <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary fill-primary" />
+                                        <span className="text-[10px] sm:text-xs font-bold text-primary">{uni.matchScore}%</span>
                                     </div>
                                 </div>
                                 {uni.matchingPrograms && uni.matchingPrograms.length > 0 && (
-                                    <div className="flex flex-wrap gap-1 mt-2">
-                                        {uni.matchingPrograms.slice(0, 3).map((program) => (
-                                            <span key={program} className="px-1.5 py-0.5 bg-muted rounded text-[10px]">
+                                    <div className="flex flex-wrap gap-0.5 sm:gap-1 mt-1.5 sm:mt-2">
+                                        {uni.matchingPrograms.slice(0, 2).map((program) => (
+                                            <span key={program} className="px-1 sm:px-1.5 py-0.5 bg-muted rounded text-[8px] sm:text-[10px] truncate max-w-[80px] sm:max-w-[100px]">
                                                 {program}
                                             </span>
                                         ))}
+                                        {uni.matchingPrograms.length > 2 && (
+                                            <span className="px-1 sm:px-1.5 py-0.5 bg-muted rounded text-[8px] sm:text-[10px]">
+                                                +{uni.matchingPrograms.length - 2}
+                                            </span>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -1125,10 +1189,10 @@ export function AiChat() {
                         <Button
                             variant="outline"
                             size="sm"
-                            className="w-full mt-2"
+                            className="w-full mt-2 h-8 sm:h-9 text-[10px] sm:text-xs"
                             onClick={() => window.open(`/universities/${uni.id}`, '_blank')}
                         >
-                            Подробнее об университете
+                            Подробнее
                         </Button>
                     </div>
                 ))}
@@ -1140,12 +1204,12 @@ export function AiChat() {
         if (!actions || actions.length === 0) return null;
 
         return (
-            <div className="flex flex-wrap gap-2 mt-3">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 sm:mt-3">
                 {actions.map((action) => (
                     <button
                         key={action.id}
                         onClick={() => handleQuickAction(action.action)}
-                        className="px-3 py-1.5 text-xs bg-muted hover:bg-primary/10 hover:text-primary rounded-full transition-colors border border-transparent hover:border-primary/30"
+                        className="px-2.5 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-muted hover:bg-primary/10 hover:text-primary rounded-full transition-colors border border-transparent hover:border-primary/30 active:scale-95"
                     >
                         {action.label}
                     </button>
@@ -1203,42 +1267,49 @@ export function AiChat() {
             <Button
                 onClick={() => setIsOpen(true)}
                 className={cn(
-                    'fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg',
+                    'fixed z-50 rounded-full shadow-lg',
                     'bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white',
-                    'transition-all duration-300 hover:scale-110',
+                    'transition-all duration-300 hover:scale-110 active:scale-95',
+                    'bottom-4 right-4 h-12 w-12 sm:bottom-6 sm:right-6 sm:h-14 sm:w-14',
                     isOpen && 'hidden'
                 )}
                 size="icon"
                 aria-label="Открыть чат с AI помощником"
             >
-                <MessageCircle className="h-6 w-6" />
-                <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" />
+                <span className="absolute -top-1 -right-1 flex h-3 w-3 sm:h-4 sm:w-4">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500" />
+                    <span className="relative inline-flex rounded-full h-3 w-3 sm:h-4 sm:w-4 bg-green-500" />
                 </span>
             </Button>
 
             {isOpen && (
-                <div className="fixed bottom-6 right-6 z-50 w-[420px] h-[650px] max-h-[85vh] max-w-[calc(100vw-48px)] bg-background border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 fade-in duration-300">
-                    <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-primary to-primary/80 text-white rounded-t-2xl">
-                        <div className="flex items-center gap-3">
+                <div
+                    className={cn(
+                        'fixed z-50 bg-background border shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 fade-in duration-300',
+                        'inset-0 rounded-none sm:inset-auto sm:bottom-6 sm:right-6 sm:rounded-2xl',
+                        'sm:w-[380px] sm:h-[600px] sm:max-h-[85vh] md:w-[420px] md:h-[650px]'
+                    )}
+                >
+                    <div className="flex items-center justify-between p-3 sm:p-4 border-b bg-gradient-to-r from-primary to-primary/80 text-white sm:rounded-t-2xl safe-area-inset-top">
+                        <div className="flex items-center gap-2 sm:gap-3">
                             <div className="relative">
-                                <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
-                                    <Bot className="h-6 w-6" />
+                                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-white/20 flex items-center justify-center">
+                                    <Bot className="h-5 w-5 sm:h-6 sm:w-6" />
                                 </div>
-                                <span className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-primary" />
+                                <span className="absolute bottom-0 right-0 h-2.5 w-2.5 sm:h-3 sm:w-3 bg-green-500 rounded-full border-2 border-primary" />
                             </div>
                             <div>
-                                <h3 className="font-semibold">AI Профориентатор</h3>
-                                <p className="text-xs text-white/80">Найди свою профессию</p>
+                                <h3 className="font-semibold text-sm sm:text-base">AI Профориентатор</h3>
+                                <p className="text-[10px] sm:text-xs text-white/80">Найди свою профессию</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-0.5 sm:gap-1">
                             <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={resetChat}
-                                className="text-white hover:bg-white/20 rounded-full h-8 w-8"
+                                className="text-white hover:bg-white/20 rounded-full h-8 w-8 sm:h-9 sm:w-9"
                                 title="Начать заново"
                             >
                                 <RotateCcw className="h-4 w-4" />
@@ -1247,44 +1318,44 @@ export function AiChat() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => setIsOpen(false)}
-                                className="text-white hover:bg-white/20 rounded-full h-8 w-8"
+                                className="text-white hover:bg-white/20 rounded-full h-8 w-8 sm:h-9 sm:w-9"
                             >
                                 <X className="h-5 w-5" />
                             </Button>
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 overscroll-contain">
                         {messages.map((message) => (
                             <div
                                 key={message.id}
-                                className={cn('flex gap-3', message.role === 'user' ? 'flex-row-reverse' : 'flex-row')}
+                                className={cn('flex gap-2 sm:gap-3', message.role === 'user' ? 'flex-row-reverse' : 'flex-row')}
                             >
                                 <div
                                     className={cn(
-                                        'h-8 w-8 rounded-full flex items-center justify-center shrink-0',
+                                        'h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center shrink-0',
                                         message.role === 'user' ? 'bg-primary text-white' : 'bg-muted'
                                     )}
                                 >
                                     {message.role === 'user' ? (
-                                        <User className="h-4 w-4" />
+                                        <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                                     ) : (
-                                        <Sparkles className="h-4 w-4 text-primary" />
+                                        <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
                                     )}
                                 </div>
                                 <div
                                     className={cn(
-                                        'max-w-[85%] rounded-2xl text-sm',
+                                        'max-w-[85%] rounded-2xl text-xs sm:text-sm',
                                         message.role === 'user'
-                                            ? 'bg-primary text-white rounded-br-md px-4 py-2.5'
-                                            : 'bg-muted rounded-bl-md px-4 py-2.5'
+                                            ? 'bg-primary text-white rounded-br-md px-3 sm:px-4 py-2 sm:py-2.5'
+                                            : 'bg-muted rounded-bl-md px-3 sm:px-4 py-2 sm:py-2.5'
                                     )}
                                 >
                                     <div className="whitespace-pre-wrap break-words">
-                                        {formatMessage(message.content)}
+                                        {formatMessage(message.content, message.id)}
                                     </div>
                                     {message.interactive && (
-                                        <div className="mt-3 pt-3 border-t border-border/50">
+                                        <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-border/50">
                                             {renderInteractive(message.interactive)}
                                         </div>
                                     )}
@@ -1293,15 +1364,15 @@ export function AiChat() {
                         ))}
 
                         {isLoading && (
-                            <div className="flex gap-3">
-                                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                                    <Sparkles className="h-4 w-4 text-primary" />
+                            <div className="flex gap-2 sm:gap-3">
+                                <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-muted flex items-center justify-center">
+                                    <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
                                 </div>
-                                <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3">
+                                <div className="bg-muted rounded-2xl rounded-bl-md px-3 sm:px-4 py-2.5 sm:py-3">
                                     <div className="flex gap-1">
-                                        <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                                        <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                                        <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" />
+                                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                                        <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-primary/60 rounded-full animate-bounce" />
                                     </div>
                                 </div>
                             </div>
@@ -1310,7 +1381,7 @@ export function AiChat() {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    <form onSubmit={handleSubmit} className="p-4 border-t bg-background">
+                    <form onSubmit={handleSubmit} className="p-3 sm:p-4 border-t bg-background safe-area-inset-bottom">
                         <div className="flex gap-2">
                             <textarea
                                 ref={inputRef}
@@ -1318,7 +1389,7 @@ export function AiChat() {
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={handleKeyDown}
                                 placeholder="Напишите сообщение..."
-                                className="flex-1 resize-none rounded-xl border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 max-h-32 min-h-[44px]"
+                                className="flex-1 resize-none rounded-xl border bg-background px-3 sm:px-4 py-2 sm:py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 max-h-24 sm:max-h-32 min-h-[40px] sm:min-h-[44px]"
                                 rows={1}
                                 disabled={isLoading}
                             />
@@ -1326,13 +1397,13 @@ export function AiChat() {
                                 type="submit"
                                 size="icon"
                                 disabled={!input.trim() || isLoading}
-                                className="h-11 w-11 rounded-xl shrink-0"
+                                className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl shrink-0"
                             >
                                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                             </Button>
                         </div>
-                        <p className="text-[10px] text-muted-foreground mt-2 text-center">
-                            AI может ошибаться • Проверяйте важную информацию
+                        <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-1.5 sm:mt-2 text-center">
+                            AI может ошибаться • Проверяйте информацию
                         </p>
                     </form>
                 </div>
