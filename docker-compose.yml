@@ -133,6 +133,7 @@ services:
       - oquga-network
     labels:
       - "traefik.enable=true"
+      - "traefik.http.routers.client.rule=Host(`oquga.kz`)"
       - "traefik.http.routers.client.entrypoints=websecure"
       - "traefik.http.routers.client.tls.certresolver=myresolver"
       - "traefik.http.services.client.loadbalancer.server.port=3000"
