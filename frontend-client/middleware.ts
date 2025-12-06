@@ -1,14 +1,36 @@
+import createMiddleware from 'next-intl/middleware';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { routing } from '@/i18n/routing';
+
+const intlMiddleware = createMiddleware(routing);
 
 export function middleware(request: NextRequest) {
-    const authCookie = request.cookies.get('client-auth-storage');
     const { pathname } = request.nextUrl;
 
-    const authRoutes = ['/login', '/register'];
+    if (
+        pathname.startsWith('/api') ||
+        pathname.startsWith('/_next') ||
+        pathname.includes('.')
+    ) {
+        return NextResponse.next();
+    }
+
+    const response = intlMiddleware(request);
+
+    const locale = pathname.split('/')[1];
+    const validLocales = ['ru', 'kk', 'en'];
+    const currentLocale = validLocales.includes(locale) ? locale : 'ru';
+
+    const pathWithoutLocale = validLocales.includes(locale)
+        ? pathname.replace(`/${locale}`, '') || '/'
+        : pathname;
 
     const protectedRoutes = ['/profile', '/settings', '/dashboard'];
 
+    const authRoutes = ['/login', '/register'];
+
+    const authCookie = request.cookies.get('client-auth-storage');
     let isAuthenticated = false;
 
     if (authCookie) {
@@ -16,37 +38,30 @@ export function middleware(request: NextRequest) {
             const parsed = JSON.parse(authCookie.value);
             isAuthenticated =
                 parsed.state.isAuthenticated && !!parsed.state.accessToken;
-        } catch (e) {
+        } catch {
             isAuthenticated = false;
         }
     }
 
-    if (authRoutes.includes(pathname) && isAuthenticated) {
-        return NextResponse.redirect(new URL('/', request.url));
+    if (authRoutes.includes(pathWithoutLocale) && isAuthenticated) {
+        const homeUrl = new URL(`/${currentLocale}`, request.url);
+        return NextResponse.redirect(homeUrl);
     }
 
     if (
-        protectedRoutes.some((route) => pathname.startsWith(route)) &&
+        protectedRoutes.some((route) => pathWithoutLocale.startsWith(route)) &&
         !isAuthenticated
     ) {
-        const loginUrl = new URL('/login', request.url);
-        loginUrl.searchParams.set('callbackUrl', pathname);
+        const loginUrl = new URL(`/${currentLocale}/login`, request.url);
+        loginUrl.searchParams.set('callbackUrl', pathWithoutLocale);
         return NextResponse.redirect(loginUrl);
     }
 
-    return NextResponse.next();
+    return response;
 }
 
 export const config = {
     matcher: [
-        /*
-         * Match all request paths except for the ones starting with:
-         * - api (API routes)
-         * - _next/static (static files)
-         * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
-         * - public assets
-         */
-        '/((?!api|_next/static|_next/image|favicon.ico|logo.png|dummy-poster.png).*)',
+        '/((?!api|_next/static|_next/image|favicon.ico|logo.png|dummy-poster.png|.*\\..*).*)',
     ],
 };

@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import {
     Menu,
     X,
@@ -13,7 +12,7 @@ import {
     LayoutDashboard,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { NAV_LINKS, SITE_CONFIG } from '@/lib/config';
+import { SITE_CONFIG } from '@/lib/config';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/use-auth-store';
 import { logout as logoutApi } from '@/features/auth/api';
@@ -26,8 +25,14 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { LanguageSwitcher } from '@/components/language-switcher';
+import { Link, usePathname, useRouter } from '@/i18n/navigation';
 
 export function Header() {
+    const t = useTranslations('header');
+    const tNav = useTranslations('nav');
+    const tAuth = useTranslations('auth');
+
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
@@ -35,6 +40,24 @@ export function Header() {
     const router = useRouter();
 
     const { user, isAuthenticated, logout } = useAuthStore();
+
+    const navLinks = [
+        {
+            label: tNav('home'),
+            href: '/' as const,
+            description: tNav('homeDesc'),
+        },
+        {
+            label: tNav('universities'),
+            href: '/universities' as const,
+            description: tNav('universitiesDesc'),
+        },
+        {
+            label: tNav('admissions'),
+            href: '/admissions' as const,
+            description: tNav('admissionsDesc'),
+        },
+    ];
 
     useEffect(() => {
         setIsMounted(true);
@@ -65,7 +88,6 @@ export function Header() {
         } finally {
             logout();
             router.push('/login');
-            router.refresh();
         }
     };
 
@@ -96,7 +118,7 @@ export function Header() {
                         <div className="relative w-8 h-8">
                             <Image
                                 src="/logo.png"
-                                alt={`${SITE_CONFIG.name} Лого`}
+                                alt={`${SITE_CONFIG.name} Logo`}
                                 fill
                                 className="object-contain"
                                 priority
@@ -108,7 +130,7 @@ export function Header() {
                     </Link>
 
                     <nav className="hidden lg:flex items-center gap-6">
-                        {NAV_LINKS.map((link) => (
+                        {navLinks.map((link) => (
                             <Link
                                 key={link.href}
                                 href={link.href}
@@ -124,7 +146,9 @@ export function Header() {
                         ))}
                     </nav>
 
-                    <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="flex items-center gap-1 sm:gap-2">
+                        <LanguageSwitcher />
+
                         {!isMounted ? (
                             <AvatarSkeleton />
                         ) : isAuthenticated && user ? (
@@ -137,7 +161,7 @@ export function Header() {
                                             'h-9 w-9 sm:h-10 sm:w-10',
                                             'focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2',
                                         )}
-                                        aria-label="Открыть меню профиля"
+                                        aria-label={t('openProfile')}
                                     >
                                         <Avatar
                                             className={cn(
@@ -191,7 +215,7 @@ export function Header() {
                                         className="cursor-pointer"
                                     >
                                         <UserIcon className="mr-2 h-4 w-4" />
-                                        Профиль
+                                        {t('profile')}
                                     </DropdownMenuItem>
                                     {user.role === 'admin' && (
                                         <DropdownMenuItem
@@ -201,7 +225,7 @@ export function Header() {
                                             className="cursor-pointer"
                                         >
                                             <LayoutDashboard className="mr-2 h-4 w-4" />
-                                            Админ-панель
+                                            {t('adminPanel')}
                                         </DropdownMenuItem>
                                     )}
                                     <DropdownMenuSeparator />
@@ -210,7 +234,7 @@ export function Header() {
                                         className="text-destructive focus:text-destructive cursor-pointer"
                                     >
                                         <LogOut className="mr-2 h-4 w-4" />
-                                        Выйти
+                                        {tAuth('logout')}
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -221,7 +245,7 @@ export function Header() {
                                     size="icon"
                                     className="sm:hidden h-9 w-9"
                                     onClick={() => router.push('/login')}
-                                    aria-label="Войти в аккаунт"
+                                    aria-label={t('loginToAccount')}
                                 >
                                     <UserIcon className="h-5 w-5" />
                                 </Button>
@@ -232,7 +256,7 @@ export function Header() {
                                     onClick={() => router.push('/login')}
                                 >
                                     <LogIn className="h-4 w-4" />
-                                    <span>Войти</span>
+                                    <span>{tAuth('login')}</span>
                                 </Button>
                             </>
                         )}
@@ -246,8 +270,8 @@ export function Header() {
                             }
                             aria-label={
                                 isMobileMenuOpen
-                                    ? 'Закрыть меню'
-                                    : 'Открыть меню'
+                                    ? t('closeMenu')
+                                    : t('openMenu')
                             }
                             aria-expanded={isMobileMenuOpen}
                         >
@@ -268,11 +292,11 @@ export function Header() {
                     style={{ top: '64px', height: 'calc(100vh - 64px)' }}
                     role="dialog"
                     aria-modal="true"
-                    aria-label="Мобильное меню навигации"
+                    aria-label="Mobile navigation menu"
                 >
                     <div className="container px-4 py-6 h-full flex flex-col justify-between overflow-y-auto pb-20">
                         <nav className="flex flex-col gap-2">
-                            {NAV_LINKS.map((link, index) => (
+                            {navLinks.map((link, index) => (
                                 <Link
                                     key={link.href}
                                     href={link.href}
@@ -340,7 +364,7 @@ export function Header() {
                                         }}
                                     >
                                         <LogOut className="h-5 w-5" />
-                                        Выйти из аккаунта
+                                        {t('logoutFromAccount')}
                                     </Button>
                                 </>
                             ) : (
@@ -353,7 +377,7 @@ export function Header() {
                                     }}
                                 >
                                     <LogIn className="h-5 w-5" />
-                                    Войти в аккаунт
+                                    {t('loginToAccount')}
                                 </Button>
                             )}
                         </div>

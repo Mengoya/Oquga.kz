@@ -39,7 +39,7 @@ export function UniversityCard({
 
     return (
         <Link
-            href={`/universities/${university.id}`}
+            href={`/app/%5Blocale%5D/universities/${university.id}`}
             className="group h-full block"
         >
             <article className="h-full flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm transition-all duration-300 hover:shadow-lg hover:border-primary/40 hover:-translate-y-1">

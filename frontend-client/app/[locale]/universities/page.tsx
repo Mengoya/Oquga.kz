@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import {
     Search,
     Loader2,
@@ -13,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UniversityCard } from '@/components/cards/university-card';
-import { CITIES } from '@/lib/constants';
+import { CITY_KEYS, CITY_VALUES, CityKey } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { useUniversities } from '@/features/universities/hooks';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -37,19 +38,18 @@ function UniversityCardSkeleton() {
     );
 }
 
-/**
- * Компонент пагинации
- */
 function Pagination({
     currentPage,
     totalPages,
     onPageChange,
     isLoading,
+    t,
 }: {
     currentPage: number;
     totalPages: number;
     onPageChange: (page: number) => void;
     isLoading: boolean;
+    t: (key: string) => string;
 }) {
     const pages = useMemo(() => {
         const result: (number | 'ellipsis')[] = [];
@@ -78,7 +78,7 @@ function Pagination({
                 size="icon"
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1 || isLoading}
-                aria-label="Предыдущая страница"
+                aria-label={t('prevPage')}
             >
                 <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -113,7 +113,7 @@ function Pagination({
                 size="icon"
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages || isLoading}
-                aria-label="Следующая страница"
+                aria-label={t('nextPage')}
             >
                 <ChevronRight className="h-4 w-4" />
             </Button>
@@ -122,9 +122,14 @@ function Pagination({
 }
 
 export default function UniversitiesPage() {
+    const t = useTranslations('universities');
+    const tCities = useTranslations('cities');
+    const tCommon = useTranslations('common');
+    const locale = useLocale();
+
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
-    const [selectedCity, setSelectedCity] = useState('Все города');
+    const [selectedCity, setSelectedCity] = useState<CityKey>('all');
     const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
@@ -145,8 +150,8 @@ export default function UniversitiesPage() {
         if (debouncedSearch.trim()) {
             parts.push(debouncedSearch.trim());
         }
-        if (selectedCity !== 'Все города') {
-            parts.push(selectedCity);
+        if (selectedCity !== 'all') {
+            parts.push(CITY_VALUES[selectedCity]);
         }
         return parts.join(' ');
     }, [debouncedSearch, selectedCity]);
@@ -176,7 +181,7 @@ export default function UniversitiesPage() {
     const handleResetFilters = useCallback(() => {
         setSearchQuery('');
         setDebouncedSearch('');
-        setSelectedCity('Все города');
+        setSelectedCity('all');
         setCurrentPage(1);
     }, []);
 
@@ -185,16 +190,15 @@ export default function UniversitiesPage() {
             <div className="flex flex-col gap-6 mb-10">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight mb-2">
-                        Каталог университетов
+                        {t('title')}
                     </h1>
                     <p className="text-muted-foreground">
-                        Найдите идеальное учебное заведение.{' '}
+                        {t('subtitle')}{' '}
                         {!isLoading && (
                             <span>
-                                Найдено вузов:{' '}
-                                <strong>
-                                    {totalItems.toLocaleString('ru-RU')}
-                                </strong>
+                                {t('found', {
+                                    count: totalItems.toLocaleString(locale),
+                                })}
                             </span>
                         )}
                     </p>
@@ -204,11 +208,11 @@ export default function UniversitiesPage() {
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Поиск по названию университета..."
+                            placeholder={t('searchPlaceholder')}
                             className="pl-9 bg-background border-border"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            aria-label="Поиск университетов"
+                            aria-label={tCommon('search')}
                         />
                         {isFetching && !isLoading && (
                             <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
@@ -219,12 +223,14 @@ export default function UniversitiesPage() {
                         <select
                             className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
                             value={selectedCity}
-                            onChange={(e) => setSelectedCity(e.target.value)}
-                            aria-label="Фильтр по городу"
+                            onChange={(e) =>
+                                setSelectedCity(e.target.value as CityKey)
+                            }
+                            aria-label={tCities('all')}
                         >
-                            {CITIES.map((city) => (
-                                <option key={city} value={city}>
-                                    {city}
+                            {CITY_KEYS.map((cityKey) => (
+                                <option key={cityKey} value={cityKey}>
+                                    {tCities(cityKey)}
                                 </option>
                             ))}
                         </select>
@@ -235,12 +241,9 @@ export default function UniversitiesPage() {
             {isError && (
                 <Alert variant="destructive" className="mb-6">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Ошибка загрузки</AlertTitle>
+                    <AlertTitle>{tCommon('error')}</AlertTitle>
                     <AlertDescription className="flex flex-col gap-3">
-                        <span>
-                            {error?.message ||
-                                'Не удалось загрузить список университетов. Проверьте подключение к интернету.'}
-                        </span>
+                        <span>{error?.message || t('loadError')}</span>
                         <Button
                             variant="outline"
                             size="sm"
@@ -248,7 +251,7 @@ export default function UniversitiesPage() {
                             className="w-fit"
                         >
                             <RefreshCw className="mr-2 h-4 w-4" />
-                            Повторить попытку
+                            {tCommon('retry')}
                         </Button>
                     </AlertDescription>
                 </Alert>
@@ -267,6 +270,7 @@ export default function UniversitiesPage() {
                             <UniversityCard
                                 key={university.id}
                                 university={university}
+                                locale={locale}
                             />
                         ))}
                     </div>
@@ -276,24 +280,22 @@ export default function UniversitiesPage() {
                         totalPages={totalPages}
                         onPageChange={handlePageChange}
                         isLoading={isFetching}
+                        t={t}
                     />
                 </>
             ) : (
                 <div className="flex-1 flex flex-col justify-center items-center text-muted-foreground min-h-[300px]">
                     <School className="h-16 w-16 mb-4 opacity-20" />
-                    <p className="text-lg font-medium">
-                        Университеты не найдены
-                    </p>
+                    <p className="text-lg font-medium">{t('notFound')}</p>
                     <p className="text-sm text-center max-w-md mt-1">
-                        По вашему запросу ничего не найдено. Попробуйте изменить
-                        параметры поиска или сбросить фильтры.
+                        {t('notFoundDesc')}
                     </p>
                     <Button
                         variant="link"
                         onClick={handleResetFilters}
                         className="mt-2"
                     >
-                        Сбросить фильтры
+                        {t('resetFilters')}
                     </Button>
                 </div>
             )}
