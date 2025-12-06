@@ -2,6 +2,10 @@ import { z } from 'zod';
 
 export const UniversityStatusSchema = z.enum(['active', 'archived', 'pending']);
 
+const TranslationStatusSchema = z.object({
+    isComplete: z.boolean()
+});
+
 export const UniversitySchema = z.object({
     id: z.string(),
     name: z.string(),
@@ -14,9 +18,7 @@ export const UniversitySchema = z.object({
     status: UniversityStatusSchema,
     progressPercent: z.number(),
     viewCount: z.number(),
-    translations: z.record(z.object({
-        isComplete: z.boolean()
-    })).optional(),
+    translations: z.record(z.string(), TranslationStatusSchema).optional(),
     updatedAt: z.string(),
 });
 
