@@ -30,7 +30,7 @@ export default async function LoginPage() {
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 backdrop-blur-sm">
                         <GraduationCap className="h-5 w-5 text-white" />
                     </div>
-                    DataNub Admin
+                    Oquga Admin
                 </div>
 
                 <div className="relative z-20 mt-auto max-w-lg">
@@ -42,7 +42,7 @@ export default async function LoginPage() {
                         </p>
                     </blockquote>
                     <div className="mt-6 flex gap-4 text-sm text-zinc-500">
-                        <span>© 2025 DataNub RK</span>
+                        <span>© 2025 Oquga RK</span>
                     </div>
                 </div>
             </div>

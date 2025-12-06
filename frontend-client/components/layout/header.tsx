@@ -10,7 +10,6 @@ import {
     User as UserIcon,
     LogIn,
     LogOut,
-    Settings,
     LayoutDashboard,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -103,7 +102,7 @@ export function Header() {
                                 priority
                             />
                         </div>
-                        <span className="hidden xs:inline">
+                        <span className="hidden md:inline">
                             {SITE_CONFIG.name}
                         </span>
                     </Link>
@@ -205,10 +204,6 @@ export function Header() {
                                             Админ-панель
                                         </DropdownMenuItem>
                                     )}
-                                    <DropdownMenuItem disabled>
-                                        <Settings className="mr-2 h-4 w-4" />
-                                        Настройки
-                                    </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem
                                         onClick={handleLogout}
