@@ -1,29 +1,21 @@
 package com.oquga.oquga.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oquga.oquga.config.AiConfig;
 import com.oquga.oquga.dto.ai.req.ChatRequest;
 import com.oquga.oquga.dto.ai.res.ChatResponse;
-import com.oquga.oquga.entity.EducationalProgramGroup;
-import com.oquga.oquga.entity.Faculty;
 import com.oquga.oquga.entity.University;
-import com.oquga.oquga.entity.translation.EducationalProgramGroupTranslation;
-import com.oquga.oquga.entity.translation.FacultyTranslation;
 import com.oquga.oquga.entity.translation.UniversityTranslation;
 import com.oquga.oquga.repository.EducationalProgramGroupRepository;
-import com.oquga.oquga.repository.FacultyRepository;
 import com.oquga.oquga.repository.UniversityRepository;
 import com.oquga.oquga.service.AiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import org.springframework.data.domain.PageRequest;
+import okhttp3.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.*;
@@ -38,315 +30,99 @@ public class AiServiceImpl implements AiService {
 
     private final AiConfig aiConfig;
     private final UniversityRepository universityRepository;
-    private final FacultyRepository facultyRepository;
     private final EducationalProgramGroupRepository programGroupRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final OkHttpClient httpClient = new OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
             .readTimeout(120, TimeUnit.SECONDS)
             .build();
 
     private final Map<String, TestSession> activeSessions = new ConcurrentHashMap<>();
 
-    private static final int TOTAL_QUESTIONS = 8;
+    private static final int TOTAL_QUESTIONS = 10;
 
     private static class TestSession {
         String sessionId;
         int currentQuestionIndex;
-        List<AnswerData> answers;
-        Map<String, Integer> scores;
+        List<String> accumulatedProfile;
+        Set<String> usedQuestionTypes;
         long createdAt;
-        String currentStage;
 
         TestSession(String sessionId) {
             this.sessionId = sessionId;
             this.currentQuestionIndex = 0;
-            this.answers = new ArrayList<>();
-            this.scores = new HashMap<>();
+            this.accumulatedProfile = new ArrayList<>();
+            this.usedQuestionTypes = new HashSet<>();
             this.createdAt = System.currentTimeMillis();
-            this.currentStage = "intro";
         }
     }
 
-    private static class AnswerData {
-        String questionId;
-        String questionType;
-        List<String> selectedOptions;
-        Map<String, Integer> scaleValues;
-
-        AnswerData(String questionId, String questionType, List<String> selectedOptions, Map<String, Integer> scaleValues) {
-            this.questionId = questionId;
-            this.questionType = questionType;
-            this.selectedOptions = selectedOptions;
-            this.scaleValues = scaleValues;
-        }
-    }
-
-    private static final List<TestQuestion> TEST_QUESTIONS = List.of(
-            new TestQuestion(
-                    "q1_superpower",
-                    "image_choice",
-                    "🦸 Если бы у тебя была суперсила, какую бы выбрал?",
-                    "Выбери одну способность - это расскажет о твоих скрытых талантах!",
-                    "Суперсилы",
-                    List.of(
-                            new QuestionOption("mind_reading", "Читать мысли", "Понимать людей без слов", "🧠", "/images/mind.png"),
-                            new QuestionOption("time_control", "Управлять временем", "Планировать идеально", "⏰", "/images/time.png"),
-                            new QuestionOption("creation", "Создавать из ничего", "Воплощать идеи в реальность", "✨", "/images/create.png"),
-                            new QuestionOption("analysis", "Видеть скрытые связи", "Находить закономерности везде", "🔍", "/images/analyze.png"),
-                            new QuestionOption("healing", "Исцелять", "Помогать другим", "💚", "/images/heal.png"),
-                            new QuestionOption("persuasion", "Убеждать любого", "Вести за собой", "🎯", "/images/lead.png")
-                    )
-            ),
-            new TestQuestion(
-                    "q2_weekend",
-                    "scenario_choice",
-                    "🌟 Идеальные выходные - это...",
-                    "Представь: у тебя 2 свободных дня и неограниченные возможности",
-                    "Интересы",
-                    List.of(
-                            new QuestionOption("hackathon", "Хакатон или мастер-класс", "Создать что-то новое за 48 часов", "💻", null),
-                            new QuestionOption("volunteer", "Волонтёрство", "Помочь тем, кто нуждается", "🤝", null),
-                            new QuestionOption("art", "Творческий проект", "Рисовать, музицировать, творить", "🎨", null),
-                            new QuestionOption("research", "Исследование", "Разобраться в сложной теме", "📚", null),
-                            new QuestionOption("business", "Запустить мини-проект", "Попробовать заработать", "💰", null),
-                            new QuestionOption("adventure", "Приключение", "Поход, путешествие, экстрим", "🏔️", null)
-                    )
-            ),
-            new TestQuestion(
-                    "q3_school_subjects",
-                    "drag_rank",
-                    "📚 Расставь предметы по интересности",
-                    "Перетащи в порядке от любимого к нелюбимому (топ-4)",
-                    "Предметы",
-                    List.of(
-                            new QuestionOption("math", "Математика", "Логика и числа", "🔢", null),
-                            new QuestionOption("physics", "Физика", "Законы природы", "⚡", null),
-                            new QuestionOption("chemistry", "Химия", "Реакции и элементы", "🧪", null),
-                            new QuestionOption("biology", "Биология", "Живые организмы", "🧬", null),
-                            new QuestionOption("literature", "Литература", "Тексты и смыслы", "📖", null),
-                            new QuestionOption("history", "История", "События прошлого", "🏛️", null),
-                            new QuestionOption("languages", "Языки", "Общение с миром", "🌍", null),
-                            new QuestionOption("informatics", "Информатика", "Код и алгоритмы", "💾", null),
-                            new QuestionOption("economics", "Экономика", "Деньги и бизнес", "📊", null),
-                            new QuestionOption("art_subject", "Искусство", "Творчество", "🎭", null)
-                    )
-            ),
-            new TestQuestion(
-                    "q4_skills_game",
-                    "skill_bars",
-                    "🎮 Прокачай своего персонажа!",
-                    "У тебя 30 очков. Распредели их между навыками (макс 10 на навык)",
-                    "Навыки",
-                    List.of(
-                            new QuestionOption("logic", "Логика", "Решение задач", "🧩", null),
-                            new QuestionOption("creativity", "Креативность", "Генерация идей", "💡", null),
-                            new QuestionOption("communication", "Общение", "Работа с людьми", "🗣️", null),
-                            new QuestionOption("attention", "Внимательность", "Работа с деталями", "🎯", null),
-                            new QuestionOption("leadership", "Лидерство", "Управление командой", "👑", null),
-                            new QuestionOption("persistence", "Упорство", "Доведение до конца", "💪", null)
-                    )
-            ),
-            new TestQuestion(
-                    "q5_work_style",
-                    "versus_choice",
-                    "⚔️ Битва стилей работы!",
-                    "Выбери победителя в каждой паре",
-                    "Стиль",
-                    List.of(
-                            new QuestionOption("team_vs_solo", "Команда vs Одиночка", "team:В команде|solo:Самостоятельно", "👥", null),
-                            new QuestionOption("office_vs_remote", "Офис vs Удалёнка", "office:В офисе|remote:Из дома", "🏢", null),
-                            new QuestionOption("stable_vs_dynamic", "Стабильность vs Динамика", "stable:Стабильный график|dynamic:Каждый день новое", "📅", null),
-                            new QuestionOption("deep_vs_wide", "Глубина vs Широта", "deep:Эксперт в одном|wide:Знать обо всём", "🎓", null)
-                    )
-            ),
-            new TestQuestion(
-                    "q6_values",
-                    "budget_allocation",
-                    "💎 Распредели бюджет ценностей",
-                    "У тебя 100% энергии. На что потратишь в карьере?",
-                    "Ценности",
-                    List.of(
-                            new QuestionOption("money", "Доход", "Финансовая свобода", "💵", null),
-                            new QuestionOption("impact", "Влияние", "Польза миру", "🌱", null),
-                            new QuestionOption("growth", "Рост", "Постоянное развитие", "📈", null),
-                            new QuestionOption("freedom", "Свобода", "Гибкость и автономия", "🦅", null),
-                            new QuestionOption("recognition", "Признание", "Статус и уважение", "🏆", null),
-                            new QuestionOption("balance", "Баланс", "Время на жизнь", "⚖️", null)
-                    )
-            ),
-            new TestQuestion(
-                    "q7_industries",
-                    "swipe_cards",
-                    "👆 Свайпни интересные сферы!",
-                    "Свайп вправо = интересно, влево = не моё",
-                    "Сферы",
-                    List.of(
-                            new QuestionOption("it_tech", "IT и технологии", "Разработка, AI, кибербезопасность", "💻", null),
-                            new QuestionOption("medicine", "Медицина", "Здоровье и фармацевтика", "⚕️", null),
-                            new QuestionOption("business", "Бизнес", "Предпринимательство, финансы", "📊", null),
-                            new QuestionOption("engineering", "Инженерия", "Строительство, производство", "⚙️", null),
-                            new QuestionOption("education", "Образование", "Преподавание, наука", "📖", null),
-                            new QuestionOption("arts", "Искусство", "Дизайн, медиа, развлечения", "🎨", null),
-                            new QuestionOption("law", "Право", "Юриспруденция, госслужба", "⚖️", null),
-                            new QuestionOption("nature", "Экология", "Природа, сельское хозяйство", "🌿", null),
-                            new QuestionOption("social", "Социальная сфера", "Психология, HR", "🤝", null)
-                    )
-            ),
-            new TestQuestion(
-                    "q8_final_choice",
-                    "final_scenario",
-                    "🚀 Машина времени: ты через 10 лет",
-                    "Какая картинка ближе к твоей мечте?",
-                    "Будущее",
-                    List.of(
-                            new QuestionOption("tech_leader", "Tech-лидер", "Руководишь IT-командой, создаёшь продукты", "👨‍💻", "/images/tech_leader.png"),
-                            new QuestionOption("entrepreneur", "Предприниматель", "Свой бизнес, свобода решений", "🚀", "/images/entrepreneur.png"),
-                            new QuestionOption("scientist", "Учёный", "Исследования, открытия, публикации", "🔬", "/images/scientist.png"),
-                            new QuestionOption("creative_pro", "Креативщик", "Дизайн, медиа, творческие проекты", "🎬", "/images/creative.png"),
-                            new QuestionOption("helper", "Помощник людям", "Врач, психолог, учитель", "💚", "/images/helper.png"),
-                            new QuestionOption("analyst", "Аналитик", "Данные, стратегии, консалтинг", "📈", "/images/analyst.png")
-                    )
-            )
-    );
-
-    private static final Map<String, ProfessionTemplate> PROFESSIONS = Map.ofEntries(
-            Map.entry("software_developer", new ProfessionTemplate(
-                    "software_developer", "Разработчик ПО", "💻",
-                    "Создание программ, приложений и веб-сервисов. Одна из самых востребованных профессий современности.",
-                    List.of("Программирование", "Алгоритмы", "Работа в команде", "Английский язык", "Системное мышление"),
-                    List.of("IT-компании", "Стартапы", "Банки", "Фриланс", "GameDev"),
-                    "500 000 - 2 500 000 ₸", "🔥 Очень высокий",
-                    Set.of("time_control", "analysis", "hackathon", "research", "informatics", "math", "logic", "it_tech", "tech_leader"),
-                    List.of("Информационные системы", "Программная инженерия", "Computer Science", "Вычислительная техника")
-            )),
-            Map.entry("data_scientist", new ProfessionTemplate(
-                    "data_scientist", "Data Scientist", "📊",
-                    "Анализ больших данных и машинное обучение. Профессия на стыке математики, программирования и бизнеса.",
-                    List.of("Python/R", "Машинное обучение", "Статистика", "SQL", "Визуализация данных"),
-                    List.of("Технологии", "Финансы", "Ритейл", "Наука", "Консалтинг"),
-                    "600 000 - 3 000 000 ₸", "🔥 Очень высокий",
-                    Set.of("analysis", "time_control", "research", "math", "informatics", "logic", "attention", "it_tech", "analyst"),
-                    List.of("Data Science", "Прикладная математика", "Бизнес-аналитика", "Искусственный интеллект")
-            )),
-            Map.entry("doctor", new ProfessionTemplate(
-                    "doctor", "Врач", "⚕️",
-                    "Диагностика и лечение заболеваний. Профессия для тех, кто хочет помогать людям напрямую.",
-                    List.of("Медицинские знания", "Эмпатия", "Стрессоустойчивость", "Внимательность", "Постоянное обучение"),
-                    List.of("Больницы", "Частные клиники", "Научные центры", "Телемедицина"),
-                    "400 000 - 1 800 000 ₸", "📈 Высокий",
-                    Set.of("healing", "volunteer", "biology", "chemistry", "communication", "attention", "medicine", "helper", "impact"),
-                    List.of("Общая медицина", "Педиатрия", "Хирургия", "Стоматология", "Фармация")
-            )),
-            Map.entry("ui_ux_designer", new ProfessionTemplate(
-                    "ui_ux_designer", "UI/UX Дизайнер", "🎨",
-                    "Проектирование удобных и красивых интерфейсов. Сочетание творчества и аналитики.",
-                    List.of("Figma/Sketch", "Исследование пользователей", "Прототипирование", "Визуальный дизайн", "Анимация"),
-                    List.of("IT-компании", "Дизайн-агентства", "Стартапы", "Фриланс", "Продуктовые команды"),
-                    "400 000 - 1 500 000 ₸", "📈 Высокий",
-                    Set.of("creation", "art", "creativity", "art_subject", "it_tech", "arts", "creative_pro"),
-                    List.of("Дизайн", "Графический дизайн", "Медиа и коммуникации", "Информационные технологии")
-            )),
-            Map.entry("marketing_manager", new ProfessionTemplate(
-                    "marketing_manager", "Маркетолог", "📈",
-                    "Продвижение продуктов и услуг. Креатив + аналитика для достижения бизнес-целей.",
-                    List.of("Digital-маркетинг", "Аналитика", "Креативность", "Копирайтинг", "SMM"),
-                    List.of("Корпорации", "Агентства", "Стартапы", "E-commerce", "Медиа"),
-                    "350 000 - 1 200 000 ₸", "📈 Высокий",
-                    Set.of("persuasion", "business", "creativity", "communication", "economics", "recognition", "entrepreneur"),
-                    List.of("Маркетинг", "Реклама и PR", "Менеджмент", "Бизнес-администрирование")
-            )),
-            Map.entry("financial_analyst", new ProfessionTemplate(
-                    "financial_analyst", "Финансовый аналитик", "💰",
-                    "Анализ финансовых данных и инвестиций. Для тех, кто любит цифры и хочет работать с деньгами.",
-                    List.of("Финансовый анализ", "Excel/Python", "Моделирование", "Отчетность", "Инвестиции"),
-                    List.of("Банки", "Инвестфонды", "Big 4", "Корпорации", "Трейдинг"),
-                    "500 000 - 2 000 000 ₸", "📈 Высокий",
-                    Set.of("analysis", "math", "economics", "logic", "attention", "money", "business", "analyst"),
-                    List.of("Финансы", "Экономика", "Бухгалтерский учет", "Банковское дело")
-            )),
-            Map.entry("psychologist", new ProfessionTemplate(
-                    "psychologist", "Психолог", "🧠",
-                    "Помощь людям в решении психологических проблем. Растущая востребованность в современном мире.",
-                    List.of("Эмпатия", "Активное слушание", "Терапевтические техники", "Этика", "Саморефлексия"),
-                    List.of("Клиники", "Школы", "HR-отделы", "Частная практика", "Онлайн-консультации"),
-                    "300 000 - 1 000 000 ₸", "📈 Растущий",
-                    Set.of("mind_reading", "healing", "volunteer", "biology", "communication", "social", "helper", "impact"),
-                    List.of("Психология", "Социальная работа", "Педагогика и психология", "Конфликтология")
-            )),
-            Map.entry("civil_engineer", new ProfessionTemplate(
-                    "civil_engineer", "Инженер-строитель", "🏗️",
-                    "Проектирование и строительство зданий и инфраструктуры. Создание того, что простоит века.",
-                    List.of("AutoCAD/Revit", "Расчеты конструкций", "Управление проектами", "Знание материалов", "Нормативы"),
-                    List.of("Строительные компании", "Проектные бюро", "Госсектор", "Девелопмент"),
-                    "400 000 - 1 500 000 ₸", "📈 Стабильный",
-                    Set.of("creation", "physics", "math", "attention", "persistence", "engineering", "stable"),
-                    List.of("Строительство", "Архитектура", "Промышленное и гражданское строительство")
-            )),
-            Map.entry("lawyer", new ProfessionTemplate(
-                    "lawyer", "Юрист", "⚖️",
-                    "Правовое консультирование и защита интересов. Престижная профессия с высоким потолком.",
-                    List.of("Знание законов", "Аналитика", "Переговоры", "Ораторское искусство", "Документооборот"),
-                    List.of("Юрфирмы", "Корпорации", "Госорганы", "Суды", "Частная практика"),
-                    "400 000 - 2 000 000 ₸", "📊 Стабильный",
-                    Set.of("analysis", "persuasion", "history", "literature", "communication", "attention", "law", "recognition"),
-                    List.of("Юриспруденция", "Международное право", "Государственное управление")
-            )),
-            Map.entry("teacher", new ProfessionTemplate(
-                    "teacher", "Преподаватель", "📚",
-                    "Обучение и развитие следующего поколения. Одна из самых важных профессий для общества.",
-                    List.of("Педагогика", "Коммуникация", "Терпение", "Креативность", "Организация"),
-                    List.of("Школы", "Университеты", "Онлайн-платформы", "Корпоративное обучение"),
-                    "250 000 - 700 000 ₸", "📊 Стабильный",
-                    Set.of("mind_reading", "volunteer", "communication", "creativity", "education", "helper", "impact", "balance"),
-                    List.of("Педагогика", "Филология", "Математика", "История", "Иностранные языки")
-            )),
-            Map.entry("project_manager", new ProfessionTemplate(
-                    "project_manager", "Проджект-менеджер", "📋",
-                    "Управление проектами и командами. Связующее звено между идеей и реализацией.",
-                    List.of("Agile/Scrum", "Планирование", "Коммуникация", "Лидерство", "Управление рисками"),
-                    List.of("IT", "Строительство", "Маркетинг", "Консалтинг", "Любая отрасль"),
-                    "500 000 - 1 800 000 ₸", "🔥 Очень высокий",
-                    Set.of("time_control", "persuasion", "leadership", "communication", "business", "growth", "entrepreneur", "team"),
-                    List.of("Менеджмент", "MBA", "Бизнес-администрирование", "Управление проектами")
-            )),
-            Map.entry("architect", new ProfessionTemplate(
-                    "architect", "Архитектор", "🏛️",
-                    "Проектирование зданий и пространств. Синтез искусства, технологий и функциональности.",
-                    List.of("ArchiCAD/Revit", "3D-моделирование", "Креативность", "Знание материалов", "История архитектуры"),
-                    List.of("Архитектурные бюро", "Девелоперы", "Госсектор", "Фриланс"),
-                    "400 000 - 1 300 000 ₸", "📊 Средний",
-                    Set.of("creation", "art", "physics", "creativity", "art_subject", "engineering", "arts", "creative_pro"),
-                    List.of("Архитектура", "Дизайн среды", "Градостроительство", "Ландшафтный дизайн")
-            ))
-    );
-
-    private static final String SYSTEM_PROMPT = """
-            Ты - AI-помощник платформы Oquga.kz для профориентации абитуриентов Казахстана.
-            Ты дружелюбный, современный и говоришь на языке молодёжи (но без перебора).
+    private static final String SYSTEM_PROMPT_CHAT = """
+            Ты - AI-помощник платформы Oquga.kz (образование в Казахстане).
+            Твоя цель: помогать абитуриентам выбирать профессию и университет.
             
-            Твои задачи:
-            - Помогать с выбором профессии через интерактивный тест
-            - Рекомендовать университеты Казахстана на основе результатов
-            - Отвечать на вопросы об образовании
+            Если пользователь не знает, кем стать, или просит совета по выбору -> ПРЕДЛОЖИ ПРОЙТИ ИНТЕРАКТИВНЫЙ ТЕСТ.
+            Если пользователь спрашивает конкретную информацию об университете -> ответь, используя свои знания (или скажи, что поищешь).
             
-            Правила:
-            - Отвечай на русском языке
-            - Используй эмодзи умеренно
-            - Будь конкретным и полезным
-            - Давай персонализированные советы
+            Твой тон: дружелюбный, молодежный, но экспертный. Используй эмодзи.
+            """;
+
+    private static final String SYSTEM_PROMPT_GENERATOR = """
+            Ты - генератор интерактивного квеста профориентации.
+            Твоя задача: на основе профиля пользователя сгенерировать СЛЕДУЮЩИЙ уникальный вопрос в формате JSON.
             
-            Когда пользователь хочет пройти тест - начинай интерактивную профориентацию.
-            Когда показываешь результаты - объясняй почему эти профессии подходят на основе ответов.
+            Всего 10 шагов. Каждый шаг должен раскрывать новую грань личности (soft skills, hard skills, ценности, интересы, стиль работы).
+            
+            Доступные типы вопросов (Interactive Types):
+            1. 'image_choice' - выбор из картинок (суперсила, мечта, рабочее место).
+            2. 'scenario_choice' - текстовый выбор сценария.
+            3. 'drag_rank' - ранжирование предметов или ценностей.
+            4. 'skill_bars' - распределение 100 очков (бюджет, навыки).
+            5. 'versus_choice' - выбор из двух противоположностей (батл).
+            6. 'swipe_cards' - свайп (да/нет) сфер деятельности.
+            7. 'multiple_choice' - выбор нескольких вариантов.
+            
+            ВАЖНО:
+            - Не повторяй вопросы и типы, которые уже были (history).
+            - Генерируй структуру JSON строго по схеме InteractiveElement.
+            - Options должны иметь уникальные ID.
+            - Вопросы должны быть интересными, не скучными.
+            - Язык: Русский.
+            
+            Формат JSON ответа (только JSON, без Markdown):
+            {
+               "type": "тип_вопроса",
+               "questionId": "уникальный_id",
+               "question": "Текст вопроса",
+               "description": "Подсказка",
+               "stage": "Название этапа (например, 'Исследование')",
+               "options": [
+                  {"id": "opt1", "label": "Вариант 1", "description": "Описание", "emoji": "🔥"}
+               ]
+            }
+            """;
+
+    private static final String SYSTEM_PROMPT_ANALYZER = """
+            Ты - аналитик профориентации.
+            Твоя задача: проанализировать ответы пользователя и сгенерировать поисковые запросы для базы данных университетов Казахстана.
+            
+            Входные данные: список ответов и фактов о пользователе.
+            
+            Ты должен вернуть JSON с двумя полями:
+            1. 'searchKeywords': массив строк для поиска по базе (названия программ, сферы, ключевые слова). Используй ILIKE формат для SQL (например, '%IT%', '%Медицина%').
+            2. 'analysisText': краткий текст (2-3 предложения) с описанием профиля пользователя.
+            3. 'recommendedProfessions': массив объектов {id, name, description, matchPercent} (топ 3 профессии).
+            
+            Пример ключевых слов: ['%Информацион%', '%Программ%', '%Дизайн%', '%Архитектур%'].
             """;
 
     @Override
+    @Transactional // Добавили транзакцию для работы с Lazy-сущностями
     public ChatResponse chat(ChatRequest request) {
         if (aiConfig.getApiKey() == null || aiConfig.getApiKey().isBlank()) {
-            log.error("AI API key is not configured");
-            throw new RuntimeException("AI service is not configured");
+            throw new RuntimeException("AI API key is not configured");
         }
 
         String lastMessage = request.messages().isEmpty() ? "" :
@@ -365,419 +141,244 @@ public class AiServiceImpl implements AiService {
             return startCareerTest(sessionId);
         }
 
-        try {
-            return callAiForChat(request);
-        } catch (IOException e) {
-            log.error("Failed to call AI service", e);
-            throw new RuntimeException("Failed to communicate with AI service: " + e.getMessage());
-        }
+        return callAiForChat(request);
     }
 
     private boolean shouldStartTest(String message) {
         return message.contains("тест") ||
                 message.contains("профориентац") ||
-                message.contains("пройти") ||
-                message.contains("определить профессию") ||
-                message.contains("выбрать профессию") ||
-                message.contains("кем стать") ||
-                message.contains("какую профессию");
+                message.contains("подобрать") ||
+                message.contains("выбрать вуз") ||
+                message.contains("старт") ||
+                message.contains("начать");
     }
 
     @Override
     public ChatResponse startCareerTest(String sessionId) {
         TestSession session = new TestSession(sessionId);
         activeSessions.put(sessionId, session);
-
         cleanOldSessions();
-
-        TestQuestion firstQuestion = TEST_QUESTIONS.get(0);
-
-        String welcomeMessage = """
-                🎮 **Квест по выбору профессии начинается!**
-                
-                Это не скучный тест, а интерактивное приключение из 8 этапов.
-                
-                Каждый ответ приближает тебя к идеальной профессии.
-                В конце ты получишь:
-                • 🎯 Топ-3 профессии с % совместимости
-                • 🏛️ Подходящие университеты Казахстана
-                • 📚 Рекомендованные образовательные программы
-                
-                **Готов? Погнали!** 🚀""";
-
-        return new ChatResponse(
-                welcomeMessage,
-                "assistant",
-                buildInteractiveElement(firstQuestion, 0, session),
-                buildSessionContext(session)
-        );
+        return generateNextQuestion(session, "Начало пути. Узнаем базовые интересы.");
     }
 
     @Override
-    public ChatResponse processTestAnswer(String sessionId, ChatRequest.InteractiveAnswerDto answer,
-                                          ChatRequest.SessionContextDto context) {
+    @Transactional
+    public ChatResponse processTestAnswer(String sessionId, ChatRequest.InteractiveAnswerDto answer, ChatRequest.SessionContextDto context) {
         TestSession session = activeSessions.get(sessionId);
+
         if (session == null) {
             session = new TestSession(sessionId);
+            if (context != null) {
+                session.currentQuestionIndex = context.questionNumber();
+            }
             activeSessions.put(sessionId, session);
         }
 
-        if (answer != null && answer.questionId() != null) {
-            processAnswer(session, answer);
-            session.currentQuestionIndex++;
-        }
+        updateUserProfile(session, answer);
+        session.currentQuestionIndex++;
 
         if (session.currentQuestionIndex >= TOTAL_QUESTIONS) {
-            return generateTestResults(session);
+            return generateFinalResults(session);
         }
 
-        TestQuestion nextQuestion = TEST_QUESTIONS.get(session.currentQuestionIndex);
-        session.currentStage = nextQuestion.stage();
-
-        String encouragement = getEncouragement(session.currentQuestionIndex);
-
-        return new ChatResponse(
-                encouragement,
-                "assistant",
-                buildInteractiveElement(nextQuestion, session.currentQuestionIndex, session),
-                buildSessionContext(session)
-        );
+        return generateNextQuestion(session, null);
     }
 
-    private void processAnswer(TestSession session, ChatRequest.InteractiveAnswerDto answer) {
-        AnswerData answerData = new AnswerData(
-                answer.questionId(),
-                answer.type(),
-                answer.selectedOptionIds(),
-                answer.scaleValues()
-        );
-        session.answers.add(answerData);
-
+    private void updateUserProfile(TestSession session, ChatRequest.InteractiveAnswerDto answer) {
         if (answer.selectedOptionIds() != null) {
-            for (int i = 0; i < answer.selectedOptionIds().size(); i++) {
-                String optionId = answer.selectedOptionIds().get(i);
-                int weight = answer.type().equals("drag_rank") ? (10 - i * 2) : 10;
-                session.scores.merge(optionId, weight, Integer::sum);
-            }
+            session.accumulatedProfile.addAll(answer.selectedOptionIds());
         }
-
         if (answer.scaleValues() != null) {
-            for (Map.Entry<String, Integer> entry : answer.scaleValues().entrySet()) {
-                session.scores.merge(entry.getKey(), entry.getValue(), Integer::sum);
-            }
+            answer.scaleValues().forEach((k, v) -> {
+                if (v > 5) session.accumulatedProfile.add(k + "_high");
+            });
         }
     }
 
-    private String getEncouragement(int questionIndex) {
-        return switch (questionIndex) {
-            case 1 -> "🔥 Отличный выбор! Продолжаем...";
-            case 2 -> "💪 Так держать! Следующий уровень...";
-            case 3 -> "🎯 Половина пути! Ты крут!";
-            case 4 -> "⚡ Интересные результаты формируются...";
-            case 5 -> "🌟 Почти у цели!";
-            case 6 -> "🏁 Финишная прямая!";
-            case 7 -> "🎊 Последний вопрос!";
-            default -> "👉 Следующий вопрос:";
-        };
-    }
-
-    private ChatResponse generateTestResults(TestSession session) {
-        List<ProfessionMatch> matches = calculateProfessionMatches(session);
-        List<ChatResponse.ProfessionResult> topProfessions = matches.stream()
-                .limit(3)
-                .map(this::mapToProfessionResult)
-                .toList();
-
-        List<String> traits = analyzeTraits(session);
-
-        StringBuilder message = new StringBuilder();
-        message.append("🎉 **Квест завершён! Твои результаты готовы!**\n\n");
-        message.append("На основе твоих ответов я составил профиль и подобрал лучшие варианты.\n\n");
-        message.append("**🧬 Твой профиль:**\n");
-        for (String trait : traits) {
-            message.append("• ").append(trait).append("\n");
-        }
-        message.append("\n**👇 Нажми на профессию, чтобы увидеть подходящие университеты!**");
-
-        activeSessions.remove(session.sessionId);
-
-        return new ChatResponse(
-                message.toString(),
-                "assistant",
-                new ChatResponse.InteractiveElement(
-                        "profession_results",
-                        "results",
-                        "Твой TOP-3 профессий",
-                        "Выбери профессию для просмотра университетов",
-                        null,
-                        new ChatResponse.ProgressInfo(TOTAL_QUESTIONS, TOTAL_QUESTIONS, "Результаты", 100),
-                        null,
-                        topProfessions,
-                        null,
-                        null,
-                        List.of(
-                                new ChatResponse.QuickAction("restart", "🔄 Пройти заново", "🔄", "restart_test"),
-                                new ChatResponse.QuickAction("chat", "💬 Задать вопрос AI", "💬", "open_chat")
-                        )
-                ),
-                new ChatResponse.SessionContextDto(
-                        session.sessionId,
-                        "results",
-                        TOTAL_QUESTIONS,
-                        TOTAL_QUESTIONS,
-                        true,
-                        Map.of("topProfessions", topProfessions.stream().map(ChatResponse.ProfessionResult::id).toList())
-                )
-        );
-    }
-
-    private List<ProfessionMatch> calculateProfessionMatches(TestSession session) {
-        List<ProfessionMatch> matches = new ArrayList<>();
-
-        for (ProfessionTemplate prof : PROFESSIONS.values()) {
-            int score = 0;
-            int maxPossible = prof.keywords().size() * 10;
-
-            for (String keyword : prof.keywords()) {
-                score += session.scores.getOrDefault(keyword, 0);
-            }
-
-            int percentage = maxPossible > 0 ? Math.min(98, (score * 100) / maxPossible) : 50;
-            percentage = Math.max(percentage, 45);
-
-            matches.add(new ProfessionMatch(prof, percentage, score));
-        }
-
-        matches.sort((a, b) -> {
-            int scoreCompare = Integer.compare(b.rawScore, a.rawScore);
-            if (scoreCompare != 0) return scoreCompare;
-            return Integer.compare(b.percentage, a.percentage);
-        });
-
-        if (!matches.isEmpty()) {
-            matches.get(0).percentage = Math.max(matches.get(0).percentage, 85);
-            if (matches.size() > 1) {
-                matches.get(1).percentage = Math.min(matches.get(1).percentage, matches.get(0).percentage - 5);
-                matches.get(1).percentage = Math.max(matches.get(1).percentage, 70);
-            }
-            if (matches.size() > 2) {
-                matches.get(2).percentage = Math.min(matches.get(2).percentage, matches.get(1).percentage - 5);
-                matches.get(2).percentage = Math.max(matches.get(2).percentage, 60);
-            }
-        }
-
-        return matches;
-    }
-
-    private List<String> analyzeTraits(TestSession session) {
-        List<String> traits = new ArrayList<>();
-        Map<String, Integer> scores = session.scores;
-
-        if (scores.getOrDefault("logic", 0) + scores.getOrDefault("analysis", 0) > 15) {
-            traits.add("🧠 Аналитический склад ума");
-        }
-        if (scores.getOrDefault("creativity", 0) + scores.getOrDefault("creation", 0) > 15) {
-            traits.add("🎨 Творческое мышление");
-        }
-        if (scores.getOrDefault("communication", 0) + scores.getOrDefault("persuasion", 0) > 15) {
-            traits.add("🗣️ Сильные коммуникативные навыки");
-        }
-        if (scores.getOrDefault("leadership", 0) > 7) {
-            traits.add("👑 Лидерские качества");
-        }
-        if (scores.getOrDefault("attention", 0) + scores.getOrDefault("persistence", 0) > 12) {
-            traits.add("🎯 Внимательность к деталям");
-        }
-        if (scores.getOrDefault("healing", 0) + scores.getOrDefault("volunteer", 0) + scores.getOrDefault("impact", 0) > 15) {
-            traits.add("💚 Желание помогать людям");
-        }
-        if (scores.getOrDefault("money", 0) + scores.getOrDefault("business", 0) > 12) {
-            traits.add("💰 Предпринимательская жилка");
-        }
-
-        if (traits.isEmpty()) {
-            traits.add("🌟 Разносторонняя личность");
-            traits.add("🔄 Гибкость в выборе направления");
-        }
-
-        return traits.stream().limit(4).toList();
-    }
-
-    private ChatResponse.ProfessionResult mapToProfessionResult(ProfessionMatch match) {
-        return new ChatResponse.ProfessionResult(
-                match.profession.id(),
-                match.profession.name(),
-                match.profession.description(),
-                match.percentage,
-                match.profession.emoji(),
-                match.profession.skills(),
-                match.profession.industries(),
-                match.profession.salaryRange(),
-                match.profession.demandLevel()
-        );
-    }
-
-    @Override
-    public List<ChatResponse.UniversityCard> getUniversitiesForProfession(String professionId, List<String> preferences) {
-        ProfessionTemplate profession = PROFESSIONS.get(professionId);
-        if (profession == null) {
-            return List.of();
-        }
-
-        List<Long> universityIds = universityRepository.findAllIds(PageRequest.of(0, 50)).getContent();
-        List<University> universities = universityRepository.findByIdsWithTranslations(universityIds);
-
-        List<UniversityWithScore> scoredUniversities = new ArrayList<>();
-
-        for (University uni : universities) {
-            int score = calculateUniversityMatchScore(uni, profession, preferences);
-            List<String> matchingPrograms = findMatchingPrograms(uni.getId(), profession);
-
-            scoredUniversities.add(new UniversityWithScore(uni, score, matchingPrograms));
-        }
-
-        scoredUniversities.sort((a, b) -> Integer.compare(b.score, a.score));
-
-        return scoredUniversities.stream()
-                .limit(6)
-                .map(this::mapToUniversityCard)
-                .toList();
-    }
-
-    private int calculateUniversityMatchScore(University uni, ProfessionTemplate profession, List<String> preferences) {
-        int score = 50;
-
-        String uniName = uni.getTranslations().stream()
-                .filter(t -> "ru".equals(t.getLanguage().getCode()))
-                .findFirst()
-                .map(t -> t.getName().toLowerCase())
-                .orElse("");
-
-        String uniDesc = uni.getTranslations().stream()
-                .filter(t -> "ru".equals(t.getLanguage().getCode()))
-                .findFirst()
-                .map(t -> t.getDescription() != null ? t.getDescription().toLowerCase() : "")
-                .orElse("");
-
-        Set<String> keywords = profession.keywords();
-
-        if (keywords.contains("it_tech") || keywords.contains("informatics")) {
-            if (uniName.contains("назарбаев") || uniName.contains("satbayev") ||
-                    uniName.contains("муит") || uniName.contains("кбту") ||
-                    uniName.contains("iitu") || uniName.contains("айту")) {
-                score += 35;
-            }
-        }
-
-        if (keywords.contains("business") || keywords.contains("economics") || keywords.contains("money")) {
-            if (uniName.contains("кимэп") || uniName.contains("kimep") ||
-                    uniName.contains("нархоз") || uniName.contains("narxoz") ||
-                    uniName.contains("казэу") || uniName.contains("turan")) {
-                score += 35;
-            }
-        }
-
-        if (keywords.contains("medicine") || keywords.contains("healing")) {
-            if (uniName.contains("медицин") || uniName.contains("казнму") ||
-                    uniName.contains("асфендияров") || uniName.contains("фармац")) {
-                score += 40;
-            }
-        }
-
-        if (keywords.contains("engineering") || keywords.contains("physics")) {
-            if (uniName.contains("satbayev") || uniName.contains("сатпаев") ||
-                    uniName.contains("политех") || uniName.contains("кбту")) {
-                score += 30;
-            }
-        }
-
-        if (keywords.contains("law")) {
-            if (uniName.contains("казгюу") || uniName.contains("юридич") ||
-                    uniName.contains("право") || uniName.contains("кимэп")) {
-                score += 35;
-            }
-        }
-
-        if (keywords.contains("arts") || keywords.contains("art") || keywords.contains("creation")) {
-            if (uniName.contains("искусств") || uniName.contains("театр") ||
-                    uniName.contains("культур") || uniName.contains("дизайн")) {
-                score += 30;
-            }
-        }
-
-        if (keywords.contains("education")) {
-            if (uniName.contains("педагог") || uniName.contains("абай") ||
-                    uniName.contains("учитель")) {
-                score += 35;
-            }
-        }
-
-        if (uniName.contains("назарбаев") || uniName.contains("казну") ||
-                uniName.contains("аль-фараби") || uniName.contains("ену")) {
-            score += 10;
-        }
-
-        score += (int) (Math.random() * 10);
-
-        return Math.min(98, Math.max(45, score));
-    }
-
-    private List<String> findMatchingPrograms(Long universityId, ProfessionTemplate profession) {
-        List<String> programs = new ArrayList<>();
-
+    private ChatResponse generateNextQuestion(TestSession session, String contextOverride) {
         try {
-            List<Faculty> faculties = facultyRepository.findByUniversityIdWithProgramGroups(universityId);
+            String userProfileStr = String.join(", ", session.accumulatedProfile);
+            String usedTypesStr = String.join(", ", session.usedQuestionTypes);
 
-            Set<String> professionPrograms = new HashSet<>(profession.relatedPrograms());
+            String prompt = String.format(
+                    "Шаг %d/%d. Профиль пользователя (теги): [%s]. Использованные типы вопросов: [%s]. %s",
+                    session.currentQuestionIndex + 1,
+                    TOTAL_QUESTIONS,
+                    userProfileStr,
+                    usedTypesStr,
+                    contextOverride != null ? contextOverride : "Сгенерируй следующий логичный вопрос."
+            );
 
-            for (Faculty faculty : faculties) {
-                for (EducationalProgramGroup group : faculty.getProgramGroups()) {
-                    String programName = group.getTranslations().stream()
-                            .filter(t -> "ru".equals(t.getLanguage().getCode()))
-                            .findFirst()
-                            .map(EducationalProgramGroupTranslation::getName)
-                            .orElse("");
+            String jsonResponse = callLlm(SYSTEM_PROMPT_GENERATOR, prompt, true);
+            JsonNode questionNode = objectMapper.readTree(jsonResponse);
 
-                    for (String profProgram : professionPrograms) {
-                        if (programName.toLowerCase().contains(profProgram.toLowerCase()) ||
-                                profProgram.toLowerCase().contains(programName.toLowerCase())) {
-                            programs.add(programName);
-                            break;
-                        }
-                    }
+            String type = questionNode.get("type").asText();
+            session.usedQuestionTypes.add(type);
+
+            List<ChatResponse.Option> options = new ArrayList<>();
+            if (questionNode.has("options")) {
+                for (JsonNode opt : questionNode.get("options")) {
+                    options.add(new ChatResponse.Option(
+                            opt.has("id") ? opt.get("id").asText() : UUID.randomUUID().toString(),
+                            opt.get("label").asText(),
+                            opt.has("description") ? opt.get("description").asText() : "",
+                            opt.has("emoji") ? opt.get("emoji").asText() : "🔹",
+                            null
+                    ));
                 }
             }
+
+            ChatResponse.ScaleConfig scaleConfig = null;
+            List<ChatResponse.ScaleItem> scaleItems = null;
+            if (type.equals("skill_bars") || type.equals("budget_allocation")) {
+                scaleConfig = new ChatResponse.ScaleConfig(0, 100, "0", "100");
+                scaleItems = options.stream()
+                        .map(o -> new ChatResponse.ScaleItem(o.id(), o.label(), o.emoji(), 0))
+                        .collect(Collectors.toList());
+            }
+
+            int percentage = (session.currentQuestionIndex * 100) / TOTAL_QUESTIONS;
+
+            ChatResponse.InteractiveElement interactive = new ChatResponse.InteractiveElement(
+                    type,
+                    questionNode.get("questionId").asText(),
+                    questionNode.get("question").asText(),
+                    questionNode.has("description") ? questionNode.get("description").asText() : "",
+                    options,
+                    new ChatResponse.ProgressInfo(session.currentQuestionIndex + 1, TOTAL_QUESTIONS, questionNode.has("stage") ? questionNode.get("stage").asText() : "Этап " + (session.currentQuestionIndex + 1), percentage),
+                    null, null, scaleConfig, scaleItems, null
+            );
+
+            return new ChatResponse(
+                    getEncouragement(session.currentQuestionIndex),
+                    "assistant",
+                    interactive,
+                    new ChatResponse.SessionContextDto(session.sessionId, "test", session.currentQuestionIndex, TOTAL_QUESTIONS, false, null)
+            );
+
         } catch (Exception e) {
-            log.warn("Error finding matching programs for university {}: {}", universityId, e.getMessage());
+            log.error("Error generating question", e);
+            return new ChatResponse("Что-то пошло не так с генерацией теста. Давай просто пообщаемся! Расскажи о своих интересах?", "assistant", null, null);
         }
-
-        if (programs.isEmpty()) {
-            programs.addAll(profession.relatedPrograms().stream().limit(3).toList());
-        }
-
-        return programs.stream().distinct().limit(4).toList();
     }
 
-    private ChatResponse.UniversityCard mapToUniversityCard(UniversityWithScore uws) {
-        University uni = uws.university;
+    private ChatResponse generateFinalResults(TestSession session) {
+        try {
+            String userProfileStr = String.join(", ", session.accumulatedProfile);
+            String prompt = "Пользователь завершил тест. Его профиль (теги ответов): [" + userProfileStr + "]. Проанализируй и дай рекомендации.";
+
+            String jsonResponse = callLlm(SYSTEM_PROMPT_ANALYZER, prompt, true);
+            JsonNode analysisNode = objectMapper.readTree(jsonResponse);
+
+            String analysisText = analysisNode.get("analysisText").asText();
+            List<String> keywords = new ArrayList<>();
+            if (analysisNode.has("searchKeywords")) {
+                for (JsonNode kw : analysisNode.get("searchKeywords")) {
+                    keywords.add("%" + kw.asText().replace("%", "") + "%");
+                }
+            }
+
+            List<ChatResponse.UniversityCard> universityCards = new ArrayList<>();
+
+            if (!keywords.isEmpty()) {
+                String[] keywordsArray = keywords.toArray(new String[0]);
+
+                List<Long> programUniIds = programGroupRepository.findUniversityIdsByProgramKeywords(keywordsArray);
+                List<Long> directUniIds = universityRepository.findIdsByKeywords(keywordsArray);
+
+                Set<Long> uniqueIds = new LinkedHashSet<>(programUniIds);
+                uniqueIds.addAll(directUniIds);
+
+                List<Long> targetIds = uniqueIds.stream().limit(6).collect(Collectors.toList());
+
+                if (!targetIds.isEmpty()) {
+                    List<University> universities = universityRepository.findByIdsWithTranslations(targetIds);
+
+                    universityCards = universities.stream()
+                            .map(u -> mapToUniversityCard(u, keywords))
+                            .collect(Collectors.toList());
+                }
+            }
+
+            if (universityCards.isEmpty()) {
+                List<Long> ids = universityRepository.findAllIds(org.springframework.data.domain.PageRequest.of(0, 5)).getContent();
+                List<University> popular = universityRepository.findByIdsWithTranslations(ids);
+                universityCards = popular.stream().map(u -> mapToUniversityCard(u, List.of())).collect(Collectors.toList());
+                analysisText += "\n\n(К сожалению, по точным критериям ничего не найдено, но вот популярные ВУЗы):";
+            }
+
+            List<ChatResponse.ProfessionResult> professions = new ArrayList<>();
+            if (analysisNode.has("recommendedProfessions")) {
+                for (JsonNode prof : analysisNode.get("recommendedProfessions")) {
+                    professions.add(new ChatResponse.ProfessionResult(
+                            prof.has("id") ? prof.get("id").asText() : UUID.randomUUID().toString(),
+                            prof.get("name").asText(),
+                            prof.get("description").asText(),
+                            prof.get("matchPercent").asInt(),
+                            "💼",
+                            List.of(), List.of(), "По запросу", "Высокий"
+                    ));
+                }
+            }
+
+            ChatResponse.InteractiveElement resultsInteractive = new ChatResponse.InteractiveElement(
+                    "university_cards",
+                    "final_results",
+                    "Твои рекомендации",
+                    "На основе анализа твоих ответов",
+                    null,
+                    new ChatResponse.ProgressInfo(TOTAL_QUESTIONS, TOTAL_QUESTIONS, "Финиш", 100),
+                    universityCards,
+                    professions,
+                    null, null,
+                    List.of(
+                            new ChatResponse.QuickAction("restart", "🔄 Пройти заново", "🔄", "restart_test"),
+                            new ChatResponse.QuickAction("chat", "💬 Обсудить результаты", "💬", "open_chat")
+                    )
+            );
+
+            activeSessions.remove(session.sessionId);
+
+            return new ChatResponse(
+                    "🎉 **Тест завершен!**\n\n" + analysisText,
+                    "assistant",
+                    resultsInteractive,
+                    new ChatResponse.SessionContextDto(session.sessionId, "complete", TOTAL_QUESTIONS, TOTAL_QUESTIONS, true, null)
+            );
+
+        } catch (Exception e) {
+            log.error("Error generating final results", e);
+            return new ChatResponse("Произошла ошибка при анализе результатов. Попробуй позже.", "assistant", null, null);
+        }
+    }
+
+    private ChatResponse.UniversityCard mapToUniversityCard(University uni, List<String> matchingKeywords) {
+        String lang = "ru";
 
         String name = uni.getTranslations().stream()
-                .filter(t -> "ru".equals(t.getLanguage().getCode()))
+                .filter(t -> lang.equals(t.getLanguage().getCode()))
                 .findFirst()
                 .map(UniversityTranslation::getName)
                 .orElse(uni.getSlug());
 
         String city = uni.getTranslations().stream()
-                .filter(t -> "ru".equals(t.getLanguage().getCode()))
+                .filter(t -> lang.equals(t.getLanguage().getCode()))
                 .findFirst()
                 .map(UniversityTranslation::getCity)
                 .orElse("Казахстан");
 
         String shortDesc = uni.getTranslations().stream()
-                .filter(t -> "ru".equals(t.getLanguage().getCode()))
+                .filter(t -> lang.equals(t.getLanguage().getCode()))
                 .findFirst()
                 .map(UniversityTranslation::getShortDescription)
                 .orElse("");
+
+        int score = 80 + (int)(Math.random() * 15);
+
+        List<String> cleanKeywords = matchingKeywords.stream()
+                .map(k -> k.replace("%", ""))
+                .limit(3)
+                .collect(Collectors.toList());
 
         return new ChatResponse.UniversityCard(
                 uni.getId(),
@@ -786,110 +387,57 @@ public class AiServiceImpl implements AiService {
                 uni.getPhotoUrl(),
                 shortDesc,
                 uni.getFoundedYear(),
-                uws.matchingPrograms,
-                uws.score
+                cleanKeywords.isEmpty() ? List.of("Общий профиль") : cleanKeywords,
+                score
         );
     }
 
-    @Override
-    public Map<String, Object> analyzeTestResults(List<ChatRequest.AnswerDto> answers) {
-        Map<String, Integer> scores = new HashMap<>();
+    private ChatResponse callAiForChat(ChatRequest request) {
+        try {
+            List<Map<String, String>> messages = new ArrayList<>();
+            messages.add(Map.of("role", "system", "content", SYSTEM_PROMPT_CHAT));
 
-        for (ChatRequest.AnswerDto answer : answers) {
-            if (answer.answers() != null) {
-                for (String selected : answer.answers()) {
-                    scores.merge(selected, 10, Integer::sum);
-                }
+            for (ChatRequest.MessageDto msg : request.messages()) {
+                messages.add(Map.of("role", msg.role(), "content", msg.content()));
             }
-            if (answer.scaleAnswers() != null) {
-                scores.putAll(answer.scaleAnswers());
+
+            String responseContent = callLlmRaw(messages, false);
+
+            List<ChatResponse.QuickAction> actions = new ArrayList<>();
+            if (shouldStartTest(responseContent.toLowerCase())) {
+                actions.add(new ChatResponse.QuickAction("start_test", "🚀 Начать тест", "🚀", "start_test"));
             }
+
+            ChatResponse.InteractiveElement interactive = null;
+            if (!actions.isEmpty()) {
+                interactive = new ChatResponse.InteractiveElement("quick_actions", null, null, null, null, null, null, null, null, null, actions);
+            }
+
+            return new ChatResponse(responseContent, "assistant", interactive, null);
+        } catch (Exception e) {
+            log.error("Chat error", e);
+            return new ChatResponse("Извини, я сейчас немного перегружен. Попробуй позже.", "assistant", null, null);
         }
-
-        return Map.of("scores", scores);
     }
 
-    private ChatResponse.InteractiveElement buildInteractiveElement(TestQuestion question, int index, TestSession session) {
-        List<ChatResponse.Option> options = question.options().stream()
-                .map(opt -> new ChatResponse.Option(
-                        opt.id(),
-                        opt.label(),
-                        opt.description(),
-                        opt.emoji(),
-                        opt.imageUrl()
-                ))
-                .toList();
-
-        ChatResponse.ScaleConfig scaleConfig = null;
-        List<ChatResponse.ScaleItem> scaleItems = null;
-
-        String questionType = question.type();
-
-        if (questionType.equals("skill_bars") || questionType.equals("budget_allocation")) {
-            int maxPoints = questionType.equals("skill_bars") ? 30 : 100;
-            int maxPerItem = questionType.equals("skill_bars") ? 10 : 50;
-            scaleConfig = new ChatResponse.ScaleConfig(0, maxPerItem, "0", String.valueOf(maxPerItem));
-            scaleItems = question.options().stream()
-                    .map(opt -> new ChatResponse.ScaleItem(opt.id(), opt.label(), opt.emoji(), 0))
-                    .toList();
-        }
-
-        int percentage = (index * 100) / TOTAL_QUESTIONS;
-
-        return new ChatResponse.InteractiveElement(
-                questionType,
-                question.id(),
-                question.question(),
-                question.description(),
-                options,
-                new ChatResponse.ProgressInfo(index + 1, TOTAL_QUESTIONS, question.stage(), percentage),
-                null,
-                null,
-                scaleConfig,
-                scaleItems,
-                null
+    private String callLlm(String systemPrompt, String userPrompt, boolean jsonMode) throws IOException {
+        List<Map<String, String>> messages = List.of(
+                Map.of("role", "system", "content", systemPrompt),
+                Map.of("role", "user", "content", userPrompt)
         );
+        return callLlmRaw(messages, jsonMode);
     }
 
-    private ChatResponse.SessionContextDto buildSessionContext(TestSession session) {
-        return new ChatResponse.SessionContextDto(
-                session.sessionId,
-                session.currentStage,
-                session.currentQuestionIndex + 1,
-                TOTAL_QUESTIONS,
-                false,
-                null
-        );
-    }
-
-    private void cleanOldSessions() {
-        long now = System.currentTimeMillis();
-        long maxAge = TimeUnit.HOURS.toMillis(2);
-        activeSessions.entrySet().removeIf(entry ->
-                now - entry.getValue().createdAt > maxAge
-        );
-    }
-
-    private ChatResponse callAiForChat(ChatRequest request) throws IOException {
-        List<Map<String, String>> messages = new ArrayList<>();
-
-        Map<String, String> systemMessage = new HashMap<>();
-        systemMessage.put("role", "system");
-        systemMessage.put("content", SYSTEM_PROMPT + "\n\nДоступные университеты: " + getUniversitySummary());
-        messages.add(systemMessage);
-
-        for (ChatRequest.MessageDto msg : request.messages()) {
-            Map<String, String> message = new HashMap<>();
-            message.put("role", msg.role());
-            message.put("content", msg.content());
-            messages.add(message);
-        }
-
+    private String callLlmRaw(List<Map<String, String>> messages, boolean jsonMode) throws IOException {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("model", aiConfig.getModel());
         requestBody.put("messages", messages);
-        requestBody.put("max_tokens", aiConfig.getMaxTokens());
-        requestBody.put("temperature", aiConfig.getTemperature());
+        requestBody.put("max_tokens", 1000);
+        requestBody.put("temperature", 0.7);
+
+        if (jsonMode && aiConfig.isOpenAiCompatible()) {
+            requestBody.put("response_format", Map.of("type", "json_object"));
+        }
 
         String json = objectMapper.writeValueAsString(requestBody);
 
@@ -902,105 +450,44 @@ public class AiServiceImpl implements AiService {
 
         try (Response response = httpClient.newCall(httpRequest).execute()) {
             if (!response.isSuccessful()) {
-                String errorBody = response.body() != null ? response.body().string() : "Unknown error";
-                log.error("AI API error: {} - {}", response.code(), errorBody);
-                throw new RuntimeException("AI service error: " + response.code());
+                throw new IOException("Unexpected code " + response);
             }
-
-            String responseBody = response.body().string();
-            JsonNode jsonNode = objectMapper.readTree(responseBody);
-
-            String content = jsonNode
-                    .path("choices")
-                    .path(0)
-                    .path("message")
-                    .path("content")
-                    .asText();
-
-            return new ChatResponse(
-                    content,
-                    "assistant",
-                    new ChatResponse.InteractiveElement(
-                            "quick_actions",
-                            null, null, null, null, null, null, null, null, null,
-                            List.of(
-                                    new ChatResponse.QuickAction("test", "🎯 Пройти тест профориентации", "🎯", "start_test"),
-                                    new ChatResponse.QuickAction("universities", "🏛️ Посмотреть университеты", "🏛️", "show_universities")
-                            )
-                    ),
-                    null
-            );
+            String body = response.body().string();
+            JsonNode root = objectMapper.readTree(body);
+            return root.path("choices").path(0).path("message").path("content").asText();
         }
     }
 
-    private String getUniversitySummary() {
-        try {
-            List<Long> ids = universityRepository.findAllIds(PageRequest.of(0, 20)).getContent();
-            List<University> universities = universityRepository.findByIdsWithTranslations(ids);
-
-            return universities.stream()
-                    .map(u -> u.getTranslations().stream()
-                            .filter(t -> "ru".equals(t.getLanguage().getCode()))
-                            .findFirst()
-                            .map(t -> t.getName() + " (" + t.getCity() + ")")
-                            .orElse(u.getSlug()))
-                    .collect(Collectors.joining(", "));
-        } catch (Exception e) {
-            return "Назарбаев Университет, КазНУ, ЕНУ, Satbayev University, КИМЭП, КБТУ, SDU, МУИТ";
-        }
+    private void cleanOldSessions() {
+        long now = System.currentTimeMillis();
+        long maxAge = TimeUnit.HOURS.toMillis(1);
+        activeSessions.entrySet().removeIf(e -> (now - e.getValue().createdAt) > maxAge);
     }
 
-    private record TestQuestion(
-            String id,
-            String type,
-            String question,
-            String description,
-            String stage,
-            List<QuestionOption> options
-    ) {}
-
-    private record QuestionOption(
-            String id,
-            String label,
-            String description,
-            String emoji,
-            String imageUrl
-    ) {}
-
-    private record ProfessionTemplate(
-            String id,
-            String name,
-            String emoji,
-            String description,
-            List<String> skills,
-            List<String> industries,
-            String salaryRange,
-            String demandLevel,
-            Set<String> keywords,
-            List<String> relatedPrograms
-    ) {}
-
-    private static class ProfessionMatch {
-        ProfessionTemplate profession;
-        int percentage;
-        int rawScore;
-
-        ProfessionMatch(ProfessionTemplate profession, int percentage, int rawScore) {
-            this.profession = profession;
-            this.percentage = percentage;
-            this.rawScore = rawScore;
-        }
+    private String getEncouragement(int index) {
+        String[] phrases = {
+                "Отличное начало! 🚀",
+                "Интересный выбор! 🤔",
+                "Продолжаем исследовать... 🔍",
+                "Ты отлично справляешься! 💪",
+                "Почти половина пути! ⛰️",
+                "Твой профиль становится четче! 🧬",
+                "Еще немного... ⏳",
+                "Уже скоро финал! 🏁",
+                "Последний рывок! 🔥",
+                "Анализирую результаты... 🤖"
+        };
+        if (index >= 0 && index < phrases.length) return phrases[index];
+        return "Дальше!";
     }
 
-    private static class UniversityWithScore {
-        University university;
-        int score;
-        List<String> matchingPrograms;
+    @Override
+    public List<ChatResponse.UniversityCard> getUniversitiesForProfession(String professionId, List<String> preferences) {
+        return List.of();
+    }
 
-        UniversityWithScore(University university, int score, List<String> matchingPrograms) {
-            this.university = university;
-            this.score = score;
-            this.matchingPrograms = matchingPrograms;
-        }
+    @Override
+    public Map<String, Object> analyzeTestResults(List<ChatRequest.AnswerDto> answers) {
+        return Map.of();
     }
 }
