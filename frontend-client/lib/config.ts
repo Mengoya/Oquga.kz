@@ -1,4 +1,4 @@
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Newspaper } from 'lucide-react';
 
 export const SITE_CONFIG = {
     name: 'Oquga.kz',
@@ -22,6 +22,12 @@ export const NAV_LINKS = [
         href: '/admissions',
         icon: UserPlus,
         description: 'Гранты, сроки и требования',
+    },
+    {
+        label: 'Новости',
+        href: '/news',
+        icon: Newspaper,
+        description: 'Актуальные события и обновления',
     },
 ];
 

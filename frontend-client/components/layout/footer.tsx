@@ -13,6 +13,7 @@ export function Footer() {
         { label: tNav('home'), href: '/' as const },
         { label: tNav('universities'), href: '/universities' as const },
         { label: tNav('admissions'), href: '/admissions' as const },
+        { label: tNav('news'), href: '/news' as const },
     ];
 
     return (

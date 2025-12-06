@@ -44,7 +44,14 @@ export default async function HomePage({ params }: HomePageProps) {
                         </div>
                     </Link>
 
-                    <section className="lg:col-span-6 relative group h-[400px] lg:h-full overflow-hidden rounded-2xl border shadow-sm">
+                    {/*
+                        FIX: Changed section to Link to make the whole card clickable.
+                        Linked to /news/news1 as it matches the context of "Grants 2025".
+                    */}
+                    <Link
+                        href="/news/news1"
+                        className="lg:col-span-6 relative group h-[400px] lg:h-full overflow-hidden rounded-2xl border shadow-sm block"
+                    >
                         <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-105">
                             <Image
                                 src={"/kcc.jpg"}
@@ -61,20 +68,26 @@ export default async function HomePage({ params }: HomePageProps) {
                                 <span className="mr-2 h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>
                                 {t('newsTag')}
                             </div>
-                            <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">
+                            <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight group-hover:text-gray-200 transition-colors">
                                 {t('newsTitle')}
                             </h1>
                             <p className="text-gray-200 text-lg md:text-xl line-clamp-2 max-w-2xl">
                                 {t('newsDesc')}
                             </p>
+
+                            {/*
+                                FIX: Using asChild with a span to prevent nesting <button> inside <a>.
+                                Styles remain consistent with the original design.
+                            */}
                             <Button
                                 size="lg"
-                                className="mt-2 bg-white text-black hover:bg-gray-200 border-none"
+                                className="mt-2 bg-white text-black hover:bg-gray-200 border-none pointer-events-none"
+                                asChild
                             >
-                                {t('readNews')}
+                                <span>{t('readNews')}</span>
                             </Button>
                         </div>
-                    </section>
+                    </Link>
 
                     <Link
                         href="/admissions"

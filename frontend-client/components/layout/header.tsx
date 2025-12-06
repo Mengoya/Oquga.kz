@@ -57,6 +57,11 @@ export function Header() {
             href: '/admissions' as const,
             description: tNav('admissionsDesc'),
         },
+        {
+            label: tNav('news'),
+            href: '/news' as const,
+            description: tNav('newsDesc'),
+        },
     ];
 
     useEffect(() => {
@@ -105,8 +110,8 @@ export function Header() {
                     isMobileMenuOpen
                         ? 'bg-background border-border'
                         : isScrolled
-                          ? 'bg-background/80 backdrop-blur-md border-border shadow-sm'
-                          : 'bg-background/0 border-transparent',
+                            ? 'bg-background/80 backdrop-blur-md border-border shadow-sm'
+                            : 'bg-background/0 border-transparent',
                 )}
             >
                 <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
