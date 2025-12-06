@@ -65,7 +65,7 @@ export function Header() {
                         className="flex items-center gap-2 font-bold text-lg"
                     >
                         <div className="h-6 w-6 rounded bg-primary" />
-                        <span>DataNub</span>
+                        <span>Oquga</span>
                     </Link>
 
                     <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
