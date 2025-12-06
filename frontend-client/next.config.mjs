@@ -8,6 +8,10 @@ const nextConfig = {
         remotePatterns: [
             {
                 protocol: 'https',
+                hostname: 's3.oquga.kz',
+            },
+            {
+                protocol: 'https',
                 hostname: '**',
             },
             {
