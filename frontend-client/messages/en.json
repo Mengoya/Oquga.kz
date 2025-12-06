@@ -297,6 +297,43 @@
         "education": "Education",
         "studentLife": "Student Life"
     },
+  "latestNews": {
+    "sectionTitle": "Latest News",
+    "sectionSubtitle": "Stay updated on events in the world of higher education.",
+    "allNews": "All news",
+    "read": "Read",
+    "views": "views",
+    "categories": {
+      "education": "Education",
+      "studentLife": "Student Life"
+    },
+    "items": {
+      "news1": {
+        "title": "Grants 2025: Full list of admission rule changes"
+      },
+      "news2": {
+        "title": "Opening of the new Satbayev University campus: Photo report"
+      },
+      "news3": {
+        "title": "Ranking of the best IT faculties in Kazakhstan by employers"
+      },
+      "news4": {
+        "title": "Master's scholarships to increase by 25% from September"
+      },
+      "news5": {
+        "title": "How to prepare for UNT in 3 months: Expert tips"
+      },
+      "news6": {
+        "title": "New exchange programs with South Korean universities"
+      },
+      "news7": {
+        "title": "International Science Conference held in Astana"
+      },
+      "news8": {
+        "title": "IT Fest 2025: Students created AI for universities"
+      }
+    }
+  },
     "footer": {
         "description": "We help applicants find their perfect path in education through innovative technologies and transparent data.",
         "platform": "Platform",
