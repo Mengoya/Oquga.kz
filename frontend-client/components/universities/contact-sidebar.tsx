@@ -182,11 +182,6 @@ export function ContactSidebar({
                         <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </Button>
 
-                    <Button variant="outline" className="w-full h-10">
-                        <Calendar className="mr-2 h-4 w-4" />
-                        {t.scheduleVisit}
-                    </Button>
-
                     <p className="text-[11px] text-center text-muted-foreground pt-2">
                         {t.applyNote}
                     </p>

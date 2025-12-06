@@ -48,7 +48,7 @@ export default async function HomePage({ params }: HomePageProps) {
                     <section className="lg:col-span-6 relative group h-[400px] lg:h-full overflow-hidden rounded-2xl border shadow-sm">
                         <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-105">
                             <Image
-                                src={PLACEHOLDER_IMAGE}
+                                src={"/kcc.jpg"}
                                 alt="Students at university campus"
                                 fill
                                 className="object-cover"
