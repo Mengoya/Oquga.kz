@@ -25,6 +25,9 @@ interface Props {
     onSuccess: () => void;
 }
 
+const LANGUAGES = ['ru', 'kk', 'en'] as const;
+const LANGUAGE_LABELS = { ru: 'Русский', kk: 'Қазақша', en: 'English' };
+
 export function CreateUniversityForm({ onSuccess }: Props) {
     const t = useTranslations('UniversitiesPage.createModal');
     const tCommon = useTranslations('Common');
@@ -33,7 +36,6 @@ export function CreateUniversityForm({ onSuccess }: Props) {
     const form = useForm<CreateUniversityValues>({
         resolver: zodResolver(CreateUniversitySchema),
         defaultValues: {
-            photoUrl: '',
             translations: {
                 ru: { name: '', city: '', shortDescription: '', description: '' },
                 kk: { name: '', city: '', shortDescription: '', description: '' },
@@ -44,14 +46,16 @@ export function CreateUniversityForm({ onSuccess }: Props) {
 
     const watchedTranslations = form.watch('translations');
 
-    const getLanguageStatus = (lang: 'ru' | 'kk' | 'en') => {
-        const t = watchedTranslations[lang];
-        if (!t) return { filled: 0, total: 4 };
+    const getLanguageStatus = (lang: (typeof LANGUAGES)[number]) => {
+        const translation = watchedTranslations[lang];
+        if (!translation) return { filled: 0, total: 4 };
+
         let filled = 0;
-        if (t.name && t.name.trim()) filled++;
-        if (t.city && t.city.trim()) filled++;
-        if (t.shortDescription && t.shortDescription.trim()) filled++;
-        if (t.description && t.description.trim()) filled++;
+        if (translation.name?.trim()) filled++;
+        if (translation.city?.trim()) filled++;
+        if (translation.shortDescription?.trim()) filled++;
+        if (translation.description?.trim()) filled++;
+
         return { filled, total: 4 };
     };
 
@@ -64,9 +68,9 @@ export function CreateUniversityForm({ onSuccess }: Props) {
             queryClient.invalidateQueries({ queryKey: ['universities'] });
             onSuccess();
         },
-        onError: () => {
+        onError: (error: Error) => {
             toast.error(tCommon('feedback.error'), {
-                description: tCommon('feedback.genericError'),
+                description: error.message || tCommon('feedback.genericError'),
             });
         },
     });
@@ -75,37 +79,17 @@ export function CreateUniversityForm({ onSuccess }: Props) {
         mutation.mutate(values);
     };
 
-    const languages = ['ru', 'kk', 'en'] as const;
-    const languageLabels = { ru: 'Русский', kk: 'Қазақша', en: 'English' };
-
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                    control={form.control}
-                    name="photoUrl"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel className="flex items-center gap-2">
-                                URL фото
-                                <span className="text-xs text-destructive">*</span>
-                            </FormLabel>
-                            <FormControl>
-                                <Input placeholder="https://example.com/photo.jpg" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
                 <Tabs defaultValue="ru" className="w-full">
                     <TabsList className="grid w-full grid-cols-3">
-                        {languages.map((lang) => {
+                        {LANGUAGES.map((lang) => {
                             const status = getLanguageStatus(lang);
                             const isComplete = status.filled === status.total;
                             return (
                                 <TabsTrigger key={lang} value={lang} className="relative">
-                                    <span>{languageLabels[lang]}</span>
+                                    <span>{LANGUAGE_LABELS[lang]}</span>
                                     <Badge
                                         variant={isComplete ? 'default' : 'secondary'}
                                         className="ml-2 h-5 px-1.5 text-[10px]"
@@ -121,7 +105,7 @@ export function CreateUniversityForm({ onSuccess }: Props) {
                         })}
                     </TabsList>
 
-                    {languages.map((lang) => (
+                    {LANGUAGES.map((lang) => (
                         <TabsContent
                             key={lang}
                             value={lang}
@@ -148,10 +132,7 @@ export function CreateUniversityForm({ onSuccess }: Props) {
                                 name={`translations.${lang}.city`}
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="flex items-center gap-2">
-                                            {t('cityLabel')}
-                                            <span className="text-xs text-destructive">*</span>
-                                        </FormLabel>
+                                        <FormLabel>{t('cityLabel')}</FormLabel>
                                         <FormControl>
                                             <Input {...field} />
                                         </FormControl>
@@ -164,9 +145,13 @@ export function CreateUniversityForm({ onSuccess }: Props) {
                                 name={`translations.${lang}.shortDescription`}
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Краткое описание</FormLabel>
+                                        <FormLabel>{t('shortDescriptionLabel')}</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="До 500 символов" maxLength={500} {...field} />
+                                            <Input
+                                                placeholder="До 500 символов"
+                                                maxLength={500}
+                                                {...field}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -190,11 +175,9 @@ export function CreateUniversityForm({ onSuccess }: Props) {
                 </Tabs>
 
                 <div className="rounded-md border p-3 bg-muted/50">
-                    <p className="text-sm text-muted-foreground">
-                        Статус заполнения:
-                    </p>
+                    <p className="text-sm text-muted-foreground">{t('fillStatus')}:</p>
                     <div className="flex gap-4 mt-2">
-                        {languages.map((lang) => {
+                        {LANGUAGES.map((lang) => {
                             const status = getLanguageStatus(lang);
                             const isComplete = status.filled === status.total;
                             return (
@@ -204,7 +187,11 @@ export function CreateUniversityForm({ onSuccess }: Props) {
                                     ) : (
                                         <X className="h-4 w-4 text-muted-foreground" />
                                     )}
-                                    <span className={`text-sm ${isComplete ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                    <span
+                                        className={`text-sm ${
+                                            isComplete ? 'text-green-600' : 'text-muted-foreground'
+                                        }`}
+                                    >
                                         {lang.toUpperCase()}
                                     </span>
                                 </div>

@@ -16,21 +16,35 @@
       "create": "Create",
       "cancel": "Cancel",
       "save": "Save",
-      "delete": "Delete"
+      "saveChanges": "Save changes",
+      "delete": "Delete",
+      "edit": "Edit",
+      "add": "Add",
+      "back": "Go back"
     },
     "feedback": {
       "success": "Success",
       "error": "Error",
       "created": "Record successfully created",
+      "updated": "Data successfully updated",
       "genericError": "An unexpected error occurred. Please try again later."
-    }
+    },
+    "loading": "Loading...",
+    "redirecting": "Redirecting...",
+    "notFound": "Not found"
   },
   "Navigation": {
     "universities": "Universities",
     "users": "Users",
     "profile": "Profile",
     "settings": "Settings",
-    "logout": "Log out"
+    "logout": "Log out",
+    "myUniversity": "My University"
+  },
+  "Roles": {
+    "mainAdmin": "Main Administrator",
+    "universityAdmin": "University Administrator",
+    "student": "Student"
   },
   "Dashboard": {
     "title": "Universities",
@@ -49,7 +63,8 @@
         "programs": "Programs",
         "students": "Students",
         "rating": "Rating",
-        "status": "Status"
+        "status": "Status",
+        "progress": "Progress"
       }
     },
     "status": {
@@ -72,8 +87,8 @@
     }
   },
   "UsersPage": {
-    "title": "Users",
-    "subtitle": "System access and user management",
+    "title": "University Administrators",
+    "subtitle": "Management of university administrator accounts",
     "addUser": "Create",
     "search": "Search by email or name...",
     "filters": {
@@ -86,7 +101,8 @@
         "role": "Role",
         "university": "University",
         "status": "Status",
-        "lastLogin": "Last Login"
+        "lastLogin": "Last Login",
+        "createdAt": "Created At"
       }
     },
     "roles": {
@@ -98,14 +114,18 @@
       "active": "Active",
       "blocked": "Blocked"
     },
+    "notLinked": "Not linked",
     "createModal": {
-      "title": "Create User",
-      "description": "Add a new user to the system.",
-      "nameLabel": "Name",
+      "title": "Create University Administrator",
+      "description": "Add a new university administrator to the system.",
+      "firstNameLabel": "First Name",
+      "lastNameLabel": "Last Name",
       "emailLabel": "Email",
       "passwordLabel": "Password",
       "roleLabel": "Role",
-      "universityLabel": "University"
+      "universityLabel": "University",
+      "selectUniversity": "Select university",
+      "success": "University administrator successfully created"
     }
   },
   "UniversitiesPage": {
@@ -114,7 +134,16 @@
       "description": "Fill in the details about the new institution.",
       "nameLabel": "Name",
       "cityLabel": "City",
-      "descriptionLabel": "Description"
+      "descriptionLabel": "Description",
+      "photoUrlLabel": "Photo URL",
+      "shortDescriptionLabel": "Short description",
+      "fillStatus": "Fill status"
+    },
+    "edit": {
+      "title": "Editing",
+      "subtitle": "Editing university information",
+      "notFound": "University not found",
+      "basicInfo": "Basic information"
     }
   },
   "ProfilePage": {
@@ -130,6 +159,162 @@
     "placeholders": {
       "name": "Enter your name"
     },
-    "roleDescription": "Your role determines your access level in the system."
+    "roleDescription": "Your role determines your access level in the system.",
+    "emailDescription": "Email cannot be changed directly."
+  },
+  "UniversityEdit": {
+    "progress": {
+      "title": "Fill Progress",
+      "fields": "{filled}/{total} fields"
+    },
+    "sections": {
+      "basic": "Basic Information",
+      "description": "Description",
+      "leadership": "Leadership",
+      "achievements": "Achievements",
+      "history": "History Events",
+      "faculties": "Faculties",
+      "admission": "Admission Rules",
+      "tuition": "Tuition",
+      "international": "International Cooperation"
+    },
+    "basicInfo": {
+      "title": "Basic Information",
+      "subtitle": "Basic university data: contacts, links, founding year",
+      "photoUrl": "Photo URL",
+      "website": "Website",
+      "foundedYear": "Founded Year",
+      "phone": "Phone",
+      "email": "Email",
+      "nameAndCity": "Name and City",
+      "name": "Name",
+      "city": "City",
+      "address": "Address"
+    },
+    "description": {
+      "title": "Description",
+      "subtitle": "Short and full description, mission/goal, university history",
+      "shortDescription": "Short description",
+      "shortDescriptionHint": "Up to 500 characters",
+      "fullDescription": "Full description",
+      "goal": "Mission / Goal",
+      "history": "History"
+    },
+    "leadership": {
+      "title": "Leadership",
+      "subtitle": "Rector, vice-rectors and other leadership members",
+      "empty": "No leadership records",
+      "fullName": "Full Name",
+      "position": "Position",
+      "bio": "Biography"
+    },
+    "achievements": {
+      "title": "Achievements",
+      "subtitle": "Rankings, awards and university achievements",
+      "empty": "No achievements",
+      "name": "Name",
+      "year": "Year",
+      "rank": "Place/Rank",
+      "rankPlaceholder": "e.g.: 1st place, Top-10",
+      "details": "Details"
+    },
+    "history": {
+      "title": "History",
+      "subtitle": "Key events in university history",
+      "empty": "No history events",
+      "addEvent": "Add event",
+      "eventNumber": "Event #{number}",
+      "year": "Year",
+      "eventDescription": "Event description"
+    },
+    "faculties": {
+      "title": "Faculties",
+      "subtitle": "Structure: Faculties → Departments → Program Groups → Programs",
+      "addFaculty": "Add faculty",
+      "empty": "No faculties",
+      "facultyNumber": "Faculty #{number}",
+      "facultyName": "Faculty name",
+      "departments": "Departments",
+      "addDepartment": "Add department",
+      "departmentNumber": "Department #{number}",
+      "departmentName": "Name",
+      "departmentGoal": "Goal",
+      "departmentMission": "Mission",
+      "departmentTasks": "Tasks",
+      "programGroups": "Educational Program Groups",
+      "addProgramGroup": "Add group",
+      "groupNumber": "Group #{number}",
+      "degreeLevel": "Level",
+      "code": "Code",
+      "selectDepartment": "Department",
+      "notSelected": "Not selected",
+      "groupName": "Group name",
+      "passingScores": "Passing Scores",
+      "minScoreGrant": "Min score (grant)",
+      "minScorePaid": "Min score (paid)",
+      "profileSubjects": "Profile subjects",
+      "profileSubjectsPlaceholder": "Math, Physics",
+      "creativeExam": "Creative exam",
+      "deleteScores": "Delete scores",
+      "programs": "Educational Programs",
+      "addProgram": "Add program",
+      "programNumber": "Program #{number}",
+      "programCode": "Program code",
+      "programName": "Name"
+    },
+    "admission": {
+      "title": "Admission Rules",
+      "subtitle": "Admission dates, required documents and enrollment steps",
+      "startDate": "Admission start date",
+      "endDate": "Admission end date",
+      "documents": "Required documents",
+      "documentsPlaceholder": "List of documents for admission...",
+      "steps": "Enrollment steps",
+      "stepsPlaceholder": "Step-by-step description of the enrollment process...",
+      "military": "Military department",
+      "militaryPlaceholder": "Information about military department...",
+      "dormitory": "Dormitory",
+      "dormitoryPlaceholder": "Information about dormitory provision..."
+    },
+    "tuition": {
+      "title": "Tuition",
+      "subtitle": "Payment categories, prices and scholarship information",
+      "addCategory": "Add category",
+      "empty": "No payment categories",
+      "categoryNumber": "Category #{number}",
+      "categoryName": "Category name",
+      "categoryNamePlaceholder": "e.g.: Bachelor's (full-time)",
+      "pricePerYear": "Price per year (KZT)",
+      "scholarshipInfo": "Scholarship and discount information",
+      "scholarshipPlaceholder": "Discounts for honors students, grants...",
+      "sortOrder": "Sort order"
+    },
+    "international": {
+      "title": "International Cooperation",
+      "subtitle": "International programs and partnerships sections",
+      "addSection": "Add section",
+      "empty": "No international cooperation sections",
+      "sectionNumber": "Section #{number}",
+      "externalUrl": "External link",
+      "isActive": "Active",
+      "sortOrder": "Order",
+      "sectionTitle": "Title",
+      "sectionDescription": "Description",
+      "items": "Section items",
+      "addItem": "Add item",
+      "itemNumber": "Item #{number}",
+      "itemActive": "Active",
+      "itemTitle": "Title"
+    },
+    "degreeLevels": {
+      "bachelor": "Bachelor's",
+      "master": "Master's",
+      "doctorate": "Doctorate"
+    },
+    "languages": {
+      "ru": "Russian",
+      "kk": "Kazakh",
+      "en": "English"
+    }
   }
 }

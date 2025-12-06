@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateUniversity } from '../api';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 import { Loader2, Building2, FileText, Users, Award, History, GraduationCap, ClipboardList, Wallet, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BasicInfoSection } from './sections/basic-info-section';
@@ -24,36 +25,38 @@ interface Props {
 
 type SectionKey = 'basic' | 'description' | 'leadership' | 'achievements' | 'history' | 'faculties' | 'admission' | 'tuition' | 'international';
 
-const sections: { key: SectionKey; label: string; icon: React.ElementType }[] = [
-    { key: 'basic', label: 'Базовая информация', icon: Building2 },
-    { key: 'description', label: 'Описание', icon: FileText },
-    { key: 'leadership', label: 'Руководство', icon: Users },
-    { key: 'achievements', label: 'Достижения', icon: Award },
-    { key: 'history', label: 'События истории', icon: History },
-    { key: 'faculties', label: 'Факультеты', icon: GraduationCap },
-    { key: 'admission', label: 'Правила приема', icon: ClipboardList },
-    { key: 'tuition', label: 'Стоимость обучения', icon: Wallet },
-    { key: 'international', label: 'Международное сотрудничество', icon: Globe },
-];
-
 export function UniversityEditForm({ university }: Props) {
+    const t = useTranslations('UniversityEdit.sections');
+    const tCommon = useTranslations('Common');
     const queryClient = useQueryClient();
     const [activeSection, setActiveSection] = useState<SectionKey>('basic');
     const [formData, setFormData] = useState<UpdateUniversityValues>(() => initFormData(university));
+
+    const sections: { key: SectionKey; label: string; icon: React.ElementType }[] = [
+        { key: 'basic', label: t('basic'), icon: Building2 },
+        { key: 'description', label: t('description'), icon: FileText },
+        { key: 'leadership', label: t('leadership'), icon: Users },
+        { key: 'achievements', label: t('achievements'), icon: Award },
+        { key: 'history', label: t('history'), icon: History },
+        { key: 'faculties', label: t('faculties'), icon: GraduationCap },
+        { key: 'admission', label: t('admission'), icon: ClipboardList },
+        { key: 'tuition', label: t('tuition'), icon: Wallet },
+        { key: 'international', label: t('international'), icon: Globe },
+    ];
 
     const mutation = useMutation({
         mutationFn: (values: UpdateUniversityValues) =>
             updateUniversity(String(university.id), values),
         onSuccess: (updatedData) => {
-            toast.success('Успешно', {
-                description: 'Данные университета обновлены',
+            toast.success(tCommon('feedback.success'), {
+                description: tCommon('feedback.updated'),
             });
             queryClient.invalidateQueries({ queryKey: ['universities'] });
             queryClient.setQueryData(['university', String(university.id)], updatedData);
         },
         onError: (error: any) => {
-            const message = error?.response?.data?.message || 'Не удалось обновить данные';
-            toast.error('Ошибка', {
+            const message = error?.response?.data?.message || tCommon('feedback.genericError');
+            toast.error(tCommon('feedback.error'), {
                 description: message,
             });
         },
@@ -94,7 +97,11 @@ export function UniversityEditForm({ university }: Props) {
 
             <div className="flex-1 min-w-0">
                 {activeSection === 'basic' && (
-                    <BasicInfoSection data={formData} onChange={updateFormData} />
+                    <BasicInfoSection
+                        universityId={String(university.id)}
+                        data={formData}
+                        onChange={updateFormData}
+                    />
                 )}
                 {activeSection === 'description' && (
                     <DescriptionSection data={formData} onChange={updateFormData} />
@@ -126,7 +133,7 @@ export function UniversityEditForm({ university }: Props) {
                         {mutation.isPending && (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         )}
-                        Сохранить изменения
+                        {tCommon('actions.saveChanges')}
                     </Button>
                 </div>
             </div>

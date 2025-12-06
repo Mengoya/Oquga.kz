@@ -16,21 +16,35 @@
       "create": "Создать",
       "cancel": "Отмена",
       "save": "Сохранить",
-      "delete": "Удалить"
+      "saveChanges": "Сохранить изменения",
+      "delete": "Удалить",
+      "edit": "Редактировать",
+      "add": "Добавить",
+      "back": "Вернуться назад"
     },
     "feedback": {
       "success": "Успешно",
       "error": "Ошибка",
       "created": "Запись успешно создана",
+      "updated": "Данные успешно обновлены",
       "genericError": "Произошла непредвиденная ошибка. Попробуйте позже."
-    }
+    },
+    "loading": "Загрузка...",
+    "redirecting": "Перенаправление...",
+    "notFound": "Не найдено"
   },
   "Navigation": {
     "universities": "Университеты",
     "users": "Пользователи",
     "profile": "Профиль",
     "settings": "Настройки",
-    "logout": "Выйти"
+    "logout": "Выйти",
+    "myUniversity": "Мой ВУЗ"
+  },
+  "Roles": {
+    "mainAdmin": "Главный администратор",
+    "universityAdmin": "Администратор ВУЗа",
+    "student": "Студент"
   },
   "Dashboard": {
     "title": "Университеты",
@@ -49,7 +63,8 @@
         "programs": "Программы",
         "students": "Студенты",
         "rating": "Рейтинг",
-        "status": "Статус"
+        "status": "Статус",
+        "progress": "Прогресс"
       }
     },
     "status": {
@@ -72,8 +87,8 @@
     }
   },
   "UsersPage": {
-    "title": "Пользователи",
-    "subtitle": "Управление доступом и пользователями системы",
+    "title": "Администраторы ВУЗов",
+    "subtitle": "Управление учётными записями администраторов университетов",
     "addUser": "Создать",
     "search": "Поиск по email или имени...",
     "filters": {
@@ -86,7 +101,8 @@
         "role": "Роль",
         "university": "ВУЗ",
         "status": "Статус",
-        "lastLogin": "Последний вход"
+        "lastLogin": "Последний вход",
+        "createdAt": "Дата создания"
       }
     },
     "roles": {
@@ -98,14 +114,18 @@
       "active": "Активен",
       "blocked": "Заблокирован"
     },
+    "notLinked": "Не привязан",
     "createModal": {
-      "title": "Создать пользователя",
-      "description": "Добавьте нового пользователя в систему.",
-      "nameLabel": "Имя",
+      "title": "Создать администратора ВУЗа",
+      "description": "Добавьте нового администратора университета в систему.",
+      "firstNameLabel": "Имя",
+      "lastNameLabel": "Фамилия",
       "emailLabel": "Email",
       "passwordLabel": "Пароль",
       "roleLabel": "Роль",
-      "universityLabel": "Университет"
+      "universityLabel": "Университет",
+      "selectUniversity": "Выберите университет",
+      "success": "Администратор ВУЗа успешно создан"
     }
   },
   "UniversitiesPage": {
@@ -114,7 +134,16 @@
       "description": "Заполните данные о новом учебном заведении.",
       "nameLabel": "Название",
       "cityLabel": "Город",
-      "descriptionLabel": "Описание"
+      "descriptionLabel": "Описание",
+      "photoUrlLabel": "URL фото",
+      "shortDescriptionLabel": "Краткое описание",
+      "fillStatus": "Статус заполнения"
+    },
+    "edit": {
+      "title": "Редактирование",
+      "subtitle": "Редактирование информации о ВУЗе",
+      "notFound": "Университет не найден",
+      "basicInfo": "Основная информация"
     }
   },
   "ProfilePage": {
@@ -130,6 +159,175 @@
     "placeholders": {
       "name": "Введите ваше имя"
     },
-    "roleDescription": "Ваша роль определяет уровень доступа в системе."
+    "roleDescription": "Ваша роль определяет уровень доступа в системе.",
+    "emailDescription": "Email нельзя изменить напрямую."
+  },
+  "UniversityEdit": {
+    "progress": {
+      "title": "Прогресс заполнения",
+      "fields": "{filled}/{total} полей"
+    },
+    "sections": {
+      "basic": "Базовая информация",
+      "description": "Описание",
+      "leadership": "Руководство",
+      "achievements": "Достижения",
+      "history": "События истории",
+      "faculties": "Факультеты",
+      "admission": "Правила приема",
+      "tuition": "Стоимость обучения",
+      "international": "Международное сотрудничество"
+    },
+    "basicInfo": {
+      "title": "Базовая информация",
+      "subtitle": "Основные данные университета: контакты, ссылки, год основания",
+      "photoUrl": "URL фото",
+      "website": "Веб-сайт",
+      "foundedYear": "Год основания",
+      "phone": "Телефон",
+      "email": "Email",
+      "nameAndCity": "Название и город",
+      "name": "Название",
+      "city": "Город",
+      "address": "Адрес"
+    },
+    "photo": {
+      "title": "Фото университета",
+      "upload": "Загрузить фото",
+      "dragAndDrop": "Перетащите изображение сюда",
+      "orClickToSelect": "или нажмите для выбора файла",
+      "allowedFormats": "PNG, JPG, WebP, GIF до 5MB",
+      "uploadSuccess": "Фото успешно загружено",
+      "uploadError": "Ошибка загрузки фото",
+      "deleteConfirm": "Вы уверены, что хотите удалить фото?",
+      "deleteSuccess": "Фото удалено",
+      "fileTooLarge": "Размер файла превышает 5MB",
+      "invalidFormat": "Неподдерживаемый формат файла"
+    },
+    "description": {
+      "title": "Описание",
+      "subtitle": "Краткое и полное описание, миссия/цель, история университета",
+      "shortDescription": "Краткое описание",
+      "shortDescriptionHint": "До 500 символов",
+      "fullDescription": "Полное описание",
+      "goal": "Миссия / Цель",
+      "history": "История"
+    },
+    "leadership": {
+      "title": "Руководство",
+      "subtitle": "Ректор, проректоры и другие члены руководства",
+      "empty": "Нет записей о руководстве",
+      "fullName": "ФИО",
+      "position": "Должность",
+      "bio": "Биография"
+    },
+    "achievements": {
+      "title": "Достижения",
+      "subtitle": "Рейтинги, награды и достижения университета",
+      "empty": "Нет достижений",
+      "name": "Название",
+      "year": "Год",
+      "rank": "Место/Ранг",
+      "rankPlaceholder": "Например: 1 место, Топ-10",
+      "details": "Детали"
+    },
+    "history": {
+      "title": "История",
+      "subtitle": "Ключевые события в истории университета",
+      "empty": "Нет событий истории",
+      "addEvent": "Добавить событие",
+      "eventNumber": "Событие #{number}",
+      "year": "Год",
+      "eventDescription": "Описание события"
+    },
+    "faculties": {
+      "title": "Факультеты",
+      "subtitle": "Структура: Факультеты → Кафедры → Группы программ → Программы",
+      "addFaculty": "Добавить факультет",
+      "empty": "Нет факультетов",
+      "facultyNumber": "Факультет #{number}",
+      "facultyName": "Название факультета",
+      "departments": "Кафедры",
+      "addDepartment": "Добавить кафедру",
+      "departmentNumber": "Кафедра #{number}",
+      "departmentName": "Название",
+      "departmentGoal": "Цель",
+      "departmentMission": "Миссия",
+      "departmentTasks": "Задачи",
+      "programGroups": "Группы образовательных программ",
+      "addProgramGroup": "Добавить группу",
+      "groupNumber": "Группа #{number}",
+      "degreeLevel": "Уровень",
+      "code": "Код",
+      "selectDepartment": "Кафедра",
+      "notSelected": "Не выбрана",
+      "groupName": "Название группы",
+      "passingScores": "Проходные баллы",
+      "minScoreGrant": "Мин. балл (грант)",
+      "minScorePaid": "Мин. балл (платное)",
+      "profileSubjects": "Профильные предметы",
+      "profileSubjectsPlaceholder": "Математика, Физика",
+      "creativeExam": "Творческий экзамен",
+      "deleteScores": "Удалить баллы",
+      "programs": "Образовательные программы",
+      "addProgram": "Добавить программу",
+      "programNumber": "Программа #{number}",
+      "programCode": "Код программы",
+      "programName": "Название"
+    },
+    "admission": {
+      "title": "Правила приема",
+      "subtitle": "Сроки приема, необходимые документы и этапы поступления",
+      "startDate": "Дата начала приема",
+      "endDate": "Дата окончания приема",
+      "documents": "Необходимые документы",
+      "documentsPlaceholder": "Список документов для поступления...",
+      "steps": "Этапы поступления",
+      "stepsPlaceholder": "Пошаговое описание процесса поступления...",
+      "military": "Военная кафедра",
+      "militaryPlaceholder": "Информация о военной кафедре...",
+      "dormitory": "Общежитие",
+      "dormitoryPlaceholder": "Информация о предоставлении общежития..."
+    },
+    "tuition": {
+      "title": "Стоимость обучения",
+      "subtitle": "Категории оплаты, цены и информация о стипендиях",
+      "addCategory": "Добавить категорию",
+      "empty": "Нет категорий оплаты",
+      "categoryNumber": "Категория #{number}",
+      "categoryName": "Название категории",
+      "categoryNamePlaceholder": "Например: Бакалавриат (очное)",
+      "pricePerYear": "Стоимость в год (тенге)",
+      "scholarshipInfo": "Информация о стипендиях и скидках",
+      "scholarshipPlaceholder": "Скидки для отличников, гранты...",
+      "sortOrder": "Порядок сортировки"
+    },
+    "international": {
+      "title": "Международное сотрудничество",
+      "subtitle": "Секции международных программ и партнерств",
+      "addSection": "Добавить секцию",
+      "empty": "Нет секций международного сотрудничества",
+      "sectionNumber": "Секция #{number}",
+      "externalUrl": "Внешняя ссылка",
+      "isActive": "Активна",
+      "sortOrder": "Порядок",
+      "sectionTitle": "Заголовок",
+      "sectionDescription": "Описание",
+      "items": "Элементы секции",
+      "addItem": "Добавить элемент",
+      "itemNumber": "Элемент #{number}",
+      "itemActive": "Активен",
+      "itemTitle": "Заголовок"
+    },
+    "degreeLevels": {
+      "bachelor": "Бакалавриат",
+      "master": "Магистратура",
+      "doctorate": "Докторантура"
+    },
+    "languages": {
+      "ru": "Русский",
+      "kk": "Қазақша",
+      "en": "English"
+    }
   }
 }

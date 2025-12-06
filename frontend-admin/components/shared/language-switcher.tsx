@@ -1,7 +1,8 @@
 'use client';
 
 import { useLocale, useTranslations } from 'next-intl';
-import { usePathname, useRouter } from '@/i18n/routing';
+import { useRouter } from '@/i18n/routing';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -10,48 +11,70 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Languages } from 'lucide-react';
-import { useTransition } from 'react';
+import { useTransition, useCallback } from 'react';
+
+const SUPPORTED_LOCALES = ['ru', 'kk', 'en'] as const;
+type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
+
+function removeLocaleFromPathname(pathname: string): string {
+    const segments = pathname.split('/').filter(Boolean);
+
+    if (segments.length > 0 && SUPPORTED_LOCALES.includes(segments[0] as SupportedLocale)) {
+        const pathWithoutLocale = '/' + segments.slice(1).join('/');
+        return pathWithoutLocale || '/';
+    }
+
+    return pathname;
+}
 
 export function LanguageSwitcher() {
     const t = useTranslations('Common.languages');
-    const locale = useLocale();
+    const currentLocale = useLocale();
     const router = useRouter();
-    const pathname = usePathname();
+    const fullPathname = usePathname();
+    const searchParams = useSearchParams();
     const [isPending, startTransition] = useTransition();
 
-    const onSelectChange = (nextLocale: string) => {
-        startTransition(() => {
-            router.replace(pathname, { locale: nextLocale });
-        });
-    };
+    const handleLocaleChange = useCallback(
+        (nextLocale: SupportedLocale) => {
+            if (nextLocale === currentLocale) return;
+
+            startTransition(() => {
+                const pathnameWithoutLocale = removeLocaleFromPathname(fullPathname);
+
+                const queryString = searchParams.toString();
+                const targetPath = queryString
+                    ? `${pathnameWithoutLocale}?${queryString}`
+                    : pathnameWithoutLocale;
+
+                router.replace(targetPath, { locale: nextLocale });
+            });
+        },
+        [currentLocale, fullPathname, searchParams, router]
+    );
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" disabled={isPending}>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={isPending}
+                    aria-label="Switch language"
+                >
                     <Languages className="h-[1.2rem] w-[1.2rem]" />
-                    <span className="sr-only">Switch language</span>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                    onClick={() => onSelectChange('ru')}
-                    disabled={locale === 'ru'}
-                >
-                    {t('ru')}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                    onClick={() => onSelectChange('kk')}
-                    disabled={locale === 'kk'}
-                >
-                    {t('kk')}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                    onClick={() => onSelectChange('en')}
-                    disabled={locale === 'en'}
-                >
-                    {t('en')}
-                </DropdownMenuItem>
+                {SUPPORTED_LOCALES.map((locale) => (
+                    <DropdownMenuItem
+                        key={locale}
+                        onClick={() => handleLocaleChange(locale)}
+                        disabled={currentLocale === locale}
+                    >
+                        {t(locale)}
+                    </DropdownMenuItem>
+                ))}
             </DropdownMenuContent>
         </DropdownMenu>
     );

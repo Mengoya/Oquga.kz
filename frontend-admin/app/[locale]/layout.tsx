@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: 'DataNub | Admin',
+    title: 'Oquga | Admin',
 };
 
 type Props = {

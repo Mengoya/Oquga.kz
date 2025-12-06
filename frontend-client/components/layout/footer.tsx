@@ -1,10 +1,19 @@
-import Link from 'next/link';
 import Image from 'next/image';
-import { NAV_LINKS, SITE_CONFIG } from '@/lib/config';
 import { Mail } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
+import { SITE_CONFIG } from '@/lib/config';
 
 export function Footer() {
+    const t = useTranslations('footer');
+    const tNav = useTranslations('nav');
     const currentYear = new Date().getFullYear();
+
+    const navLinks = [
+        { label: tNav('home'), href: '/' as const },
+        { label: tNav('universities'), href: '/universities' as const },
+        { label: tNav('admissions'), href: '/admissions' as const },
+    ];
 
     return (
         <footer className="bg-muted/30 border-t pt-16 pb-8">
@@ -18,7 +27,7 @@ export function Footer() {
                             <div className="relative w-8 h-8">
                                 <Image
                                     src="/logo.png"
-                                    alt={`${SITE_CONFIG.name} Лого`}
+                                    alt={`${SITE_CONFIG.name} Logo`}
                                     fill
                                     className="object-contain"
                                 />
@@ -26,17 +35,15 @@ export function Footer() {
                             <span>{SITE_CONFIG.name}</span>
                         </Link>
                         <p className="text-muted-foreground text-sm leading-relaxed max-w-sm">
-                            {SITE_CONFIG.description}. Мы помогаем абитуриентам
-                            найти свой идеальный путь в образовании через
-                            инновационные технологии и прозрачные данные.
+                            {t('description')}
                         </p>
                     </div>
                     <div>
                         <h3 className="font-semibold mb-4 text-foreground">
-                            Платформа
+                            {t('platform')}
                         </h3>
                         <ul className="space-y-3">
-                            {NAV_LINKS.map((link) => (
+                            {navLinks.map((link) => (
                                 <li key={link.href}>
                                     <Link
                                         href={link.href}
@@ -51,7 +58,7 @@ export function Footer() {
 
                     <div>
                         <h3 className="font-semibold mb-4 text-foreground">
-                            Контакты
+                            {t('contacts')}
                         </h3>
                         <ul className="space-y-4 text-sm text-muted-foreground mb-6">
                             <li className="flex items-center gap-3">
@@ -59,7 +66,7 @@ export function Footer() {
                                 <a
                                     href="mailto:info@oquga.kz"
                                     className="hover:text-foreground transition-colors"
-                                    aria-label="Написать нам письмо"
+                                    aria-label="Send us an email"
                                 >
                                     info@oquga.kz
                                 </a>
@@ -70,8 +77,10 @@ export function Footer() {
 
                 <div className="pt-8 border-t text-center text-sm text-muted-foreground">
                     <p>
-                        &copy; {currentYear} {SITE_CONFIG.name}. Все права
-                        защищены.
+                        {t('copyright', {
+                            year: currentYear,
+                            name: SITE_CONFIG.name,
+                        })}
                     </p>
                 </div>
             </div>

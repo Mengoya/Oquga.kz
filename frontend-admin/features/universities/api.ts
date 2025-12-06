@@ -1,6 +1,6 @@
-import { apiClient } from '@/lib/api-client';
+import { api, apiClient } from '@/lib/api-client';
 import {
-    CreateUniversityValues,
+    CreateUniversityValues, PhotoUploadResponse,
     University,
     UniversityApiResponse,
     UniversityDetailResponse,
@@ -79,7 +79,6 @@ export async function createUniversity(
 
     const requestBody = {
         slug: generateSlug(primaryName),
-        photoUrl: data.photoUrl,
         translations,
     };
 
@@ -89,6 +88,41 @@ export async function createUniversity(
     );
 
     return { success: true, id: String(response.id) };
+}
+
+export async function uploadUniversityPhoto(
+    id: string,
+    file: File
+): Promise<PhotoUploadResponse> {
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+    if (file.size > MAX_FILE_SIZE) {
+        throw new Error('File size exceeds 5MB limit');
+    }
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+        throw new Error('Invalid file type. Allowed: JPEG, PNG, WebP, GIF');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post<PhotoUploadResponse>(
+        `/universities/${id}/photo`,
+        formData,
+        {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        }
+    );
+
+    return response.data;
+}
+
+export async function deleteUniversityPhoto(id: string): Promise<void> {
+    await apiClient.delete(`/universities/${id}/photo`);
 }
 
 export async function updateUniversity(

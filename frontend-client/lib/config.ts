@@ -1,29 +1,21 @@
-import {
-    GraduationCap,
-    BookOpen,
-    UserPlus,
-    Cuboid,
-    Globe,
-    Scale,
-} from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 
 export const SITE_CONFIG = {
     name: 'Oquga.kz',
-    description: 'Oquga — Единая платформа для выбора университета',
+    description: 'Платформа для поиска образовательных программ в Казахстане',
+    url: 'https://oquga.kz',
 };
 
 export const NAV_LINKS = [
     {
-        label: 'Университеты',
-        href: '/universities',
-        icon: GraduationCap,
-        description: 'Информация о миссии и истории',
+        label: 'Главная',
+        href: '/',
+        description: 'Вернуться на главную страницу',
     },
     {
-        label: 'Программы',
-        href: '/programs',
-        icon: BookOpen,
-        description: 'Бакалавриат, магистратура и курсы',
+        label: 'Вузы',
+        href: '/universities',
+        description: 'Каталог университетов Казахстана',
     },
     {
         label: 'Поступление',
@@ -31,24 +23,16 @@ export const NAV_LINKS = [
         icon: UserPlus,
         description: 'Гранты, сроки и требования',
     },
-    {
-        label: '3D-тур',
-        href: '/tours',
-        icon: Cuboid,
-        description: 'Виртуальное путешествие по кампусу',
-    },
-    {
-        label: 'Сотрудничество',
-        href: '/international',
-        icon: Globe,
-        description: 'Программы обмена и партнеры',
-    },
-    {
-        label: 'Сравнение',
-        href: '/compare',
-        icon: Scale,
-        description: 'Сравнить вузы и программы',
-    },
 ];
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+export const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
+if (
+    process.env.NODE_ENV === 'development' &&
+    !process.env.NEXT_PUBLIC_API_URL
+) {
+    console.warn(
+        '⚠️ [Config] NEXT_PUBLIC_API_URL не установлен. Используется fallback: http://localhost:8080',
+    );
+}

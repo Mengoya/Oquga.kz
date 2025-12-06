@@ -2,6 +2,7 @@
 
 import { ProgressDto } from '../types';
 import { Progress } from '@/components/ui/progress';
+import { useTranslations } from 'next-intl';
 import {
     Building2,
     FileText,
@@ -17,18 +18,21 @@ interface Props {
     progress: ProgressDto;
 }
 
-const sectionConfig = {
-    basicInfo: { icon: Building2, label: 'Базовая информация' },
-    description: { icon: FileText, label: 'Описание и история' },
-    leadership: { icon: Users, label: 'Руководство' },
-    achievements: { icon: Award, label: 'Достижения' },
-    faculties: { icon: GraduationCap, label: 'Факультеты' },
-    admissionRules: { icon: ClipboardList, label: 'Правила приема' },
-    tuition: { icon: Wallet, label: 'Стоимость обучения' },
-    international: { icon: Globe, label: 'Международное сотрудничество' },
-};
-
 export function ProgressCard({ progress }: Props) {
+    const t = useTranslations('UniversityEdit.progress');
+    const tSections = useTranslations('UniversityEdit.sections');
+
+    const sectionConfig = {
+        basicInfo: { icon: Building2, label: tSections('basic') },
+        description: { icon: FileText, label: tSections('description') },
+        leadership: { icon: Users, label: tSections('leadership') },
+        achievements: { icon: Award, label: tSections('achievements') },
+        faculties: { icon: GraduationCap, label: tSections('faculties') },
+        admissionRules: { icon: ClipboardList, label: tSections('admission') },
+        tuition: { icon: Wallet, label: tSections('tuition') },
+        international: { icon: Globe, label: tSections('international') },
+    };
+
     const sections = [
         progress.basicInfo,
         progress.description,
@@ -43,7 +47,7 @@ export function ProgressCard({ progress }: Props) {
     return (
         <div className="rounded-lg border bg-card p-6">
             <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold">Прогресс заполнения</h3>
+                <h3 className="text-lg font-semibold">{t('title')}</h3>
                 <div className="flex items-center gap-2">
                     <span className="text-3xl font-bold">{progress.totalPercent}%</span>
                 </div>
@@ -67,7 +71,7 @@ export function ProgressCard({ progress }: Props) {
                                         {config?.label || section.name}
                                     </span>
                                     <span className="text-xs text-muted-foreground">
-                                        {section.filledFields}/{section.totalFields} полей
+                                        {t('fields', { filled: section.filledFields, total: section.totalFields })}
                                     </span>
                                 </div>
                                 <Progress
