@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { uploadUniversityPhoto, deleteUniversityPhoto } from '../api';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Upload, Loader2, ImageIcon, AlertCircle, Trash2 } from 'lucide-react';
+import { Upload, Loader2, ImageIcon, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
@@ -155,12 +155,6 @@ export function PhotoUpload({
         const file = e.dataTransfer.files?.[0];
         if (file) {
             handleFileSelect(file);
-        }
-    };
-
-    const handleDelete = () => {
-        if (window.confirm(tPhoto('deleteConfirm'))) {
-            deleteMutation.mutate();
         }
     };
 

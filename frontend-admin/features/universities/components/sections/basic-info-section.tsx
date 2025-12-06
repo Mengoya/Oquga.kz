@@ -14,7 +14,6 @@ interface Props {
 }
 
 const LANGUAGES = ['ru', 'kk', 'en'] as const;
-const LANGUAGE_LABELS = { ru: 'Русский', kk: 'Қазақша', en: 'English' };
 
 export function BasicInfoSection({ universityId, data, onChange }: Props) {
     const t = useTranslations('UniversityEdit.basicInfo');

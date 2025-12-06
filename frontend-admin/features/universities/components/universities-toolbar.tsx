@@ -1,8 +1,7 @@
 'use client';
 
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Search, X, Filter } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { useDataTableParams } from '@/hooks/use-data-table-params';
 import { useState, useEffect } from 'react';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -12,7 +11,6 @@ import { useAuthStore } from '@/stores/use-auth-store';
 
 export function UniversitiesToolbar() {
     const tDashboard = useTranslations('Dashboard');
-    const tCommon = useTranslations('Common.actions');
     const { user } = useAuthStore();
 
     const isMainAdmin = user?.role === 'MAIN_ADMIN';
