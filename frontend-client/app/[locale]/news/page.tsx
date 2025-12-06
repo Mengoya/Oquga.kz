@@ -1,7 +1,7 @@
 import React from 'react';
 import { Metadata } from 'next';
 import Image from 'next/image';
-import { Calendar, Eye, ArrowRight, Clock, Filter } from 'lucide-react';
+import { Calendar, Eye, ArrowRight } from 'lucide-react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -96,7 +96,10 @@ export default async function NewsPage({ params }: NewsPageProps) {
     const tNews = await getTranslations('latestNews');
 
     const featuredNews = NEWS_DATA.filter((n) => n.featured).slice(0, 2);
-    const regularNews = NEWS_DATA.filter((n) => !featuredNews.includes(n));
+    // Fix: Using .some() with slug comparison instead of .includes() to avoid TypeScript
+    // narrowing issues where objects with 'featured: false' cannot be assigned to the
+    // narrowed type of 'featuredNews' (which only allows 'featured: true').
+    const regularNews = NEWS_DATA.filter((n) => !featuredNews.some(fn => fn.slug === n.slug));
 
     return (
         <div className="min-h-screen bg-muted/10">
