@@ -1,25 +1,26 @@
-import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
-const nextConfig: NextConfig = {
+const nextConfig = {
     output: 'standalone',
     images: {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: 's3.oquga.kz',
-            },
-            {
-                protocol: 'https',
-                hostname: '**.oquga.kz',
+                hostname: '**',
             },
             {
                 protocol: 'http',
                 hostname: 'localhost',
             },
         ],
+        unoptimized: false,
+    },
+    experimental: {
+        serverActions: {
+            bodySizeLimit: '2mb',
+        },
     },
 };
 

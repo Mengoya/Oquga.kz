@@ -4,7 +4,7 @@ import {
     UniversityListParams,
     UniversityListResponse,
 } from './types';
-import { API_BASE_URL } from '@/lib/config';
+import { INTERNAL_API_URL } from '@/lib/config';
 
 export async function getUniversities(
     params: UniversityListParams = {},
@@ -29,19 +29,30 @@ export async function getUniversityById(id: string): Promise<UniversityDetail> {
     const isServer = typeof window === 'undefined';
 
     if (isServer) {
-        const baseUrl = API_BASE_URL?.startsWith('http')
-            ? API_BASE_URL
-            : 'http://localhost:8080';
+        let baseUrl = INTERNAL_API_URL;
 
-        const res = await fetch(`${baseUrl}/api/v1/universities/${id}`, {
+        if (!baseUrl || baseUrl === 'undefined') {
+            baseUrl = 'http://localhost:8080';
+        }
+
+        baseUrl = baseUrl.replace(/\/+$/, '');
+
+        const apiUrl = `${baseUrl}/api/v1/universities/${id}`;
+
+        console.log(`[SSR] Fetching university from: ${apiUrl}`);
+
+        const res = await fetch(apiUrl, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
             },
-            next: { revalidate: 60 },
+            cache: 'no-store',
         });
 
         if (!res.ok) {
+            console.error(`[SSR] Failed to fetch university: ${res.status} ${res.statusText}`);
+
             if (res.status === 404) {
                 throw new Error('University not found');
             }
@@ -51,7 +62,7 @@ export async function getUniversityById(id: string): Promise<UniversityDetail> {
         }
 
         return res.json();
-    } else {
-        return apiClient.get<UniversityDetail>(`/universities/${id}`);
     }
+
+    return apiClient.get<UniversityDetail>(`/universities/${id}`);
 }

@@ -167,10 +167,13 @@ export function AiChat() {
     const [likedCards, setLikedCards] = useState<Set<string>>(new Set());
     const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
 
     const scrollToBottom = useCallback(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
     }, []);
 
     useEffect(() => {
@@ -253,7 +256,7 @@ export function AiChat() {
                 requestBody.sessionContext = sessionContext;
             }
 
-            const response = await fetch(`${API_BASE_URL}/ai/chat`, {
+            const response = await fetch(`${API_BASE_URL}/api/v1/ai/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -802,11 +805,12 @@ export function AiChat() {
                     </span>
                 </div>
 
-                <div className="space-y-2.5 sm:space-y-3">
+                <div className="space-y-3 sm:space-y-4">
                     {interactive.options?.map((item) => {
                         const value = scaleValues[item.id] || 0;
+                        const percentage = (value / maxPerItem) * 100;
                         return (
-                            <div key={item.id} className="space-y-1">
+                            <div key={item.id} className="space-y-1.5">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-1.5 sm:gap-2">
                                         <span className="text-sm sm:text-base">{item.emoji}</span>
@@ -814,7 +818,11 @@ export function AiChat() {
                                     </div>
                                     <span className="text-xs sm:text-sm font-bold text-primary w-6 sm:w-8 text-right">{value}</span>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="relative h-3 sm:h-4 bg-muted rounded-full overflow-hidden">
+                                    <div
+                                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary via-primary to-primary/60 rounded-full transition-all duration-300"
+                                        style={{ width: `${percentage}%` }}
+                                    />
                                     <input
                                         type="range"
                                         min={0}
@@ -823,7 +831,11 @@ export function AiChat() {
                                         onChange={(e) =>
                                             handleScaleChange(item.id, parseInt(e.target.value), maxPoints)
                                         }
-                                        className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    />
+                                    <div
+                                        className="absolute top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 bg-white border-2 border-primary rounded-full shadow-md transition-all duration-300 pointer-events-none"
+                                        style={{ left: `calc(${percentage}% - ${percentage > 50 ? '10px' : '6px'})` }}
                                     />
                                 </div>
                             </div>
@@ -885,37 +897,47 @@ export function AiChat() {
                 <p className="font-semibold text-xs sm:text-sm">{interactive.question}</p>
                 <p className="text-[10px] sm:text-xs text-muted-foreground">{interactive.description}</p>
 
-                <div className="space-y-2 sm:space-y-3">
+                <div className="space-y-3 sm:space-y-4">
                     {pairs.map((pair) => {
                         const selected = versusAnswers[pair.id];
 
                         return (
-                            <div key={pair.id} className="flex items-stretch gap-1.5 sm:gap-2">
-                                <button
-                                    onClick={() => handleVersusSelect(pair.id, pair.opt1.id)}
-                                    className={cn(
-                                        'flex-1 p-2 sm:p-3 rounded-lg border-2 transition-all text-[10px] sm:text-sm font-medium flex items-center justify-center gap-1 sm:gap-2 active:scale-95',
-                                        selected === pair.opt1.id
-                                            ? 'bg-primary text-white border-primary'
-                                            : 'bg-background hover:bg-muted/50 border-muted'
-                                    )}
-                                >
-                                    <span className="text-base sm:text-lg">{pair.opt1.emoji}</span>
-                                    <span className="truncate">{pair.opt1.label}</span>
-                                </button>
-                                <div className="flex items-center px-0.5 sm:px-1 text-[9px] sm:text-xs text-muted-foreground font-bold">VS</div>
-                                <button
-                                    onClick={() => handleVersusSelect(pair.id, pair.opt2.id)}
-                                    className={cn(
-                                        'flex-1 p-2 sm:p-3 rounded-lg border-2 transition-all text-[10px] sm:text-sm font-medium flex items-center justify-center gap-1 sm:gap-2 active:scale-95',
-                                        selected === pair.opt2.id
-                                            ? 'bg-primary text-white border-primary'
-                                            : 'bg-background hover:bg-muted/50 border-muted'
-                                    )}
-                                >
-                                    <span className="text-base sm:text-lg">{pair.opt2.emoji}</span>
-                                    <span className="truncate">{pair.opt2.label}</span>
-                                </button>
+                            <div key={pair.id} className="space-y-1.5">
+                                <div className="flex items-center justify-center gap-1 text-[9px] sm:text-xs text-muted-foreground font-bold">
+                                    <span className="h-px flex-1 bg-border" />
+                                    <span>VS</span>
+                                    <span className="h-px flex-1 bg-border" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                                    <button
+                                        onClick={() => handleVersusSelect(pair.id, pair.opt1.id)}
+                                        className={cn(
+                                            'p-2 sm:p-3 rounded-xl border-2 transition-all text-center active:scale-95 min-h-[60px] sm:min-h-[70px] flex flex-col items-center justify-center gap-1',
+                                            selected === pair.opt1.id
+                                                ? 'bg-primary text-white border-primary shadow-lg'
+                                                : 'bg-background hover:bg-muted/50 border-muted hover:border-primary/30'
+                                        )}
+                                    >
+                                        <span className="text-lg sm:text-xl">{pair.opt1.emoji}</span>
+                                        <span className="text-[10px] sm:text-xs font-medium leading-tight line-clamp-2 px-1">
+                                            {pair.opt1.label}
+                                        </span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleVersusSelect(pair.id, pair.opt2.id)}
+                                        className={cn(
+                                            'p-2 sm:p-3 rounded-xl border-2 transition-all text-center active:scale-95 min-h-[60px] sm:min-h-[70px] flex flex-col items-center justify-center gap-1',
+                                            selected === pair.opt2.id
+                                                ? 'bg-primary text-white border-primary shadow-lg'
+                                                : 'bg-background hover:bg-muted/50 border-muted hover:border-primary/30'
+                                        )}
+                                    >
+                                        <span className="text-lg sm:text-xl">{pair.opt2.emoji}</span>
+                                        <span className="text-[10px] sm:text-xs font-medium leading-tight line-clamp-2 px-1">
+                                            {pair.opt2.label}
+                                        </span>
+                                    </button>
+                                </div>
                             </div>
                         );
                     })}
@@ -1200,8 +1222,30 @@ export function AiChat() {
         );
     };
 
-    const renderQuickActions = (actions: QuickAction[]) => {
+    const renderQuickActions = (actions: QuickAction[], isWelcome: boolean = false) => {
         if (!actions || actions.length === 0) return null;
+
+        if (isWelcome) {
+            return (
+                <div className="flex flex-col gap-2 mt-3">
+                    {actions.map((action) => (
+                        <button
+                            key={action.id}
+                            onClick={() => handleQuickAction(action.action)}
+                            className={cn(
+                                'w-full px-4 py-3 text-sm font-medium rounded-xl transition-all active:scale-[0.98]',
+                                'bg-primary/10 hover:bg-primary/20 text-primary',
+                                'border-2 border-primary/30 hover:border-primary/50',
+                                'flex items-center justify-center gap-2 shadow-sm'
+                            )}
+                        >
+                            <span className="text-lg">{action.emoji}</span>
+                            <span>{action.label.replace(action.emoji, '').trim()}</span>
+                        </button>
+                    ))}
+                </div>
+            );
+        }
 
         return (
             <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 sm:mt-3">
@@ -1218,7 +1262,7 @@ export function AiChat() {
         );
     };
 
-    const renderInteractive = (interactive: InteractiveElement) => {
+    const renderInteractive = (interactive: InteractiveElement, isWelcome: boolean = false) => {
         if (!interactive) return null;
 
         switch (interactive.type) {
@@ -1256,7 +1300,7 @@ export function AiChat() {
                     </>
                 );
             case 'quick_actions':
-                return renderQuickActions(interactive.quickActions);
+                return renderQuickActions(interactive.quickActions, isWelcome);
             default:
                 return null;
         }
@@ -1325,7 +1369,11 @@ export function AiChat() {
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 overscroll-contain">
+                    <div
+                        ref={messagesContainerRef}
+                        className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 overscroll-contain flex flex-col"
+                    >
+                        <div className="flex-1" />
                         {messages.map((message) => (
                             <div
                                 key={message.id}
@@ -1356,7 +1404,7 @@ export function AiChat() {
                                     </div>
                                     {message.interactive && (
                                         <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-border/50">
-                                            {renderInteractive(message.interactive)}
+                                            {renderInteractive(message.interactive, message.id === 'welcome')}
                                         </div>
                                     )}
                                 </div>

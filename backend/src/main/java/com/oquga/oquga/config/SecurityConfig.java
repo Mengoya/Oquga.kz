@@ -29,14 +29,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/v1/auth/login",
-                                "/api/v1/auth/register",
-                                "/api/v1/auth/refresh",
-                                "/api/v1/auth/logout",
-                                "/api/v1/ai/chat",
-                                "/api/v1/universities",
-                                "/api/v1/universities/{id}",
-                                "/api/v1/universities/{id}/view"
+                                "/api/v1/auth/**",
+                                "/api/v1/ai/**",
+                                "/api/v1/universities/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
