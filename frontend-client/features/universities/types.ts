@@ -11,6 +11,7 @@ export interface UniversityResponse {
     slug: string;
     photoUrl: string | null;
     websiteUrl: string | null;
+    virtualTourUrl: string | null;
     foundedYear: number | null;
     contactPhone: string | null;
     contactEmail: string | null;
