@@ -4,7 +4,7 @@ import {
     UniversityListParams,
     UniversityListResponse,
 } from './types';
-import { INTERNAL_API_URL } from '@/lib/config';
+import { getInternalApiUrl } from '@/lib/config';
 
 export async function getUniversities(
     params: UniversityListParams = {},
@@ -29,39 +29,49 @@ export async function getUniversityById(id: string): Promise<UniversityDetail> {
     const isServer = typeof window === 'undefined';
 
     if (isServer) {
-        let baseUrl = INTERNAL_API_URL;
-
-        if (!baseUrl || baseUrl === 'undefined') {
-            baseUrl = 'http://localhost:8080';
-        }
-
-        baseUrl = baseUrl.replace(/\/+$/, '');
-
+        const baseUrl = getInternalApiUrl();
         const apiUrl = `${baseUrl}/api/v1/universities/${id}`;
 
         console.log(`[SSR] Fetching university from: ${apiUrl}`);
+        console.log(`[SSR] INTERNAL_API_URL env: ${process.env.INTERNAL_API_URL}`);
 
-        const res = await fetch(apiUrl, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            cache: 'no-store',
-        });
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-        if (!res.ok) {
-            console.error(`[SSR] Failed to fetch university: ${res.status} ${res.statusText}`);
+            const res = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                cache: 'no-store',
+                signal: controller.signal,
+            });
 
-            if (res.status === 404) {
-                throw new Error('University not found');
+            clearTimeout(timeoutId);
+
+            if (!res.ok) {
+                console.error(`[SSR] Failed to fetch university: ${res.status} ${res.statusText}`);
+
+                if (res.status === 404) {
+                    throw new Error('University not found');
+                }
+                throw new Error(
+                    `Failed to fetch university: ${res.status} ${res.statusText}`,
+                );
             }
-            throw new Error(
-                `Failed to fetch university: ${res.status} ${res.statusText}`,
-            );
-        }
 
-        return res.json();
+            return res.json();
+        } catch (error: unknown) {
+            console.error('[SSR] Fetch error details:', error);
+
+            if (error instanceof Error && error.name === 'AbortError') {
+                throw new Error('Request timeout');
+            }
+
+            throw error;
+        }
     }
 
     return apiClient.get<UniversityDetail>(`/universities/${id}`);

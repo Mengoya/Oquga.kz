@@ -131,6 +131,7 @@ services:
     restart: always
     environment:
       - INTERNAL_API_URL=http://oquga-backend:8080
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
     depends_on:
       - backend
     networks:
