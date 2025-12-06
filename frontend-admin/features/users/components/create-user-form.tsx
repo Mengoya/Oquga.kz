@@ -32,7 +32,7 @@ interface Props {
 }
 
 export function CreateUserForm({ onSuccess }: Props) {
-    const t = useTranslations('UsersPage');
+    const t = useTranslations('UsersPage.createModal');
     const tCommon = useTranslations('Common');
     const queryClient = useQueryClient();
 
@@ -56,7 +56,7 @@ export function CreateUserForm({ onSuccess }: Props) {
         mutationFn: createUniversityAdmin,
         onSuccess: () => {
             toast.success(tCommon('feedback.success'), {
-                description: 'Администратор ВУЗа успешно создан',
+                description: t('success'),
             });
             queryClient.invalidateQueries({ queryKey: ['university-admins'] });
             onSuccess();
@@ -82,7 +82,7 @@ export function CreateUserForm({ onSuccess }: Props) {
                         name="firstName"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Имя</FormLabel>
+                                <FormLabel>{t('firstNameLabel')}</FormLabel>
                                 <FormControl>
                                     <Input {...field} />
                                 </FormControl>
@@ -95,7 +95,7 @@ export function CreateUserForm({ onSuccess }: Props) {
                         name="lastName"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Фамилия</FormLabel>
+                                <FormLabel>{t('lastNameLabel')}</FormLabel>
                                 <FormControl>
                                     <Input {...field} />
                                 </FormControl>
@@ -110,7 +110,7 @@ export function CreateUserForm({ onSuccess }: Props) {
                     name="email"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>{t('createModal.emailLabel')}</FormLabel>
+                            <FormLabel>{t('emailLabel')}</FormLabel>
                             <FormControl>
                                 <Input type="email" {...field} />
                             </FormControl>
@@ -124,7 +124,7 @@ export function CreateUserForm({ onSuccess }: Props) {
                     name="password"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>{t('createModal.passwordLabel')}</FormLabel>
+                            <FormLabel>{t('passwordLabel')}</FormLabel>
                             <FormControl>
                                 <Input type="password" {...field} />
                             </FormControl>
@@ -138,7 +138,7 @@ export function CreateUserForm({ onSuccess }: Props) {
                     name="universityId"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>{t('createModal.universityLabel')}</FormLabel>
+                            <FormLabel>{t('universityLabel')}</FormLabel>
                             <Select
                                 onValueChange={(value) => field.onChange(Number(value))}
                                 value={field.value?.toString()}
@@ -146,7 +146,7 @@ export function CreateUserForm({ onSuccess }: Props) {
                             >
                                 <FormControl>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Выберите университет" />
+                                        <SelectValue placeholder={t('selectUniversity')} />
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>

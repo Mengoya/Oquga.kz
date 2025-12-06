@@ -31,10 +31,10 @@ export default function UsersPage() {
             <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-1">
                     <h1 className="text-2xl font-bold tracking-tight">
-                        Администраторы ВУЗов
+                        {t('title')}
                     </h1>
                     <p className="text-muted-foreground">
-                        Управление учётными записями администраторов университетов
+                        {t('subtitle')}
                     </p>
                 </div>
 
@@ -50,8 +50,8 @@ export default function UsersPage() {
                                 total: data.meta.total,
                                 span: (chunks) => (
                                     <span className="font-medium text-foreground">
-                                          {chunks}
-                                      </span>
+                                        {chunks}
+                                    </span>
                                 ),
                             })
                             : tDashboard('notFound.title')}

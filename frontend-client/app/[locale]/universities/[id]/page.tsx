@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
     MapPin,
@@ -13,8 +12,10 @@ import {
     CheckCircle2,
     ExternalLink,
 } from 'lucide-react';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Button } from '@/components/ui/button';
+import { Link } from '@/i18n/navigation';
 import { getUniversityById } from '@/features/universities/api';
 import {
     UniversityDetail,
@@ -22,62 +23,71 @@ import {
 } from '@/features/universities/types';
 import { PLACEHOLDER_IMAGE } from '@/lib/constants';
 
-function getTranslation(
+function getUniversityTranslation(
     uni: UniversityDetail,
-    locale: string = 'ru',
+    locale: string,
 ): UniversityTranslation {
     return (
         uni.translations[locale] ||
+        uni.translations['ru'] ||
+        uni.translations['en'] ||
         Object.values(uni.translations)[0] || {
-            name: 'Название отсутствует',
+            name: '',
             shortDescription: '',
             description: '',
-            city: 'Город не указан',
+            city: '',
             isComplete: false,
         }
     );
 }
 
 interface PageProps {
-    params: Promise<{ id: string }>;
+    params: Promise<{ id: string; locale: string }>;
 }
 
 export async function generateMetadata({
     params,
 }: PageProps): Promise<Metadata> {
-    const { id } = await params;
+    const { id, locale } = await params;
 
     try {
         const uni = await getUniversityById(id);
-        const t = getTranslation(uni, 'ru');
+        const translation = getUniversityTranslation(uni, locale);
+        const t = await getTranslations({ locale, namespace: 'universities' });
 
         return {
-            title: t.name,
+            title: translation.name || t('university'),
             description:
-                t.shortDescription ||
-                `Подробная информация об университете ${t.name}`,
+                translation.shortDescription ||
+                `${t('aboutUniversity')} - ${translation.name}`,
             openGraph: {
-                title: t.name,
-                description: t.shortDescription,
+                title: translation.name,
+                description: translation.shortDescription,
                 images: [uni.photoUrl || PLACEHOLDER_IMAGE],
             },
         };
-    } catch (e) {
+    } catch {
+        const t = await getTranslations({ locale, namespace: 'universities' });
         return {
-            title: 'Университет не найден',
+            title: t('notFound'),
         };
     }
 }
 
 export default async function UniversityDetailPage({ params }: PageProps) {
-    const { id } = await params;
+    const { id, locale } = await params;
+
+    setRequestLocale(locale);
+
+    const t = await getTranslations('universities');
+    const tCommon = await getTranslations('common');
 
     let uni: UniversityDetail;
-    let t: UniversityTranslation;
+    let translation: UniversityTranslation;
 
     try {
         uni = await getUniversityById(id);
-        t = getTranslation(uni, 'ru');
+        translation = getUniversityTranslation(uni, locale);
     } catch (error) {
         console.error('Error loading university:', error);
         notFound();
@@ -89,7 +99,6 @@ export default async function UniversityDetailPage({ params }: PageProps) {
 
     return (
         <div className="min-h-screen bg-muted/10 pb-20 animate-in fade-in duration-500">
-            {/* Навигация назад */}
             <div className="container mx-auto px-4 md:px-6 py-6">
                 <Link href="/universities">
                     <Button
@@ -97,7 +106,7 @@ export default async function UniversityDetailPage({ params }: PageProps) {
                         className="pl-0 gap-2 text-muted-foreground hover:text-primary"
                     >
                         <ChevronLeft className="h-4 w-4" />
-                        Назад к списку ВУЗов
+                        {t('backToList')}
                     </Button>
                 </Link>
             </div>
@@ -107,7 +116,7 @@ export default async function UniversityDetailPage({ params }: PageProps) {
                     <div className="relative h-[250px] md:h-[400px] w-full bg-muted">
                         <Image
                             src={uni.photoUrl || PLACEHOLDER_IMAGE}
-                            alt={t.name}
+                            alt={translation.name}
                             fill
                             className="object-cover transition-transform duration-700 group-hover:scale-105"
                             priority
@@ -120,33 +129,39 @@ export default async function UniversityDetailPage({ params }: PageProps) {
                                 <div className="space-y-4 max-w-3xl">
                                     <div className="flex flex-wrap items-center gap-2">
                                         <span className="inline-flex items-center rounded-md bg-white/20 backdrop-blur-md px-2.5 py-0.5 text-xs font-medium text-white ring-1 ring-inset ring-white/30">
-                                            Университет
+                                            {t('university')}
                                         </span>
                                         {uni.progressPercent > 80 && (
                                             <span className="inline-flex items-center rounded-md bg-green-500/90 px-2.5 py-0.5 text-xs font-medium text-white shadow-sm">
                                                 <CheckCircle2 className="mr-1 h-3 w-3" />
-                                                Подтвержденный профиль
+                                                {t('verifiedProfile')}
                                             </span>
                                         )}
                                         <span className="inline-flex items-center rounded-md bg-black/40 backdrop-blur-md px-2.5 py-0.5 text-xs font-medium text-white">
                                             <Eye className="mr-1 h-3 w-3" />
-                                            {uni.viewCount.toLocaleString()}
+                                            {tCommon('views', {
+                                                count: uni.viewCount.toLocaleString(
+                                                    locale,
+                                                ),
+                                            })}
                                         </span>
                                     </div>
 
                                     <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-shadow-lg leading-tight">
-                                        {t.name}
+                                        {translation.name}
                                     </h1>
 
                                     <div className="flex flex-wrap items-center gap-6 text-sm md:text-base text-gray-200 font-medium">
                                         <div className="flex items-center gap-2">
                                             <MapPin className="h-5 w-5 text-primary" />
-                                            {t.city}
+                                            {translation.city}
                                         </div>
                                         {uni.foundedYear && (
                                             <div className="flex items-center gap-2">
                                                 <Calendar className="h-5 w-5 text-primary" />
-                                                Основан в {uni.foundedYear}
+                                                {tCommon('founded', {
+                                                    year: uni.foundedYear,
+                                                })}
                                             </div>
                                         )}
                                     </div>
@@ -163,7 +178,7 @@ export default async function UniversityDetailPage({ params }: PageProps) {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                         >
-                                            Официальный сайт
+                                            {t('officialSite')}
                                             <ExternalLink className="ml-2 h-4 w-4" />
                                         </a>
                                     </Button>
@@ -179,19 +194,18 @@ export default async function UniversityDetailPage({ params }: PageProps) {
                     <div className="lg:col-span-8 space-y-8">
                         <section className="bg-card rounded-2xl p-6 md:p-8 border shadow-sm">
                             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 border-b pb-4">
-                                Об университете
+                                {t('aboutUniversity')}
                             </h2>
                             <div className="prose prose-neutral dark:prose-invert max-w-none text-foreground/90 leading-relaxed">
-                                {t.description ? (
+                                {translation.description ? (
                                     <div
                                         dangerouslySetInnerHTML={createMarkup(
-                                            t.description,
+                                            translation.description,
                                         )}
                                     />
                                 ) : (
                                     <p className="text-muted-foreground italic bg-muted/30 p-4 rounded-lg">
-                                        Подробное описание университета временно
-                                        отсутствует.
+                                        {t('noDescription')}
                                     </p>
                                 )}
                             </div>
@@ -201,7 +215,7 @@ export default async function UniversityDetailPage({ params }: PageProps) {
                     <aside className="lg:col-span-4 space-y-6">
                         <div className="bg-card rounded-2xl p-6 border shadow-sm sticky top-24">
                             <h3 className="font-semibold text-lg mb-6 flex items-center gap-2">
-                                Контакты приемной комиссии
+                                {t('contacts')}
                             </h3>
                             <div className="space-y-5">
                                 {uni.contactPhone && (
@@ -211,7 +225,7 @@ export default async function UniversityDetailPage({ params }: PageProps) {
                                         </div>
                                         <div>
                                             <p className="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">
-                                                Телефон
+                                                {t('phone')}
                                             </p>
                                             <a
                                                 href={`tel:${uni.contactPhone}`}
@@ -249,7 +263,7 @@ export default async function UniversityDetailPage({ params }: PageProps) {
                                         </div>
                                         <div className="overflow-hidden">
                                             <p className="text-xs font-medium text-muted-foreground mb-1 uppercase tracking-wider">
-                                                Веб-сайт
+                                                {t('website')}
                                             </p>
                                             <a
                                                 href={uni.websiteUrl}
@@ -274,11 +288,10 @@ export default async function UniversityDetailPage({ params }: PageProps) {
                                     className="w-full font-semibold text-base py-6 shadow-lg shadow-primary/20"
                                     size="lg"
                                 >
-                                    Подать документы
+                                    {t('applyDocuments')}
                                 </Button>
                                 <p className="text-[11px] text-center text-muted-foreground">
-                                    Вы будете перенаправлены на официальный
-                                    портал или форму подачи заявки.
+                                    {t('applyNote')}
                                 </p>
                             </div>
                         </div>

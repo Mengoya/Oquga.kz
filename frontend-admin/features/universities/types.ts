@@ -38,7 +38,6 @@ const TranslationSchema = z.object({
 });
 
 export const CreateUniversitySchema = z.object({
-    photoUrl: z.string().min(1, 'Photo URL is required'),
     translations: z
         .object({
             ru: TranslationSchema.optional(),
@@ -51,6 +50,10 @@ export const CreateUniversitySchema = z.object({
 });
 
 export type CreateUniversityValues = z.infer<typeof CreateUniversitySchema>;
+
+export interface PhotoUploadResponse {
+    photoUrl: string;
+}
 
 export interface UniversityApiTranslation {
     name: string;

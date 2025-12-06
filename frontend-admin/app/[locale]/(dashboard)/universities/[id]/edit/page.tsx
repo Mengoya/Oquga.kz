@@ -9,8 +9,11 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useAuthStore } from '@/stores/use-auth-store';
 import { useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 
 export default function UniversityEditPage() {
+    const t = useTranslations('UniversitiesPage.edit');
+    const tCommon = useTranslations('Common');
     const params = useParams();
     const router = useRouter();
     const { user } = useAuthStore();
@@ -42,9 +45,9 @@ export default function UniversityEditPage() {
         return (
             <div className="container mx-auto p-6">
                 <div className="text-center py-12">
-                    <h2 className="text-xl font-semibold">Университет не найден</h2>
+                    <h2 className="text-xl font-semibold">{t('notFound')}</h2>
                     <Button variant="link" onClick={() => router.back()}>
-                        Вернуться назад
+                        {tCommon('actions.back')}
                     </Button>
                 </div>
             </div>
@@ -66,10 +69,10 @@ export default function UniversityEditPage() {
                     )}
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">
-                            {translation?.name || 'Редактирование'}
+                            {translation?.name || t('title')}
                         </h1>
                         <p className="text-muted-foreground">
-                            Редактирование информации о ВУЗе
+                            {t('subtitle')}
                         </p>
                     </div>
                 </div>
@@ -77,7 +80,7 @@ export default function UniversityEditPage() {
                 <div className="grid gap-6 lg:grid-cols-3">
                     <div className="lg:col-span-2">
                         <div className="rounded-lg border bg-card p-6">
-                            <h2 className="text-lg font-semibold mb-4">Основная информация</h2>
+                            <h2 className="text-lg font-semibold mb-4">{t('basicInfo')}</h2>
                             <UniversityEditForm university={university} />
                         </div>
                     </div>

@@ -20,8 +20,7 @@ interface UsersTableProps {
 }
 
 export function UsersTable({ data, isLoading }: UsersTableProps) {
-    const t = useTranslations('UsersPage.table.headers');
-    const tStatus = useTranslations('UsersPage.status');
+    const t = useTranslations('UsersPage');
     const tNotFound = useTranslations('Dashboard.notFound');
     const format = useFormatter();
 
@@ -50,10 +49,10 @@ export function UsersTable({ data, isLoading }: UsersTableProps) {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead className="w-[300px]">{t('user')}</TableHead>
-                        <TableHead>{t('university')}</TableHead>
-                        <TableHead>{t('status')}</TableHead>
-                        <TableHead>Дата создания</TableHead>
+                        <TableHead className="w-[300px]">{t('table.headers.user')}</TableHead>
+                        <TableHead>{t('table.headers.university')}</TableHead>
+                        <TableHead>{t('table.headers.status')}</TableHead>
+                        <TableHead>{t('table.headers.createdAt')}</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -91,13 +90,13 @@ export function UsersTable({ data, isLoading }: UsersTableProps) {
                                         </div>
                                     ) : (
                                         <span className="text-xs text-muted-foreground italic">
-                                            Не привязан
+                                            {t('notLinked')}
                                         </span>
                                     )}
                                 </TableCell>
                                 <TableCell>
                                     <Badge variant={user.isActive ? 'default' : 'destructive'}>
-                                        {user.isActive ? tStatus('active') : tStatus('blocked')}
+                                        {user.isActive ? t('status.active') : t('status.blocked')}
                                     </Badge>
                                 </TableCell>
                                 <TableCell>

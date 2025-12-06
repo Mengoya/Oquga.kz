@@ -16,21 +16,35 @@
       "create": "Құру",
       "cancel": "Болдырмау",
       "save": "Сақтау",
-      "delete": "Жою"
+      "saveChanges": "Өзгерістерді сақтау",
+      "delete": "Жою",
+      "edit": "Өңдеу",
+      "add": "Қосу",
+      "back": "Артқа қайту"
     },
     "feedback": {
       "success": "Сәтті",
       "error": "Қате",
       "created": "Жазба сәтті құрылды",
+      "updated": "Деректер сәтті жаңартылды",
       "genericError": "Күтпеген қате орын алды. Кейінірек қайталап көріңіз."
-    }
+    },
+    "loading": "Жүктелуде...",
+    "redirecting": "Қайта бағыттау...",
+    "notFound": "Табылмады"
   },
   "Navigation": {
     "universities": "Университеттер",
     "users": "Пайдаланушылар",
     "profile": "Профиль",
     "settings": "Баптаулар",
-    "logout": "Шығу"
+    "logout": "Шығу",
+    "myUniversity": "Менің ЖОО"
+  },
+  "Roles": {
+    "mainAdmin": "Бас әкімші",
+    "universityAdmin": "ЖОО әкімшісі",
+    "student": "Студент"
   },
   "Dashboard": {
     "title": "Университеттер",
@@ -49,33 +63,14 @@
         "programs": "Бағдарламалар",
         "students": "Студенттер",
         "rating": "Рейтинг",
-        "status": "Мәртебесі"
+        "status": "Мәртебесі",
+        "progress": "Прогресс"
       }
     },
     "status": {
       "active": "Белсенді",
       "archived": "Мұрағат",
       "pending": "Тексерілуде"
-    }
-  },
-  "UniversitiesPage": {
-    "createModal": {
-      "title": "Университет құру",
-      "description": "Жаңа оқу орны туралы деректерді толтырыңыз.",
-      "nameLabel": "Атауы",
-      "cityLabel": "Қала",
-      "descriptionLabel": "Сипаттама"
-    }
-  },
-  "UsersPage": {
-    "createModal": {
-      "title": "Пайдаланушыны құру",
-      "description": "Жүйеге жаңа пайдаланушыны қосыңыз.",
-      "nameLabel": "Аты",
-      "emailLabel": "Email",
-      "passwordLabel": "Құпия сөз",
-      "roleLabel": "Рөлі",
-      "universityLabel": "Университет"
     }
   },
   "Auth": {
@@ -91,6 +86,66 @@
       "email": "Email қате форматта"
     }
   },
+  "UsersPage": {
+    "title": "ЖОО әкімшілері",
+    "subtitle": "Университет әкімшілерінің тіркелгілерін басқару",
+    "addUser": "Құру",
+    "search": "Email немесе аты бойынша іздеу...",
+    "filters": {
+      "role": "Барлық рөлдер",
+      "university": "Барлық университеттер"
+    },
+    "table": {
+      "headers": {
+        "user": "Пайдаланушы",
+        "role": "Рөлі",
+        "university": "ЖОО",
+        "status": "Мәртебесі",
+        "lastLogin": "Соңғы кіру",
+        "createdAt": "Құрылған күні"
+      }
+    },
+    "roles": {
+      "admin": "Әкімші",
+      "manager": "Менеджер",
+      "viewer": "Бақылаушы"
+    },
+    "status": {
+      "active": "Белсенді",
+      "blocked": "Бұғатталған"
+    },
+    "notLinked": "Байланыстырылмаған",
+    "createModal": {
+      "title": "ЖОО әкімшісін құру",
+      "description": "Жүйеге жаңа университет әкімшісін қосыңыз.",
+      "firstNameLabel": "Аты",
+      "lastNameLabel": "Тегі",
+      "emailLabel": "Email",
+      "passwordLabel": "Құпия сөз",
+      "roleLabel": "Рөлі",
+      "universityLabel": "Университет",
+      "selectUniversity": "Университетті таңдаңыз",
+      "success": "ЖОО әкімшісі сәтті құрылды"
+    }
+  },
+  "UniversitiesPage": {
+    "createModal": {
+      "title": "Университет құру",
+      "description": "Жаңа оқу орны туралы деректерді толтырыңыз.",
+      "nameLabel": "Атауы",
+      "cityLabel": "Қала",
+      "descriptionLabel": "Сипаттама",
+      "photoUrlLabel": "Фото URL",
+      "shortDescriptionLabel": "Қысқаша сипаттама",
+      "fillStatus": "Толтыру мәртебесі"
+    },
+    "edit": {
+      "title": "Өңдеу",
+      "subtitle": "ЖОО туралы ақпаратты өңдеу",
+      "notFound": "Университет табылмады",
+      "basicInfo": "Негізгі ақпарат"
+    }
+  },
   "ProfilePage": {
     "title": "Профиль",
     "subtitle": "Аккаунт ақпаратын басқарыңыз",
@@ -104,6 +159,162 @@
     "placeholders": {
       "name": "Атыңызды енгізіңіз"
     },
-    "roleDescription": "Сіздің рөліңіз жүйедегі қолжетімділік деңгейін анықтайды."
+    "roleDescription": "Сіздің рөліңіз жүйедегі қолжетімділік деңгейін анықтайды.",
+    "emailDescription": "Email-ді тікелей өзгерту мүмкін емес."
+  },
+  "UniversityEdit": {
+    "progress": {
+      "title": "Толтыру прогресі",
+      "fields": "{filled}/{total} өріс"
+    },
+    "sections": {
+      "basic": "Негізгі ақпарат",
+      "description": "Сипаттама",
+      "leadership": "Басшылық",
+      "achievements": "Жетістіктер",
+      "history": "Тарих оқиғалары",
+      "faculties": "Факультеттер",
+      "admission": "Қабылдау ережелері",
+      "tuition": "Оқу құны",
+      "international": "Халықаралық ынтымақтастық"
+    },
+    "basicInfo": {
+      "title": "Негізгі ақпарат",
+      "subtitle": "Университеттің негізгі деректері: байланыстар, сілтемелер, құрылған жылы",
+      "photoUrl": "Фото URL",
+      "website": "Веб-сайт",
+      "foundedYear": "Құрылған жылы",
+      "phone": "Телефон",
+      "email": "Email",
+      "nameAndCity": "Атауы және қала",
+      "name": "Атауы",
+      "city": "Қала",
+      "address": "Мекенжай"
+    },
+    "description": {
+      "title": "Сипаттама",
+      "subtitle": "Қысқа және толық сипаттама, миссия/мақсат, университет тарихы",
+      "shortDescription": "Қысқаша сипаттама",
+      "shortDescriptionHint": "500 таңбаға дейін",
+      "fullDescription": "Толық сипаттама",
+      "goal": "Миссия / Мақсат",
+      "history": "Тарих"
+    },
+    "leadership": {
+      "title": "Басшылық",
+      "subtitle": "Ректор, проректорлар және басшылықтың басқа мүшелері",
+      "empty": "Басшылық туралы жазбалар жоқ",
+      "fullName": "Аты-жөні",
+      "position": "Лауазымы",
+      "bio": "Өмірбаян"
+    },
+    "achievements": {
+      "title": "Жетістіктер",
+      "subtitle": "Рейтингтер, марапаттар және университет жетістіктері",
+      "empty": "Жетістіктер жоқ",
+      "name": "Атауы",
+      "year": "Жыл",
+      "rank": "Орын/Дәреже",
+      "rankPlaceholder": "Мысалы: 1 орын, Топ-10",
+      "details": "Мәліметтер"
+    },
+    "history": {
+      "title": "Тарих",
+      "subtitle": "Университет тарихындағы маңызды оқиғалар",
+      "empty": "Тарих оқиғалары жоқ",
+      "addEvent": "Оқиға қосу",
+      "eventNumber": "Оқиға #{number}",
+      "year": "Жыл",
+      "eventDescription": "Оқиға сипаттамасы"
+    },
+    "faculties": {
+      "title": "Факультеттер",
+      "subtitle": "Құрылым: Факультеттер → Кафедралар → Бағдарлама топтары → Бағдарламалар",
+      "addFaculty": "Факультет қосу",
+      "empty": "Факультеттер жоқ",
+      "facultyNumber": "Факультет #{number}",
+      "facultyName": "Факультет атауы",
+      "departments": "Кафедралар",
+      "addDepartment": "Кафедра қосу",
+      "departmentNumber": "Кафедра #{number}",
+      "departmentName": "Атауы",
+      "departmentGoal": "Мақсат",
+      "departmentMission": "Миссия",
+      "departmentTasks": "Міндеттер",
+      "programGroups": "Білім беру бағдарламаларының топтары",
+      "addProgramGroup": "Топ қосу",
+      "groupNumber": "Топ #{number}",
+      "degreeLevel": "Деңгей",
+      "code": "Код",
+      "selectDepartment": "Кафедра",
+      "notSelected": "Таңдалмаған",
+      "groupName": "Топ атауы",
+      "passingScores": "Өту балдары",
+      "minScoreGrant": "Мин. балл (грант)",
+      "minScorePaid": "Мин. балл (ақылы)",
+      "profileSubjects": "Бейіндік пәндер",
+      "profileSubjectsPlaceholder": "Математика, Физика",
+      "creativeExam": "Шығармашылық емтихан",
+      "deleteScores": "Балдарды жою",
+      "programs": "Білім беру бағдарламалары",
+      "addProgram": "Бағдарлама қосу",
+      "programNumber": "Бағдарлама #{number}",
+      "programCode": "Бағдарлама коды",
+      "programName": "Атауы"
+    },
+    "admission": {
+      "title": "Қабылдау ережелері",
+      "subtitle": "Қабылдау мерзімдері, қажетті құжаттар және түсу кезеңдері",
+      "startDate": "Қабылдау басталу күні",
+      "endDate": "Қабылдау аяқталу күні",
+      "documents": "Қажетті құжаттар",
+      "documentsPlaceholder": "Түсу үшін құжаттар тізімі...",
+      "steps": "Түсу кезеңдері",
+      "stepsPlaceholder": "Түсу процесінің қадамдық сипаттамасы...",
+      "military": "Әскери кафедра",
+      "militaryPlaceholder": "Әскери кафедра туралы ақпарат...",
+      "dormitory": "Жатақхана",
+      "dormitoryPlaceholder": "Жатақхана беру туралы ақпарат..."
+    },
+    "tuition": {
+      "title": "Оқу құны",
+      "subtitle": "Төлем категориялары, бағалар және стипендиялар туралы ақпарат",
+      "addCategory": "Категория қосу",
+      "empty": "Төлем категориялары жоқ",
+      "categoryNumber": "Категория #{number}",
+      "categoryName": "Категория атауы",
+      "categoryNamePlaceholder": "Мысалы: Бакалавриат (күндізгі)",
+      "pricePerYear": "Жылдық құны (теңге)",
+      "scholarshipInfo": "Стипендиялар мен жеңілдіктер туралы ақпарат",
+      "scholarshipPlaceholder": "Үздіктерге жеңілдіктер, гранттар...",
+      "sortOrder": "Сұрыптау реті"
+    },
+    "international": {
+      "title": "Халықаралық ынтымақтастық",
+      "subtitle": "Халықаралық бағдарламалар мен серіктестіктер бөлімдері",
+      "addSection": "Бөлім қосу",
+      "empty": "Халықаралық ынтымақтастық бөлімдері жоқ",
+      "sectionNumber": "Бөлім #{number}",
+      "externalUrl": "Сыртқы сілтеме",
+      "isActive": "Белсенді",
+      "sortOrder": "Реті",
+      "sectionTitle": "Тақырып",
+      "sectionDescription": "Сипаттама",
+      "items": "Бөлім элементтері",
+      "addItem": "Элемент қосу",
+      "itemNumber": "Элемент #{number}",
+      "itemActive": "Белсенді",
+      "itemTitle": "Тақырып"
+    },
+    "degreeLevels": {
+      "bachelor": "Бакалавриат",
+      "master": "Магистратура",
+      "doctorate": "Докторантура"
+    },
+    "languages": {
+      "ru": "Орысша",
+      "kk": "Қазақша",
+      "en": "Ағылшынша"
+    }
   }
 }

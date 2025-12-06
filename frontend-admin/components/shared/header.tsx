@@ -24,6 +24,7 @@ import { useEffect, useState } from 'react';
 export function Header() {
     const tNav = useTranslations('Navigation');
     const tCommon = useTranslations('Common.actions');
+    const tRoles = useTranslations('Roles');
     const pathname = usePathname();
     const { isAuthenticated, logout, user } = useAuthStore();
     const router = useRouter();
@@ -55,6 +56,17 @@ export function Header() {
 
     const displayName = user ? `${user.firstName} ${user.lastName}` : '';
     const initials = user ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase() : '';
+
+    const getRoleLabel = (role: string) => {
+        switch (role) {
+            case 'MAIN_ADMIN':
+                return tRoles('mainAdmin');
+            case 'UNIVERSITY_ADMIN':
+                return tRoles('universityAdmin');
+            default:
+                return tRoles('student');
+        }
+    };
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -93,7 +105,7 @@ export function Header() {
                         <Button variant="outline" size="sm" asChild>
                             <Link href={`/universities/${user.universityId}/edit` as any}>
                                 <Building2 className="mr-2 h-4 w-4" />
-                                Мой ВУЗ
+                                {tNav('myUniversity')}
                             </Link>
                         </Button>
                     )}
@@ -132,8 +144,7 @@ export function Header() {
                                             {user.email}
                                         </p>
                                         <p className="text-xs text-primary">
-                                            {user.role === 'MAIN_ADMIN' ? 'Главный администратор' :
-                                                user.role === 'UNIVERSITY_ADMIN' ? 'Администратор ВУЗа' : 'Студент'}
+                                            {getRoleLabel(user.role)}
                                         </p>
                                     </div>
                                 </DropdownMenuLabel>
