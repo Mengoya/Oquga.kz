@@ -1,15 +1,14 @@
-FROM gradle:8.8-jdk21-jammy AS builder
+FROM maven:3.9.6-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
-COPY build.gradle.kts settings.gradle.kts ./
-COPY gradle ./gradle
+COPY pom.xml .
 
-RUN gradle dependencies --no-daemon
+RUN mvn dependency:go-offline
 
 COPY src ./src
 
-RUN gradle bootJar --no-daemon -x test
+RUN mvn clean package -DskipTests
 
 FROM eclipse-temurin:21-jre-jammy
 
@@ -18,7 +17,7 @@ WORKDIR /app
 RUN groupadd --system --gid 1001 appgroup && \
     useradd --system --uid 1001 --gid appgroup appuser
 
-COPY --from=builder --chown=appuser:appgroup /app/build/libs/*.jar app.jar
+COPY --from=builder --chown=appuser:appgroup /app/target/*.jar app.jar
 
 RUN mkdir logs && chown appuser:appgroup logs
 

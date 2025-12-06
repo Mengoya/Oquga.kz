@@ -1,0 +1,11 @@
+**/node_modules
+**/.next
+**/dist
+**/target
+**/build
+**/.git
+**/.idea
+**/.vscode
+.env
+.env.local
+backend/.mvn/wrapper/maven-wrapper.jar

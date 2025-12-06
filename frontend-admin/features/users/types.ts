@@ -28,7 +28,7 @@ export const CreateUniversityAdminSchema = z.object({
     lastName: z.string().min(2, 'Минимум 2 символа'),
     email: z.string().email('Некорректный email'),
     password: z.string().min(6, 'Минимум 6 символов'),
-    universityId: z.number({ required_error: 'Выберите университет' }),
+    universityId: z.number().min(1, 'Выберите университет'),
 });
 
 export type CreateUniversityAdminValues = z.infer<typeof CreateUniversityAdminSchema>;
