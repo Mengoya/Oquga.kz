@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:v3.0
+    image: traefik:v3.6
     container_name: oquga-traefik
     restart: unless-stopped
     command:
@@ -133,7 +133,7 @@ services:
       - oquga-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.client.rule=Host(`oquga.kz`) || Host(`www.oquga.kz`)"
+      - "traefik.http.routers.client.rule=Host(`oquga.kz`)"
       - "traefik.http.routers.client.entrypoints=websecure"
       - "traefik.http.routers.client.tls.certresolver=myresolver"
       - "traefik.http.services.client.loadbalancer.server.port=3000"
