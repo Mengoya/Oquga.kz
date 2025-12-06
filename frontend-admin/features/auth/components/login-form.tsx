@@ -18,13 +18,15 @@ import { useAuthStore } from '@/stores/use-auth-store';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from '@/i18n/routing';
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Loader2, Mail, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export function LoginForm({ className }: { className?: string }) {
     const t = useTranslations('Auth');
     const router = useRouter();
+    const locale = useLocale(); // Получаем текущую локаль
     const searchParams = useSearchParams();
     const setAuth = useAuthStore((state) => state.setAuth);
     const [error, setError] = useState<string | null>(null);
@@ -45,14 +47,21 @@ export function LoginForm({ className }: { className?: string }) {
             setAuth(data.user, data.access_token);
 
             const callbackUrl = searchParams.get('callbackUrl');
+
             if (callbackUrl) {
-                router.push(callbackUrl as any);
+                const targetPath = callbackUrl.replace(new RegExp(`^/${locale}`), '') || '/';
+                router.push(targetPath as any);
             } else {
                 router.push('/');
             }
+
             router.refresh();
-        } catch {
+        } catch (err) {
+            console.error('Login error:', err);
             setError(t('errors.invalidCredentials'));
+            toast.error(t('title'), {
+                description: t('errors.invalidCredentials'),
+            });
         }
     };
 
