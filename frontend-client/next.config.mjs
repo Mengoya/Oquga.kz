@@ -1,4 +1,3 @@
-/** @type {import('next').NextConfig} */
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
@@ -9,11 +8,7 @@ const nextConfig = {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: 's3.oquga.kz',
-            },
-            {
-                protocol: 'https',
-                hostname: 'avatar.vercel.sh',
+                hostname: '**',
             },
             {
                 protocol: 'http',
