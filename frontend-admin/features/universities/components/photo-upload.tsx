@@ -5,13 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { uploadUniversityPhoto, deleteUniversityPhoto } from '../api';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import {
-    Upload,
-    Loader2,
-    ImageIcon,
-    AlertCircle,
-    Trash2
-} from 'lucide-react';
+import { Upload, Loader2, ImageIcon, AlertCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
@@ -35,14 +29,16 @@ function shouldSkipOptimization(url: string): boolean {
 
     if (url.includes('X-Amz-') || url.includes('x-amz-')) return true;
 
-    return url.includes('?') && (url.includes('Amz') || url.includes('Signature'));
+    return (
+        url.includes('?') && (url.includes('Amz') || url.includes('Signature'))
+    );
 }
 
 export function PhotoUpload({
-                                universityId,
-                                currentPhotoUrl,
-                                onPhotoChange
-                            }: PhotoUploadProps) {
+    universityId,
+    currentPhotoUrl,
+    onPhotoChange,
+}: PhotoUploadProps) {
     const tCommon = useTranslations('Common');
     const tPhoto = useTranslations('UniversityEdit.photo');
     const queryClient = useQueryClient();
@@ -63,7 +59,9 @@ export function PhotoUpload({
             setPreviewUrl(null);
             setUploadError(null);
             setImageError(false);
-            queryClient.invalidateQueries({ queryKey: ['university', universityId] });
+            queryClient.invalidateQueries({
+                queryKey: ['university', universityId],
+            });
         },
         onError: (error: Error) => {
             setUploadError(error.message);
@@ -82,7 +80,9 @@ export function PhotoUpload({
             });
             onPhotoChange(null);
             setImageError(false);
-            queryClient.invalidateQueries({ queryKey: ['university', universityId] });
+            queryClient.invalidateQueries({
+                queryKey: ['university', universityId],
+            });
         },
         onError: (error: Error) => {
             toast.error(tCommon('feedback.error'), {
@@ -91,35 +91,41 @@ export function PhotoUpload({
         },
     });
 
-    const validateFile = useCallback((file: File): string | null => {
-        if (!ALLOWED_TYPES.includes(file.type)) {
-            return tPhoto('invalidFormat');
-        }
-        if (file.size > MAX_FILE_SIZE) {
-            return tPhoto('fileTooLarge');
-        }
-        return null;
-    }, [tPhoto]);
+    const validateFile = useCallback(
+        (file: File): string | null => {
+            if (!ALLOWED_TYPES.includes(file.type)) {
+                return tPhoto('invalidFormat');
+            }
+            if (file.size > MAX_FILE_SIZE) {
+                return tPhoto('fileTooLarge');
+            }
+            return null;
+        },
+        [tPhoto],
+    );
 
-    const handleFileSelect = useCallback((file: File) => {
-        const error = validateFile(file);
-        if (error) {
-            setUploadError(error);
-            toast.error(tCommon('feedback.error'), { description: error });
-            return;
-        }
+    const handleFileSelect = useCallback(
+        (file: File) => {
+            const error = validateFile(file);
+            if (error) {
+                setUploadError(error);
+                toast.error(tCommon('feedback.error'), { description: error });
+                return;
+            }
 
-        setUploadError(null);
-        setImageError(false);
+            setUploadError(null);
+            setImageError(false);
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            setPreviewUrl(e.target?.result as string);
-        };
-        reader.readAsDataURL(file);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setPreviewUrl(e.target?.result as string);
+            };
+            reader.readAsDataURL(file);
 
-        uploadMutation.mutate(file);
-    }, [validateFile, uploadMutation, tCommon]);
+            uploadMutation.mutate(file);
+        },
+        [validateFile, uploadMutation, tCommon],
+    );
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -166,7 +172,9 @@ export function PhotoUpload({
     const isLoading = uploadMutation.isPending || deleteMutation.isPending;
     const showImage = displayUrl && !imageError;
 
-    const skipOptimization = displayUrl ? shouldSkipOptimization(displayUrl) : true;
+    const skipOptimization = displayUrl
+        ? shouldSkipOptimization(displayUrl)
+        : true;
 
     return (
         <div className="space-y-4">
@@ -175,7 +183,9 @@ export function PhotoUpload({
                     'relative border-2 border-dashed rounded-lg transition-colors',
                     isDragging && 'border-primary bg-primary/5',
                     uploadError && 'border-destructive',
-                    !isDragging && !uploadError && 'border-muted-foreground/25 hover:border-primary/50'
+                    !isDragging &&
+                        !uploadError &&
+                        'border-muted-foreground/25 hover:border-primary/50',
                 )}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -204,7 +214,9 @@ export function PhotoUpload({
                                     variant="secondary"
                                     size="icon"
                                     className="h-8 w-8 bg-white/90 hover:bg-white"
-                                    onClick={() => fileInputRef.current?.click()}
+                                    onClick={() =>
+                                        fileInputRef.current?.click()
+                                    }
                                 >
                                     <Upload className="h-4 w-4" />
                                 </Button>
@@ -252,7 +264,7 @@ export function PhotoUpload({
             {imageError && currentPhotoUrl && (
                 <div className="flex items-center gap-2 text-sm text-amber-600">
                     <AlertCircle className="h-4 w-4" />
-                    <span>Не удалось загрузить изображение</span>
+                    <span>{tPhoto('loadError')}</span>
                 </div>
             )}
 

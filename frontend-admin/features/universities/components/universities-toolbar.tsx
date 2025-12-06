@@ -51,10 +51,6 @@ export function UniversitiesToolbar() {
                         </button>
                     )}
                 </div>
-                <Button variant="outline" className="hidden sm:flex">
-                    <Filter className="mr-2 h-4 w-4" />
-                    {tCommon('filter')}
-                </Button>
             </div>
             <div className="flex items-center gap-2">
                 {isMainAdmin && <CreateUniversityDialog />}

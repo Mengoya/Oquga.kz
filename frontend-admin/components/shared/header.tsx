@@ -50,12 +50,14 @@ export function Header() {
     const isUniversityAdmin = user?.role === 'UNIVERSITY_ADMIN';
 
     const navItems = [
-        { href: '/', label: tNav('universities'), show: true },
+        { href: '/', label: tNav('universities'), show: isMainAdmin },
         { href: '/users', label: tNav('users'), show: isMainAdmin },
-    ].filter(item => item.show);
+    ].filter((item) => item.show);
 
     const displayName = user ? `${user.firstName} ${user.lastName}` : '';
-    const initials = user ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase() : '';
+    const initials = user
+        ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+        : '';
 
     const getRoleLabel = (role: string) => {
         switch (role) {
@@ -88,10 +90,10 @@ export function Header() {
                                 className={cn(
                                     'transition-colors hover:text-foreground/80',
                                     pathname.endsWith(
-                                        item.href === '/' ? '' : item.href
+                                        item.href === '/' ? '' : item.href,
                                     )
                                         ? 'text-foreground'
-                                        : 'text-foreground/60'
+                                        : 'text-foreground/60',
                                 )}
                             >
                                 {item.label}
@@ -103,7 +105,11 @@ export function Header() {
                 <div className="flex items-center gap-4">
                     {isUniversityAdmin && user?.universityId && (
                         <Button variant="outline" size="sm" asChild>
-                            <Link href={`/universities/${user.universityId}/edit` as any}>
+                            <Link
+                                href={
+                                    `/universities/${user.universityId}/edit` as any
+                                }
+                            >
                                 <Building2 className="mr-2 h-4 w-4" />
                                 {tNav('myUniversity')}
                             </Link>
@@ -126,7 +132,9 @@ export function Header() {
                                             src={`https://avatar.vercel.sh/${user.email}`}
                                             alt={displayName}
                                         />
-                                        <AvatarFallback>{initials}</AvatarFallback>
+                                        <AvatarFallback>
+                                            {initials}
+                                        </AvatarFallback>
                                     </Avatar>
                                 </Button>
                             </DropdownMenuTrigger>
@@ -155,10 +163,6 @@ export function Header() {
                                     >
                                         <User className="mr-2 h-4 w-4" />
                                         {tNav('profile')}
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem disabled>
-                                        <Settings className="mr-2 h-4 w-4" />
-                                        {tNav('settings')}
                                     </DropdownMenuItem>
                                 </DropdownMenuGroup>
                                 <DropdownMenuSeparator />

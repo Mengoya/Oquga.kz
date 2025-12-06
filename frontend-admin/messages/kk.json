@@ -160,7 +160,10 @@
       "name": "Атыңызды енгізіңіз"
     },
     "roleDescription": "Сіздің рөліңіз жүйедегі қолжетімділік деңгейін анықтайды.",
-    "emailDescription": "Email-ді тікелей өзгерту мүмкін емес."
+    "emailDescription": "Email-ді тікелей өзгерту мүмкін емес.",
+    "feedback": {
+      "updateSuccess": "Профиль сәтті жаңартылды"
+    }
   },
   "UniversityEdit": {
     "progress": {
@@ -191,6 +194,20 @@
       "name": "Атауы",
       "city": "Қала",
       "address": "Мекенжай"
+    },
+    "photo": {
+      "title": "Университет фотосуреті",
+      "upload": "Фото жүктеу",
+      "dragAndDrop": "Суретті осында сүйреңіз",
+      "orClickToSelect": "немесе файлды таңдау үшін басыңыз",
+      "allowedFormats": "PNG, JPG, WebP, GIF 5МБ дейін",
+      "uploadSuccess": "Фото сәтті жүктелді",
+      "uploadError": "Фото жүктеу қатесі",
+      "deleteConfirm": "Фотосуретті жойғыңыз келетініне сенімдісіз бе?",
+      "deleteSuccess": "Фото жойылды",
+      "fileTooLarge": "Файл өлшемі 5МБ-тан асады",
+      "invalidFormat": "Қолдау көрсетілмейтін файл пішімі",
+      "loadError": "Суретті жүктеу сәтсіз"
     },
     "description": {
       "title": "Сипаттама",
@@ -313,9 +330,9 @@
       "doctorate": "Докторантура"
     },
     "languages": {
-      "ru": "Орысша",
+      "ru": "Русский",
       "kk": "Қазақша",
-      "en": "Ағылшынша"
+      "en": "English"
     }
   }
 }

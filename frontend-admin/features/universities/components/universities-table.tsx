@@ -36,7 +36,7 @@ interface UniversitiesTableProps {
 }
 
 export function UniversitiesTable({ data, isLoading }: UniversitiesTableProps) {
-    const t = useTranslations('Dashboard.table.headers');
+    const tHeaders = useTranslations('Dashboard.table.headers');
     const tNotFound = useTranslations('Dashboard.notFound');
     const tActions = useTranslations('Common.actions');
     const router = useRouter();
@@ -73,24 +73,32 @@ export function UniversitiesTable({ data, isLoading }: UniversitiesTableProps) {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead className="w-[300px]">{t('name')}</TableHead>
-                        <TableHead>{t('city')}</TableHead>
+                        <TableHead className="w-[300px]">
+                            {tHeaders('name')}
+                        </TableHead>
+                        <TableHead>{tHeaders('city')}</TableHead>
                         <TableHead className="text-center">RU</TableHead>
                         <TableHead className="text-center">KK</TableHead>
                         <TableHead className="text-center">EN</TableHead>
-                        <TableHead>Прогресс</TableHead>
-                        {isUniversityAdmin && <TableHead className="w-[50px]"></TableHead>}
+                        <TableHead>{tHeaders('progress')}</TableHead>
+                        {isUniversityAdmin && (
+                            <TableHead className="w-[50px]"></TableHead>
+                        )}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {data.map((uni) => {
-                        const canEditThis = isUniversityAdmin && user?.universityId === Number(uni.id);
+                        const canEditThis =
+                            isUniversityAdmin &&
+                            user?.universityId === Number(uni.id);
 
                         return (
                             <TableRow key={uni.id} className="group">
                                 <TableCell className="font-medium">
                                     <div className="flex flex-col">
-                                        <span className="truncate">{uni.name}</span>
+                                        <span className="truncate">
+                                            {uni.name}
+                                        </span>
                                         <span className="text-xs text-muted-foreground">
                                             ID: {uni.id}
                                         </span>
@@ -103,17 +111,32 @@ export function UniversitiesTable({ data, isLoading }: UniversitiesTableProps) {
                                     </div>
                                 </TableCell>
                                 <TableCell className="text-center">
-                                    <LanguageStatus isComplete={uni.translations?.ru?.isComplete} />
+                                    <LanguageStatus
+                                        isComplete={
+                                            uni.translations?.ru?.isComplete
+                                        }
+                                    />
                                 </TableCell>
                                 <TableCell className="text-center">
-                                    <LanguageStatus isComplete={uni.translations?.kk?.isComplete} />
+                                    <LanguageStatus
+                                        isComplete={
+                                            uni.translations?.kk?.isComplete
+                                        }
+                                    />
                                 </TableCell>
                                 <TableCell className="text-center">
-                                    <LanguageStatus isComplete={uni.translations?.en?.isComplete} />
+                                    <LanguageStatus
+                                        isComplete={
+                                            uni.translations?.en?.isComplete
+                                        }
+                                    />
                                 </TableCell>
                                 <TableCell>
                                     <div className="flex items-center gap-2 min-w-[120px]">
-                                        <Progress value={uni.progressPercent} className="h-2" />
+                                        <Progress
+                                            value={uni.progressPercent}
+                                            className="h-2"
+                                        />
                                         <span className="text-xs text-muted-foreground w-8">
                                             {uni.progressPercent}%
                                         </span>
@@ -136,9 +159,13 @@ export function UniversitiesTable({ data, isLoading }: UniversitiesTableProps) {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => handleEdit(uni.id)}>
+                                                    <DropdownMenuItem
+                                                        onClick={() =>
+                                                            handleEdit(uni.id)
+                                                        }
+                                                    >
                                                         <Edit className="mr-2 h-4 w-4" />
-                                                        Редактировать
+                                                        {tActions('edit')}
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>

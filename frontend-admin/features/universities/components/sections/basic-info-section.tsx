@@ -18,6 +18,8 @@ const LANGUAGE_LABELS = { ru: 'Русский', kk: 'Қазақша', en: 'Engli
 
 export function BasicInfoSection({ universityId, data, onChange }: Props) {
     const t = useTranslations('UniversityEdit.basicInfo');
+    const tPhoto = useTranslations('UniversityEdit.photo');
+    const tLangs = useTranslations('UniversityEdit.languages');
 
     const handleChange = (
         field: keyof UpdateUniversityValues,
@@ -56,7 +58,7 @@ export function BasicInfoSection({ universityId, data, onChange }: Props) {
             </div>
 
             <div>
-                <Label className="mb-2 block">Фото университета</Label>
+                <Label className="mb-2 block">{tPhoto('title')}</Label>
                 <PhotoUpload
                     universityId={universityId}
                     currentPhotoUrl={data.photoUrl || null}
@@ -151,7 +153,7 @@ export function BasicInfoSection({ universityId, data, onChange }: Props) {
                     <TabsList className="grid w-full grid-cols-3">
                         {LANGUAGES.map((lang) => (
                             <TabsTrigger key={lang} value={lang}>
-                                {LANGUAGE_LABELS[lang]}
+                                {tLangs(lang)}
                             </TabsTrigger>
                         ))}
                     </TabsList>

@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { UpdateUniversityValues, HistoryEventDto } from '../../types';
 import { Plus, Trash2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface Props {
     data: UpdateUniversityValues;
@@ -13,13 +14,19 @@ interface Props {
 }
 
 export function HistorySection({ data, onChange }: Props) {
+    const t = useTranslations('UniversityEdit.history');
     const historyEvents = data.historyEvents || [];
 
     const addEvent = () => {
         onChange({
             historyEvents: [
                 ...historyEvents,
-                { id: null, eventYear: new Date().getFullYear(), eventDescription: '', sortOrder: historyEvents.length },
+                {
+                    id: null,
+                    eventYear: new Date().getFullYear(),
+                    eventDescription: '',
+                    sortOrder: historyEvents.length,
+                },
             ],
         });
     };
@@ -32,7 +39,9 @@ export function HistorySection({ data, onChange }: Props) {
 
     const updateEvent = (index: number, updates: Partial<HistoryEventDto>) => {
         onChange({
-            historyEvents: historyEvents.map((e, i) => (i === index ? { ...e, ...updates } : e)),
+            historyEvents: historyEvents.map((e, i) =>
+                i === index ? { ...e, ...updates } : e,
+            ),
         });
     };
 
@@ -40,28 +49,33 @@ export function HistorySection({ data, onChange }: Props) {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h3 className="text-lg font-semibold">История</h3>
+                    <h3 className="text-lg font-semibold">{t('title')}</h3>
                     <p className="text-sm text-muted-foreground">
-                        Ключевые события в истории университета
+                        {t('subtitle')}
                     </p>
                 </div>
                 <Button onClick={addEvent} size="sm">
                     <Plus className="h-4 w-4 mr-2" />
-                    Добавить событие
+                    {t('addEvent')}
                 </Button>
             </div>
 
             {historyEvents.length === 0 && (
                 <div className="text-center py-8 border border-dashed rounded-lg">
-                    <p className="text-muted-foreground">Нет событий истории</p>
+                    <p className="text-muted-foreground">{t('empty')}</p>
                 </div>
             )}
 
             <div className="space-y-4">
                 {historyEvents.map((event, index) => (
-                    <div key={index} className="border rounded-lg p-4 space-y-4">
+                    <div
+                        key={index}
+                        className="border rounded-lg p-4 space-y-4"
+                    >
                         <div className="flex items-start justify-between">
-                            <span className="text-sm font-medium text-muted-foreground">Событие #{index + 1}</span>
+                            <span className="text-sm font-medium text-muted-foreground">
+                                {t('eventNumber', { number: index + 1 })}
+                            </span>
                             <Button
                                 variant="ghost"
                                 size="icon"
@@ -72,18 +86,26 @@ export function HistorySection({ data, onChange }: Props) {
                             </Button>
                         </div>
                         <div>
-                            <Label>Год</Label>
+                            <Label>{t('year')}</Label>
                             <Input
                                 type="number"
                                 value={event.eventYear}
-                                onChange={(e) => updateEvent(index, { eventYear: Number(e.target.value) })}
+                                onChange={(e) =>
+                                    updateEvent(index, {
+                                        eventYear: Number(e.target.value),
+                                    })
+                                }
                             />
                         </div>
                         <div>
-                            <Label>Описание события</Label>
+                            <Label>{t('eventDescription')}</Label>
                             <Textarea
                                 value={event.eventDescription || ''}
-                                onChange={(e) => updateEvent(index, { eventDescription: e.target.value })}
+                                onChange={(e) =>
+                                    updateEvent(index, {
+                                        eventDescription: e.target.value,
+                                    })
+                                }
                                 rows={3}
                             />
                         </div>

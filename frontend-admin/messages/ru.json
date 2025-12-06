@@ -160,7 +160,10 @@
       "name": "Введите ваше имя"
     },
     "roleDescription": "Ваша роль определяет уровень доступа в системе.",
-    "emailDescription": "Email нельзя изменить напрямую."
+    "emailDescription": "Email нельзя изменить напрямую.",
+    "feedback": {
+      "updateSuccess": "Профиль успешно обновлен"
+    }
   },
   "UniversityEdit": {
     "progress": {
@@ -203,7 +206,8 @@
       "deleteConfirm": "Вы уверены, что хотите удалить фото?",
       "deleteSuccess": "Фото удалено",
       "fileTooLarge": "Размер файла превышает 5MB",
-      "invalidFormat": "Неподдерживаемый формат файла"
+      "invalidFormat": "Неподдерживаемый формат файла",
+      "loadError": "Не удалось загрузить изображение"
     },
     "description": {
       "title": "Описание",

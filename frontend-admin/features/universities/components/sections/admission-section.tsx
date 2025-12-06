@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { UpdateUniversityValues, AdmissionRuleDto } from '../../types';
+import { useTranslations } from 'next-intl';
 
 interface Props {
     data: UpdateUniversityValues;
@@ -11,6 +12,8 @@ interface Props {
 }
 
 export function AdmissionSection({ data, onChange }: Props) {
+    const t = useTranslations('UniversityEdit.admission');
+
     const admissionRule = data.admissionRule || {
         startDate: null,
         endDate: null,
@@ -32,43 +35,49 @@ export function AdmissionSection({ data, onChange }: Props) {
     return (
         <div className="space-y-6">
             <div>
-                <h3 className="text-lg font-semibold mb-4">Правила приема</h3>
+                <h3 className="text-lg font-semibold mb-4">{t('title')}</h3>
                 <p className="text-sm text-muted-foreground mb-6">
-                    Сроки приема, необходимые документы и этапы поступления
+                    {t('subtitle')}
                 </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <Label>Дата начала приема</Label>
+                    <Label>{t('startDate')}</Label>
                     <Input
                         type="date"
                         value={admissionRule.startDate || ''}
-                        onChange={(e) => updateField('startDate', e.target.value || null)}
+                        onChange={(e) =>
+                            updateField('startDate', e.target.value || null)
+                        }
                     />
                 </div>
                 <div>
-                    <Label>Дата окончания приема</Label>
+                    <Label>{t('endDate')}</Label>
                     <Input
                         type="date"
                         value={admissionRule.endDate || ''}
-                        onChange={(e) => updateField('endDate', e.target.value || null)}
+                        onChange={(e) =>
+                            updateField('endDate', e.target.value || null)
+                        }
                     />
                 </div>
             </div>
 
             <div>
-                <Label>Необходимые документы</Label>
+                <Label>{t('documents')}</Label>
                 <Textarea
                     value={admissionRule.documentsText || ''}
-                    onChange={(e) => updateField('documentsText', e.target.value)}
+                    onChange={(e) =>
+                        updateField('documentsText', e.target.value)
+                    }
                     rows={4}
                     placeholder="Список документов для поступления..."
                 />
             </div>
 
             <div>
-                <Label>Этапы поступления</Label>
+                <Label>{t('steps')}</Label>
                 <Textarea
                     value={admissionRule.stepsText || ''}
                     onChange={(e) => updateField('stepsText', e.target.value)}
@@ -78,20 +87,24 @@ export function AdmissionSection({ data, onChange }: Props) {
             </div>
 
             <div>
-                <Label>Военная кафедра</Label>
+                <Label>{t('military')}</Label>
                 <Textarea
                     value={admissionRule.militaryDepartmentInfo || ''}
-                    onChange={(e) => updateField('militaryDepartmentInfo', e.target.value)}
+                    onChange={(e) =>
+                        updateField('militaryDepartmentInfo', e.target.value)
+                    }
                     rows={2}
                     placeholder="Информация о военной кафедре..."
                 />
             </div>
 
             <div>
-                <Label>Общежитие</Label>
+                <Label>{t('dormitory')}</Label>
                 <Textarea
                     value={admissionRule.dormitoryInfo || ''}
-                    onChange={(e) => updateField('dormitoryInfo', e.target.value)}
+                    onChange={(e) =>
+                        updateField('dormitoryInfo', e.target.value)
+                    }
                     rows={2}
                     placeholder="Информация о предоставлении общежития..."
                 />

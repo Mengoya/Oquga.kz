@@ -39,7 +39,7 @@ export function ProfileForm() {
         mutationFn: updateProfile,
         onSuccess: (data) => {
             toast.success(tCommon('feedback.success'), {
-                description: 'Profile updated successfully',
+                description: t('feedback.updateSuccess'),
             });
 
             if (user && accessToken) {
@@ -50,7 +50,7 @@ export function ProfileForm() {
                         firstName: firstName || user.firstName,
                         lastName: lastNameParts.join(' ') || user.lastName,
                     },
-                    accessToken
+                    accessToken,
                 );
             }
         },
@@ -94,9 +94,7 @@ export function ProfileForm() {
                             className="bg-muted"
                         />
                     </FormControl>
-                    <FormDescription>
-                        Email cannot be changed directly.
-                    </FormDescription>
+                    <FormDescription>{t('emailDescription')}</FormDescription>
                 </FormItem>
 
                 <FormItem>

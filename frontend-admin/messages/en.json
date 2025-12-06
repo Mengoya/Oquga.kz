@@ -160,7 +160,10 @@
       "name": "Enter your name"
     },
     "roleDescription": "Your role determines your access level in the system.",
-    "emailDescription": "Email cannot be changed directly."
+    "emailDescription": "Email cannot be changed directly.",
+    "feedback": {
+      "updateSuccess": "Profile updated successfully"
+    }
   },
   "UniversityEdit": {
     "progress": {
@@ -191,6 +194,20 @@
       "name": "Name",
       "city": "City",
       "address": "Address"
+    },
+    "photo": {
+      "title": "University Photo",
+      "upload": "Upload Photo",
+      "dragAndDrop": "Drag image here",
+      "orClickToSelect": "or click to select file",
+      "allowedFormats": "PNG, JPG, WebP, GIF up to 5MB",
+      "uploadSuccess": "Photo successfully uploaded",
+      "uploadError": "Error uploading photo",
+      "deleteConfirm": "Are you sure you want to delete the photo?",
+      "deleteSuccess": "Photo deleted",
+      "fileTooLarge": "File size exceeds 5MB",
+      "invalidFormat": "Unsupported file format",
+      "loadError": "Failed to load image"
     },
     "description": {
       "title": "Description",
