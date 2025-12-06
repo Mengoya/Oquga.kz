@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Lock, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,8 @@ import {
 import { changePassword } from '@/features/profile/api';
 
 export function SecurityForm() {
+    const t = useTranslations('profile');
+
     const form = useForm<PasswordChangeValues>({
         resolver: zodResolver(PasswordChangeSchema),
         defaultValues: {
@@ -34,10 +37,10 @@ export function SecurityForm() {
     const onSubmit = async (values: PasswordChangeValues) => {
         try {
             await changePassword(values);
-            toast.success('Пароль успешно изменен');
+            toast.success(t('passwordChanged'));
             form.reset();
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Ошибка смены пароля');
+            toast.error(error.response?.data?.message || t('passwordError'));
         }
     };
 
@@ -52,7 +55,7 @@ export function SecurityForm() {
                     name="currentPassword"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Текущий пароль</FormLabel>
+                            <FormLabel>{t('currentPassword')}</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -73,7 +76,7 @@ export function SecurityForm() {
                     name="newPassword"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Новый пароль</FormLabel>
+                            <FormLabel>{t('newPassword')}</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <ShieldCheck className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -94,7 +97,7 @@ export function SecurityForm() {
                     name="confirmNewPassword"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Подтверждение пароля</FormLabel>
+                            <FormLabel>{t('confirmNewPassword')}</FormLabel>
                             <FormControl>
                                 <div className="relative">
                                     <ShieldCheck className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -119,7 +122,7 @@ export function SecurityForm() {
                         {form.formState.isSubmitting && (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         )}
-                        Обновить пароль
+                        {t('updatePassword')}
                     </Button>
                 </div>
             </form>

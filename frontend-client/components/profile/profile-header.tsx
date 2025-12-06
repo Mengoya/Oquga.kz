@@ -6,10 +6,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 export function ProfileHeader() {
     const [mounted, setMounted] = useState(false);
     const { user } = useAuthStore();
+    const t = useTranslations('profile');
 
     useEffect(() => {
         setMounted(true);
@@ -34,6 +36,17 @@ export function ProfileHeader() {
     const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
     const avatarUrl = `https://avatar.vercel.sh/${user.email}`;
 
+    const getRoleLabel = (role: string) => {
+        switch (role) {
+            case 'admin':
+                return t('admin');
+            case 'student':
+                return t('student');
+            default:
+                return t('applicant');
+        }
+    };
+
     return (
         <Card className="overflow-hidden border-none shadow-md bg-gradient-to-br from-primary/5 via-background to-background">
             <CardContent className="p-6 flex flex-col items-center text-center">
@@ -55,7 +68,7 @@ export function ProfileHeader() {
                 </p>
 
                 <Badge className="px-4 py-1 text-xs uppercase tracking-widest bg-primary/10 text-primary hover:bg-primary/20 border-none shadow-none">
-                    {user.role === 'admin' ? 'Администратор' : 'Абитуриент'}
+                    {getRoleLabel(user.role)}
                 </Badge>
             </CardContent>
         </Card>

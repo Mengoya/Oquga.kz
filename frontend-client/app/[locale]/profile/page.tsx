@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { UserCog, Shield, History, GraduationCap } from 'lucide-react';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import {
     Card,
@@ -15,24 +16,38 @@ import { ProfileEditForm } from '@/components/profile/profile-edit-form';
 import { SecurityForm } from '@/components/profile/security-form';
 import { Button } from '@/components/ui/button';
 import { ProfileHeader } from '@/components/profile/profile-header';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
-export const metadata: Metadata = {
-    title: 'Мой профиль',
-    description: 'Управление личными данными и настройками безопасности.',
-};
+interface ProfilePageProps {
+    params: Promise<{ locale: string }>;
+}
 
-export default function ProfilePage() {
+export async function generateMetadata({
+    params,
+}: ProfilePageProps): Promise<Metadata> {
+    const { locale } = await params;
+    const t = await getTranslations({ locale, namespace: 'profile' });
+
+    return {
+        title: t('title'),
+        description: t('subtitle'),
+    };
+}
+
+export default async function ProfilePage({ params }: ProfilePageProps) {
+    const { locale } = await params;
+    setRequestLocale(locale);
+
+    const t = await getTranslations('profile');
+
     return (
         <div className="container mx-auto px-4 md:px-6 py-8 min-h-[calc(100vh-4rem)]">
             <div className="flex flex-col gap-8">
                 <div className="flex flex-col gap-2">
                     <h1 className="text-3xl font-bold tracking-tight">
-                        Профиль
+                        {t('title')}
                     </h1>
-                    <p className="text-muted-foreground">
-                        Управляйте вашей личной информацией и безопасностью.
-                    </p>
+                    <p className="text-muted-foreground">{t('subtitle')}</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -42,15 +57,17 @@ export default function ProfilePage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle className="text-sm font-medium">
-                                    Ваш статус
+                                    {t('status')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-muted-foreground">
-                                        Роль
+                                        {t('role')}
                                     </span>
-                                    <Badge variant="secondary">Студент</Badge>
+                                    <Badge variant="secondary">
+                                        {t('student')}
+                                    </Badge>
                                 </div>
                             </CardContent>
                         </Card>
@@ -67,21 +84,21 @@ export default function ProfilePage() {
                                     className="gap-2 py-2 px-4"
                                 >
                                     <UserCog className="h-4 w-4" />
-                                    Общие данные
+                                    {t('generalTab')}
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="security"
                                     className="gap-2 py-2 px-4"
                                 >
                                     <Shield className="h-4 w-4" />
-                                    Безопасность
+                                    {t('securityTab')}
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="activity"
                                     className="gap-2 py-2 px-4"
                                 >
                                     <History className="h-4 w-4" />
-                                    История
+                                    {t('historyTab')}
                                 </TabsTrigger>
                             </TabsList>
 
@@ -91,11 +108,11 @@ export default function ProfilePage() {
                             >
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Личная информация</CardTitle>
+                                        <CardTitle>
+                                            {t('personalInfo')}
+                                        </CardTitle>
                                         <CardDescription>
-                                            Обновите ваше имя и контактные
-                                            данные. Изменения вступают в силу
-                                            мгновенно.
+                                            {t('personalInfoDesc')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
@@ -111,11 +128,10 @@ export default function ProfilePage() {
                                 <Card>
                                     <CardHeader>
                                         <CardTitle>
-                                            Пароль и Аутентификация
+                                            {t('passwordTitle')}
                                         </CardTitle>
                                         <CardDescription>
-                                            Рекомендуем использовать сложный
-                                            пароль для защиты вашего аккаунта.
+                                            {t('passwordDesc')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
@@ -130,9 +146,11 @@ export default function ProfilePage() {
                             >
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>История действий</CardTitle>
+                                        <CardTitle>
+                                            {t('historyTitle')}
+                                        </CardTitle>
                                         <CardDescription>
-                                            Последние просмотры вузов и заявки.
+                                            {t('historyDesc')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
@@ -141,12 +159,10 @@ export default function ProfilePage() {
                                                 <GraduationCap className="h-8 w-8 text-muted-foreground" />
                                             </div>
                                             <h3 className="font-semibold text-lg">
-                                                История пуста
+                                                {t('historyEmpty')}
                                             </h3>
                                             <p className="text-muted-foreground max-w-sm mx-auto">
-                                                Вы пока не подавали заявок и не
-                                                сохраняли университеты в
-                                                избранное.
+                                                {t('historyEmptyDesc')}
                                             </p>
                                             <Button
                                                 variant="outline"
@@ -154,7 +170,7 @@ export default function ProfilePage() {
                                                 asChild
                                             >
                                                 <Link href="/universities">
-                                                    Перейти в каталог
+                                                    {t('goToCatalog')}
                                                 </Link>
                                             </Button>
                                         </div>
