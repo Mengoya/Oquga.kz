@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { useUniversities } from '@/features/universities/hooks';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
+import {CompareFloatBar} from "@/components/universities/compare-float-bar";
 
 const ITEMS_PER_PAGE = 9;
 const SEARCH_DEBOUNCE_MS = 500;
@@ -299,6 +300,8 @@ export default function UniversitiesPage() {
                     </Button>
                 </div>
             )}
+
+            <CompareFloatBar />
         </div>
     );
 }
