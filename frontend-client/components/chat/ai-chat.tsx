@@ -398,9 +398,8 @@ export function AiChat() {
         sendToServer('', interactiveAnswer);
     };
 
-    const handleVersusChoice = (questionId: string) => {
-        const options = messages.find((m) => m.interactive?.questionId === questionId)?.interactive?.options || [];
-        if (Object.keys(versusAnswers).length < options.length) return;
+    const handleVersusChoice = (questionId: string, requiredPairs: number) => {
+        if (Object.keys(versusAnswers).length < requiredPairs) return;
 
         const userMessage: Message = {
             id: Date.now().toString(),
@@ -786,6 +785,41 @@ export function AiChat() {
     };
 
     const renderVersusChoice = (interactive: InteractiveElement) => {
+        const options = interactive.options || [];
+
+        const isPackedFormat = options.some(o => o.description?.includes('|'));
+
+        let pairs: { id: string, opt1: { id: string, label: string, emoji?: string }, opt2: { id: string, label: string, emoji?: string } }[] = [];
+
+        if (isPackedFormat) {
+            pairs = options.map(pairOption => {
+                const parts = pairOption.description.split('|');
+                if (parts.length < 2) return null;
+
+                const [p1, p2] = parts;
+                const [id1, label1] = p1.split(':');
+                const [id2, label2] = p2.split(':');
+
+                return {
+                    id: pairOption.id,
+                    opt1: { id: id1, label: label1, emoji: '🅰️' },
+                    opt2: { id: id2, label: label2, emoji: '🅱️' }
+                };
+            }).filter(p => p !== null) as any;
+        } else {
+            for (let i = 0; i < options.length; i += 2) {
+                const opt1 = options[i];
+                const opt2 = options[i+1];
+                if (opt1 && opt2) {
+                    pairs.push({
+                        id: `${opt1.id}_vs_${opt2.id}`,
+                        opt1: { id: opt1.id, label: opt1.label, emoji: opt1.emoji },
+                        opt2: { id: opt2.id, label: opt2.label, emoji: opt2.emoji }
+                    });
+                }
+            }
+        }
+
         return (
             <div className="space-y-3">
                 {renderProgressBar(interactive.progress)}
@@ -793,37 +827,35 @@ export function AiChat() {
                 <p className="text-xs text-muted-foreground">{interactive.description}</p>
 
                 <div className="space-y-3">
-                    {interactive.options?.map((pair) => {
-                        const [opt1, opt2] = pair.description.split('|').map((s) => {
-                            const [id, label] = s.split(':');
-                            return { id, label };
-                        });
+                    {pairs.map((pair) => {
                         const selected = versusAnswers[pair.id];
 
                         return (
                             <div key={pair.id} className="flex items-stretch gap-2">
                                 <button
-                                    onClick={() => handleVersusSelect(pair.id, opt1.id)}
+                                    onClick={() => handleVersusSelect(pair.id, pair.opt1.id)}
                                     className={cn(
-                                        'flex-1 p-3 rounded-lg border-2 transition-all text-sm font-medium',
-                                        selected === opt1.id
+                                        'flex-1 p-3 rounded-lg border-2 transition-all text-sm font-medium flex items-center justify-center gap-2',
+                                        selected === pair.opt1.id
                                             ? 'bg-primary text-white border-primary'
                                             : 'bg-background hover:bg-muted/50 border-muted'
                                     )}
                                 >
-                                    {opt1.label}
+                                    <span className="text-lg">{pair.opt1.emoji}</span>
+                                    <span>{pair.opt1.label}</span>
                                 </button>
-                                <div className="flex items-center px-2 text-xs text-muted-foreground font-bold">VS</div>
+                                <div className="flex items-center px-1 text-xs text-muted-foreground font-bold">VS</div>
                                 <button
-                                    onClick={() => handleVersusSelect(pair.id, opt2.id)}
+                                    onClick={() => handleVersusSelect(pair.id, pair.opt2.id)}
                                     className={cn(
-                                        'flex-1 p-3 rounded-lg border-2 transition-all text-sm font-medium',
-                                        selected === opt2.id
+                                        'flex-1 p-3 rounded-lg border-2 transition-all text-sm font-medium flex items-center justify-center gap-2',
+                                        selected === pair.opt2.id
                                             ? 'bg-primary text-white border-primary'
                                             : 'bg-background hover:bg-muted/50 border-muted'
                                     )}
                                 >
-                                    {opt2.label}
+                                    <span className="text-lg">{pair.opt2.emoji}</span>
+                                    <span>{pair.opt2.label}</span>
                                 </button>
                             </div>
                         );
@@ -831,12 +863,12 @@ export function AiChat() {
                 </div>
 
                 <Button
-                    onClick={() => handleVersusChoice(interactive.questionId)}
-                    disabled={Object.keys(versusAnswers).length < (interactive.options?.length || 0)}
+                    onClick={() => handleVersusChoice(interactive.questionId, pairs.length)}
+                    disabled={Object.keys(versusAnswers).length < pairs.length}
                     className="w-full"
                     size="sm"
                 >
-                    Продолжить ({Object.keys(versusAnswers).length}/{interactive.options?.length})
+                    Продолжить ({Object.keys(versusAnswers).length}/{pairs.length})
                 </Button>
             </div>
         );
