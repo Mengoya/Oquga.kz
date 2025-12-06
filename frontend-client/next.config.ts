@@ -6,7 +6,20 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 const nextConfig: NextConfig = {
     output: 'standalone',
     images: {
-        unoptimized: true,
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 's3.oquga.kz',
+            },
+            {
+                protocol: 'https',
+                hostname: '**.oquga.kz',
+            },
+            {
+                protocol: 'http',
+                hostname: 'localhost',
+            },
+        ],
     },
 };
 
