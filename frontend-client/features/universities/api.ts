@@ -29,11 +29,21 @@ export async function getUniversityById(id: string): Promise<UniversityDetail> {
     const isServer = typeof window === 'undefined';
 
     if (isServer) {
-        const baseUrl = API_BASE_URL?.startsWith('http')
-            ? API_BASE_URL
-            : 'http://localhost:8080';
+        let baseUrl = API_BASE_URL;
 
-        const res = await fetch(`${baseUrl}/api/v1/universities/${id}`, {
+        if (!baseUrl || baseUrl === 'undefined') {
+            baseUrl = 'http://localhost:8080';
+        }
+
+        if (baseUrl.endsWith('/')) {
+            baseUrl = baseUrl.slice(0, -1);
+        }
+
+        const apiUrl = baseUrl.includes('/api/v1')
+            ? `${baseUrl}/universities/${id}`
+            : `${baseUrl}/api/v1/universities/${id}`;
+
+        const res = await fetch(apiUrl, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
