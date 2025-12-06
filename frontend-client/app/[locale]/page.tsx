@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LatestNews } from '@/components/sections/latest-news';
-import { PLACEHOLDER_IMAGE } from '@/lib/constants';
 import { Link } from '@/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
