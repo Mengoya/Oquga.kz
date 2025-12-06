@@ -28,8 +28,17 @@ export const NAV_LINKS = [
 export const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-export const INTERNAL_API_URL =
-    process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+export function getInternalApiUrl(): string {
+    if (typeof window === 'undefined') {
+        const internalUrl = process.env.INTERNAL_API_URL;
+        if (internalUrl && internalUrl !== 'undefined' && internalUrl.trim() !== '') {
+            return internalUrl.replace(/\/+$/, '');
+        }
+    }
+    return API_BASE_URL.replace(/\/+$/, '');
+}
+
+export const INTERNAL_API_URL = API_BASE_URL;
 
 if (
     process.env.NODE_ENV === 'development' &&
