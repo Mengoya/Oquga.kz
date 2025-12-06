@@ -126,8 +126,8 @@ services:
     build:
       context: ./frontend-client
       args:
-        - NEXT_PUBLIC_API_URL: https://api.oquga.kz
-        - INTERNAL_API_URL=http://oquga-backend:8080
+        NEXT_PUBLIC_API_URL: https://api.oquga.kz
+        INTERNAL_API_URL: http://oquga-backend:8080
     container_name: oquga-client
     restart: always
     networks:
