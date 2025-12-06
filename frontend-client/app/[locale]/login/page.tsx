@@ -1,13 +1,22 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { LoginForm } from '@/components/auth/login-form';
-import { GraduationCap } from 'lucide-react';
+import { GraduationCap, Loader2 } from 'lucide-react';
 import { SITE_CONFIG } from '@/lib/config';
 
 export const metadata: Metadata = {
     title: 'Вход в систему',
     description: 'Авторизация на платформе Oquga.kz',
 };
+
+function LoginFallback() {
+    return (
+        <div className="flex justify-center py-10">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+    );
+}
 
 export default function LoginPage() {
     return (
@@ -40,7 +49,9 @@ export default function LoginPage() {
                         </p>
                     </div>
 
-                    <LoginForm />
+                    <Suspense fallback={<LoginFallback />}>
+                        <LoginForm />
+                    </Suspense>
 
                     <p className="px-8 text-center text-sm text-muted-foreground">
                         Нет аккаунта?{' '}
